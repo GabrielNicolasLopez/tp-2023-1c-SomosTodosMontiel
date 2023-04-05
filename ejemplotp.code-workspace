@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"path": "shared"
+		},
+		{
+			"path": "consola"
+		},
+		{
+			"path": "cpu"
+		},
+		{
+			"path": "filesystem"
+		},
+		{
+			"path": "kernel"
+		},
+		{
+			"path": "memoria"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"proceso1.h": "c",
+			"stdio.h": "c",
+			"stdbool.h": "c",
+			"memoria.h": "c"
+		}
+	}
+}

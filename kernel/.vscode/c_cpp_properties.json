@@ -1,0 +1,46 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}",
+                "/usr/include/c++/11",
+                "/usr/include/x86_64-linux-gnu/c++/11",
+                "/usr/include/c++/11/backward",
+                "/usr/lib/gcc/x86_64-linux-gnu/11/include",
+                "/usr/local/include",
+                "/usr/lib/gcc/x86_64-linux-gnu/11/include/sanitizer",
+                "/usr/include/x86_64-linux-gnu",
+                "/usr/include",
+                "${workspaceFolder}/include",
+                "../shared/include"
+            ],
+            "defines": [
+                "_GNU_SOURCE"
+            ],
+            "intelliSenseMode": "clang-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "${workspaceFolder}/include",
+                    "../shared/include",
+                    "/usr/include/c++/11",
+                    "/usr/include/x86_64-linux-gnu/c++/11",
+                    "/usr/include/c++/11/backward",
+                    "/usr/lib/gcc/x86_64-linux-gnu/11/include",
+                    "/usr/local/include",
+                    "/usr/lib/gcc/x86_64-linux-gnu/11/include/sanitizer",
+                    "/usr/include/x86_64-linux-gnu",
+                    "/usr/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}
