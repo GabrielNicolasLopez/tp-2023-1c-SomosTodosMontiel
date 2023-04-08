@@ -1,5 +1,5 @@
-#ifndef PROCESO1_H
-#define PROCESO1_H
+#ifndef FILESYSTEM_H
+#define FILESYSTEM_H
 #include <stdio.h>
 #include <commons/log.h>
 #include <stdbool.h>

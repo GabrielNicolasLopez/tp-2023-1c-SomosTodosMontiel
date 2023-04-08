@@ -119,3 +119,11 @@
 [INFO] 17:51:55:854 consola/(5001:5001): EL argv[7] es COLORTERM=truecolor
 [INFO] 17:51:55:854 consola/(5001:5001): EL argv[8] es XDG_CONFIG_DIRS=/etc/xdg/xdg-xfce:/etc/xdg:/etc/xdg
 [INFO] 17:51:55:854 consola/(5001:5001): EL argv[9] es XDG_SESSION_PATH=/org/freedesktop/DisplayManager/Session0
+[INFO] 19:14:37:276 consola/(9293:9293): 127.0.0.1
+[INFO] 19:14:37:276 consola/(9293:9293): 4444
+[INFO] 19:19:29:804 consola/(9607:9607): 127.0.0.1
+[INFO] 19:19:29:804 consola/(9607:9607): 4444
+[INFO] 19:20:16:330 consola/(9727:9727): 127.0.0.1
+[INFO] 19:20:16:330 consola/(9727:9727): 4444
+[INFO] 19:39:20:082 consola/(11329:11329): 127.0.0.1
+[INFO] 19:39:20:107 consola/(11329:11329): 4444
