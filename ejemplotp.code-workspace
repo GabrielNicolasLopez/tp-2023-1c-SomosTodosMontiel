@@ -21,9 +21,10 @@
 	],
 	"settings": {
 		"files.associations": {
-			"proceso1.h": "c",
-			"stdio.h": "c",
-			"stdbool.h": "c",
+			"consola.h": "c",
+			"cpu.h": "c",
+			"filesystem.h": "c",
+			"kernel.h": "c",
 			"memoria.h": "c"
 		}
 	}
