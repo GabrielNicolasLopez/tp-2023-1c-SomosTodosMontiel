@@ -10,7 +10,7 @@
             ]
         },
         {
-            "label": "Proceso1 Normal",
+            "label": "Kernel Normal",
             "type": "shell",
             "command": "./exec",
             "problemMatcher": [
@@ -18,7 +18,7 @@
             ]
         },
         {
-            "label": "Proceso1 Valgrind",
+            "label": "Kernel Valgrind",
             "type": "shell",
             "command": "./vexec",
             "problemMatcher": [
