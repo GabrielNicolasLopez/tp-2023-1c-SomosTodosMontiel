@@ -18,6 +18,8 @@ int main(int argc, char* argv[]){
     ip = config_get_string_value(config, "IP");
     puerto = config_get_string_value(config, "PUERTO");
 
+    printf("Hello World!");
+
 	log_info(logger, ip);
 	log_info(logger, puerto);
 }
