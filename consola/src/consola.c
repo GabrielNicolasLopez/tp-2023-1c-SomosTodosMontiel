@@ -1,23 +1,23 @@
 #include "consola.h"
 
-#define CONSOLA_CONFIG_PATH "./cfg/consola.cfg"
-#define CONSOLA_LOG_PATH "./cfg/consola.log"
-#define CONSOLA_MODULE_NAME "consola"
+#define CONFIG_PATH "./cfg/consola.cfg"
+#define LOG_PATH "./cfg/consola.log"
+#define MODULE_NAME "consola"
 
-int main(int argc, char* argv[]){
-
+int main(void)
+{
 	int conexion;
-	char* ip;
-	char* puerto;
-    t_log *logger;
-    t_config* config;
+	t_log* logger;
 
-    logger = log_create(CONSOLA_LOG_PATH, CONSOLA_MODULE_NAME, true, LOG_LEVEL_INFO);
+	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_INFO);
+	char* ip = "127.0.0.1";
+	char* puerto = "4444";
 
-    config = config_create(CONSOLA_CONFIG_PATH);
-    ip = config_get_string_value(config, "IP");
-    puerto = config_get_string_value(config, "PUERTO");
+	conexion = crear_conexion(ip, puerto, logger);
 
-	log_info(logger, ip);
-	log_info(logger, puerto);
+	enviar_mensaje("HOLA SOY LA CONSOLA", conexion);
+    
+    liberar_conexion(conexion);
+
+    log_destroy(logger);
 }

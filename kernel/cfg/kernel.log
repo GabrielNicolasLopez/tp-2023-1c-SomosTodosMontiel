@@ -2,3 +2,15 @@
 [INFO] 17:57:04:256 kernel/(5329:5329): Soy el modulo kernel! guarde el logger en la siguiente ruta:./cfg/kernel.log. Hice uso de la shared!
 [INFO] 19:56:59:966 kernel/(12281:12281): 127.0.0.1
 [INFO] 19:56:59:966 kernel/(12281:12281): 8002
+[INFO] 22:46:40:998 kernel/(8341:8341): 127.0.0.1
+[INFO] 22:46:40:998 kernel/(8341:8341): 8002
+[INFO] 22:48:19:018 kernel/(8547:8547): 127.0.0.1
+[INFO] 22:48:19:019 kernel/(8547:8547): 8002
+[INFO] 22:48:59:801 kernel/(8599:8599): Servidor listo para recibir al cliente
+[INFO] 22:49:13:913 kernel/(8599:8599): Se conecto un cliente!
+[INFO] 22:49:13:913 kernel/(8599:8599): Me llego el mensaje HOLA SOY LA CONSOLA
+[ERROR] 22:49:13:913 kernel/(8599:8599): el cliente se desconecto. Terminando servidor
+[INFO] 22:50:49:450 kernel/(8822:8822): Servidor listo para recibir al cliente
+[INFO] 22:50:53:595 kernel/(8822:8822): Se conecto un cliente!
+[INFO] 22:50:53:596 kernel/(8822:8822): Me llego el mensaje HOLA SOY LA CONSOLA
+[ERROR] 22:50:53:596 kernel/(8822:8822): el cliente se desconecto. Terminando servidor

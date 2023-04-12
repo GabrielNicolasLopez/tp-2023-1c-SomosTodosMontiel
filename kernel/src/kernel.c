@@ -5,19 +5,39 @@
 #define MODULE_NAME "kernel"
 
 
-int main(void){
+int main(void) {
+	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_DEBUG);
 
-    int conexion;
-	char* ip;
-	char* puerto;
-    t_log *logger;
-    t_config* config;
+    char* ip = "127.0.0.1";
+    char* puerto = "4444";
 
-    logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_INFO);
-    config = config_create(CONFIG_PATH);
-    ip = config_get_string_value(config, "IP_MEMORIA");
-    puerto = config_get_string_value(config, "PUERTO_MEMORIA");
+	int server_fd = iniciar_servidor(ip, puerto);
+	log_info(logger, "Servidor listo para recibir al cliente");
+	int cliente_fd = esperar_cliente(server_fd);
 
-	log_info(logger, ip);
-	log_info(logger, puerto);
+	t_list* lista;
+	while (1) {
+		int cod_op = recibir_operacion(cliente_fd);
+		switch (cod_op) {
+		case MENSAJE:
+			recibir_mensaje(cliente_fd);
+			break;
+		case PAQUETE:
+			lista = recibir_paquete(cliente_fd);
+			log_info(logger, "Me llegaron los siguientes valores:\n");
+			//list_iterate(lista, (void*) iterator);
+			break;
+		case -1:
+			log_error(logger, "el cliente se desconecto. Terminando servidor");
+			return 0;
+		default:
+			log_warning(logger,"Operacion desconocida. No quieras meter la pata");
+			break;
+		}
+	}
+	return 1;
 }
+
+/*void iterator(char* value) {
+	log_info(logger,"%s", value);
+}*/
