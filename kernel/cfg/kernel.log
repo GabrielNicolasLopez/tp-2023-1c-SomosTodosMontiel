@@ -1,2 +1,4 @@
 [INFO] 15:38:27:162 kernel/(3564:3564): Soy el modulo kernel! guarde el logger en la siguiente ruta:./cfg/kernel.log. Hice uso de la shared!
 [INFO] 17:57:04:256 kernel/(5329:5329): Soy el modulo kernel! guarde el logger en la siguiente ruta:./cfg/kernel.log. Hice uso de la shared!
+[INFO] 19:56:59:966 kernel/(12281:12281): 127.0.0.1
+[INFO] 19:56:59:966 kernel/(12281:12281): 8002
