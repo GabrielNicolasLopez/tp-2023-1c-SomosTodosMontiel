@@ -6,18 +6,18 @@
 
 int main(void)
 {
-	int conexion;
 	t_log* logger;
+	t_config* config = config_create(CONFIG_PATH);
 
 	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_INFO);
-	char* ip = "127.0.0.1";
-	char* puerto = "4444";
+	char* ip = config_get_string_value(config, "IP");
+	char* puerto_kernel = config_get_string_value(config, "PUERTO");
 
-	conexion = crear_conexion(ip, puerto, logger);
+	int conexion_con_kernel = crear_conexion(ip, puerto_kernel, logger);
 
-	enviar_mensaje("HOLA SOY LA CONSOLA", conexion);
+	enviar_mensaje("HOLA SOY LA CONSOLA MANDA SALUDO A MEMORIA", conexion_con_kernel);
     
-    liberar_conexion(conexion);
+    liberar_conexion(conexion_con_kernel);
 
     log_destroy(logger);
 }

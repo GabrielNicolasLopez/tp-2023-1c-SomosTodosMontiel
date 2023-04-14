@@ -14,3 +14,44 @@
 [INFO] 22:50:53:595 kernel/(8822:8822): Se conecto un cliente!
 [INFO] 22:50:53:596 kernel/(8822:8822): Me llego el mensaje HOLA SOY LA CONSOLA
 [ERROR] 22:50:53:596 kernel/(8822:8822): el cliente se desconecto. Terminando servidor
+[INFO] 02:05:58:674 kernel/(8680:8680): Servidor listo para recibir al cliente
+[INFO] 02:06:04:085 kernel/(8680:8680): Se conecto un cliente!
+[INFO] 02:06:04:102 kernel/(8680:8680): Me llego el mensaje HOLA SOY LA CONSOLA
+[ERROR] 02:06:04:103 kernel/(8680:8680): el cliente se desconecto. Terminando servidor
+[INFO] 03:59:33:122 kernel/(10125:10125): Servidor listo para recibir al cliente
+[INFO] 03:59:41:175 kernel/(10125:10125): Se conecto un cliente!
+[INFO] 03:59:41:178 kernel/(10125:10125): Me llego el mensaje HOLA SOY LA CONSOLA
+[ERROR] 03:59:41:181 kernel/(10125:10125): el cliente se desconecto. Terminando servidor
+[INFO] 04:23:28:674 kernel/(10530:10530): Servidor listo para recibir al cliente
+[INFO] 04:23:32:774 kernel/(10530:10530): Se conecto un cliente!
+[INFO] 04:23:32:776 kernel/(10530:10530): Me llego el mensaje HOLA SOY LA CONSOLA
+[ERROR] 04:23:32:778 kernel/(10530:10530): el cliente se desconecto. Terminando servidor
+[INFO] 05:30:53:374 kernel/(12596:12596): Servidor listo para recibir al cliente
+[INFO] 05:30:56:986 kernel/(12596:12596): Se conecto un cliente!
+[INFO] 05:30:56:989 kernel/(12596:12596): Me llego el mensaje HOLA SOY LA CONSOLA
+[ERROR] 05:30:56:990 kernel/(12596:12596): el cliente se desconecto. Terminando servidor
+[INFO] 15:53:06:122 kernel/(4906:4906): Servidor listo para recibir al cliente
+[INFO] 15:53:09:686 kernel/(4906:4906): Se conecto un cliente!
+[INFO] 15:53:09:693 kernel/(4906:4906): Me llego el mensaje HOLA SOY LA CONSOLA SALUDA A MEMORIA
+[ERROR] 15:53:09:696 kernel/(4906:4906): el cliente se desconecto. Terminando servidor
+[INFO] 15:55:33:239 kernel/(5240:5240): Servidor listo para recibir al cliente
+[INFO] 15:56:22:389 kernel/(5387:5387): Servidor listo para recibir al cliente
+[INFO] 15:57:37:161 kernel/(5581:5581): Servidor listo para recibir al cliente
+[INFO] 15:58:30:439 kernel/(5800:5800): Servidor listo para recibir al cliente
+[INFO] 15:58:33:606 kernel/(5800:5800): Se conecto un cliente!
+[INFO] 15:58:33:610 kernel/(5800:5800): Me llego el mensaje HOLA SOY LA CONSOLA SALUDA A MEMORIA
+[ERROR] 15:58:33:612 kernel/(5800:5800): el cliente se desconecto. Terminando servidor
+[INFO] 15:59:25:466 kernel/(5952:5952): Servidor listo para recibir al cliente
+[INFO] 15:59:31:131 kernel/(5952:5952): Se conecto un cliente!
+[INFO] 15:59:31:136 kernel/(5952:5952): Me llego el mensaje HOLA SOY LA CONSOLA
+[ERROR] 15:59:31:137 kernel/(5952:5952): el cliente se desconecto. Terminando servidor
+[INFO] 16:00:11:643 kernel/(6074:6074): Servidor listo para recibir al cliente
+[INFO] 16:00:19:939 kernel/(6123:6123): Servidor listo para recibir al cliente
+[INFO] 16:07:43:687 kernel/(6686:6686): Servidor listo para recibir al cliente
+[INFO] 16:07:46:825 kernel/(6686:6686): Se conecto un cliente!
+[INFO] 16:07:46:830 kernel/(6686:6686): Me llego el mensaje HOLA SOY LA CONSOLA
+[ERROR] 16:07:46:836 kernel/(6686:6686): el cliente se desconecto. Terminando servidor
+[INFO] 16:09:30:960 kernel/(6864:6864): Servidor listo para recibir al cliente
+[INFO] 16:09:33:595 kernel/(6864:6864): Se conecto un cliente!
+[INFO] 16:09:33:599 kernel/(6864:6864): Me llego el mensaje HOLA SOY LA CONSOLA MANDA SALUDO A MEMORIA
+[ERROR] 16:09:33:603 kernel/(6864:6864): el cliente se desconecto. Terminando servidor

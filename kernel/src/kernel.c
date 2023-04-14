@@ -7,9 +7,11 @@
 
 int main(void) {
 	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_DEBUG);
+	t_config* config = config_create(CONFIG_PATH);
 
     char* ip = "127.0.0.1";
-    char* puerto = "4444";
+    char* puerto = config_get_string_value(config, "PUERTO_ESCUCHA");
+	char* puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
 
 	int server_fd = iniciar_servidor(ip, puerto);
 	log_info(logger, "Servidor listo para recibir al cliente");
@@ -21,6 +23,13 @@ int main(void) {
 		switch (cod_op) {
 		case MENSAJE:
 			recibir_mensaje(cliente_fd);
+
+			int conexion_memoria = crear_conexion(ip, puerto_memoria, logger);
+
+			enviar_mensaje("Hola, Soy Koronel.", conexion_memoria);
+    
+    		liberar_conexion(conexion_memoria);
+
 			break;
 		case PAQUETE:
 			lista = recibir_paquete(cliente_fd);
