@@ -6,4 +6,17 @@
 #include <stdbool.h>
 #include "shared_utils.h"
 #include "tests.h"
+
+#define CONFIG_PATH "./cfg/consola.cfg"
+#define LOG_PATH "./cfg/consola.log"
+#define MODULE_NAME "consola"
+
+typedef struct
+{
+	char* ip;
+    char* puerto;
+} t_consola_config;
+
+t_consola_config leerConfiguracion(t_log* logger);
+
 #endif

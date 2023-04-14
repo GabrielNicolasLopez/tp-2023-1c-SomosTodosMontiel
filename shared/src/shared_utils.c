@@ -4,6 +4,7 @@ char* mi_funcion_compartida(){
     return "Hice uso de la shared!";
 }
 
+
 // Esto es del cliente
 
 void *serializar_paquete(t_paquete *paquete, int bytes)
@@ -43,7 +44,7 @@ int crear_conexion(char *ip, char *puerto, t_log* logger)
 	// connect():
 	if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
 	{
-		log_error(logger,"Error al conectarse a KERNEL :(");
+		log_error(logger,"Error al conectarse!");
 	}
 
 	freeaddrinfo(server_info);
@@ -128,9 +129,8 @@ t_log *logger;
 t_log *loggerMinimo;
 
 
-int iniciar_servidor(char *IP, char *PUERTO)
+int iniciar_servidor(char *IP, char *PUERTO, t_log* logger)
 {
-
 	int socket_servidor;
 
 	struct addrinfo hints, *servinfo, *p;
@@ -142,7 +142,6 @@ int iniciar_servidor(char *IP, char *PUERTO)
 
 	// char* ip = config_get_string_value(archivoConfig, "IP");
 	// char* puerto = config_get_string_value(archivoConfig, "PUERTO");
-
 	getaddrinfo(IP, PUERTO, &hints, &servinfo);
 
 	// Asociamos el socket a un puerto
@@ -150,7 +149,6 @@ int iniciar_servidor(char *IP, char *PUERTO)
 
 	/* ai_addr: Socket address for socket.  */
 	/* ai_addrlen: Length of socket address.  */
-
 	for (p = servinfo; p != NULL; p = p->ai_next)
 	{
 		if ((socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
@@ -169,19 +167,16 @@ int iniciar_servidor(char *IP, char *PUERTO)
 		break;
 	}
 	// Escuchamos las conexiones entrantes
-
 	// listen() : toma el socket del servidor creado y lo marca en el sistema como un socket cuya unica responsabilidad es notificar cuando
 	// un nuevo cliente esta intentando conectarse
 
 	listen(socket_servidor, SOMAXCONN); // SOMAXCONN: es la cantidad maxima de conexiones vivas que admite el sistema operativo
-
 	freeaddrinfo(servinfo);
-	log_trace(logger, "Listo para escuchar a mi cliente");
-
+	//log_trace(logger, "Listo para escuchar a mi cliente");
 	return socket_servidor;
 }
 
-int esperar_cliente(int socket_servidor)
+int esperar_cliente(int socket_servidor, t_log* logger)
 {
 
 	// Aceptamos un nuevo cliente
