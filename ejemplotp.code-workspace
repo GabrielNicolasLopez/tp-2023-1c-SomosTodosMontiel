@@ -26,7 +26,8 @@
 			"filesystem.h": "c",
 			"kernel.h": "c",
 			"memoria.h": "c",
-			"list.h": "c"
+			"list.h": "c",
+			"stdio.h": "c"
 		}
 	}
 }

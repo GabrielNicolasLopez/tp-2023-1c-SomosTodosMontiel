@@ -19,4 +19,49 @@ int main(int argc, char ** argv){
         log_destroy(logger);
     } 
 
+
+
+
+    //Creo logger para info
+	t_log* logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_INFO);
+
+    t_configuracion_CPU configuracion_CPU = leerConfiguracion(logger);
+
+    int server_fd = iniciar_servidor("127.0.0.1", configuracion_CPU.PUERTO_ESCUCHA, logger);
+    log_info(logger, "Memoria lista para recibir a los modulos");
+    int cliente_fd = esperar_cliente(server_fd, logger);
+
+    while (1) {
+        int cod_op = recibir_operacion(cliente_fd);
+        switch (cod_op) {
+        case MENSAJE:
+            recibir_mensaje(cliente_fd);
+            break;
+        case -1:
+            log_error(logger, "Un cliente se desconecto.");
+            break;
+        default:
+            log_warning(logger,"Operacion desconocida. No quieras destruir tu sistema operativo");
+            break;
+        }
+    }
+
+    log_destroy(logger); 
+}
+
+
+t_configuracion_CPU leerConfiguracion(t_log* logger){
+
+	//Creo el config para leer IP y PUERTO
+	t_config* config = config_create(CONFIG_PATH);
+
+	//Creo el archivo config
+	t_configuracion_CPU configuracion_CPU;
+
+	
+	configuracion_CPU.PUERTO_ESCUCHA = config_get_string_value(config, "PUERTO_ESCUCHA");
+
+	return configuracion_CPU;
+
+
 }
