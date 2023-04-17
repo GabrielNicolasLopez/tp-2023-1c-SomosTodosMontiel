@@ -4,6 +4,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <stdbool.h>
+#include <string.h>
 #include "shared_utils.h"
 #include "tests.h"
 
@@ -24,6 +25,10 @@ typedef struct
     char* PUERTO_ESCUCHA;
 } t_kernel_config;
 
-t_kernel_config leerConfiguracion();
+t_kernel_config *configuracionKernel;
 
+t_kernel_config *leerConfiguracion();
+void crear_pcb();
+void crear_hilo_consola();
+void crear_hilo_cpu();
 #endif

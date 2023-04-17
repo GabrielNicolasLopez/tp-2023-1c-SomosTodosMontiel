@@ -11,7 +11,7 @@
             "request": "launch",
             "preLaunchTask": "Make",
             "program": "${workspaceFolder}/consola",
-            "args": ["./cfg/consola.cfg", "2"],
+            "args": ["./cfg/consola.cfg", "./cfg/pseudocodigo.pse"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

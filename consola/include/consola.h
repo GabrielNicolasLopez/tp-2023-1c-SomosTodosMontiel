@@ -18,5 +18,7 @@ typedef struct
 } t_consola_config;
 
 t_consola_config leerConfiguracion(t_log* logger);
+void verificacionDeConfiguracion(int argc, t_log* logger);
+FILE *abrirArchivo(char *filename, t_log* logger);
 
 #endif

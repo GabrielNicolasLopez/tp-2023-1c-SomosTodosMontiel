@@ -13,9 +13,6 @@
 #include <string.h>
 #include <assert.h>
 
-//#define IP "127.0.0.1"
-//#define PUERTO "4444"
-
 typedef enum
 {
 	MENSAJE,
@@ -34,11 +31,16 @@ typedef struct
 	t_buffer *buffer;
 } t_paquete;
 
-
 typedef struct
 {
 	int hola;
 } t_pcb;
+
+typedef struct
+{
+	t_list *instrucciones;
+	uint32_t cantidadInstrucciones;
+} t_instrucciones;
 
 extern t_log* logger;
 
