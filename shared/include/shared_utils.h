@@ -38,7 +38,7 @@ typedef struct
 
 typedef struct
 {
-	t_list *instrucciones;
+	t_list *listaInstrucciones;
 	uint32_t cantidadInstrucciones;
 } t_instrucciones;
 

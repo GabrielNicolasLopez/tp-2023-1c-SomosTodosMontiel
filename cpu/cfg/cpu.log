@@ -59,3 +59,81 @@
 [INFO] 00:19:54:092 CPU/(54954:54954): todo bien
 [INFO] 00:19:54:097 CPU/(54954:54955): CPU listo para recibir clientes
 [INFO] 00:20:39:712 CPU/(54954:54955): Se conecto un cliente!
+[INFO] 00:27:39:585 CPU/(76753:76753): INICIANDO CPU...
+[INFO] 00:27:39:735 CPU/(76753:76753): todo bien
+[INFO] 00:27:39:753 CPU/(76753:76758): CPU listo para recibir clientes
+[INFO] 00:27:41:274 CPU/(76753:76758): Se conecto un cliente!
+[INFO] 01:07:24:455 CPU/(82456:82456): INICIANDO CPU...
+[INFO] 01:07:24:580 CPU/(82456:82456): todo bien
+[INFO] 01:07:24:599 CPU/(82456:82458): CPU listo para recibir clientes
+[INFO] 01:10:21:714 CPU/(82963:82963): INICIANDO CPU...
+[INFO] 01:10:21:715 CPU/(82963:82964): CPU listo para recibir clientes
+[INFO] 01:10:25:199 CPU/(82963:82964): Se conecto un cliente!
+[INFO] 01:21:33:454 CPU/(84772:84772): INICIANDO CPU...
+[INFO] 01:21:33:455 CPU/(84772:84775): CPU listo para recibir clientes
+[INFO] 01:21:36:922 CPU/(84772:84775): Se conecto un cliente!
+[INFO] 01:21:52:735 CPU/(84942:84942): INICIANDO CPU...
+[INFO] 01:21:52:737 CPU/(84942:84943): CPU listo para recibir clientes
+[INFO] 01:24:15:539 CPU/(85397:85397): INICIANDO CPU...
+[INFO] 01:24:15:549 CPU/(85397:85397): CPU se conectó a memoria
+[INFO] 01:24:15:553 CPU/(85397:85398): CPU listo para recibir clientes
+[INFO] 01:24:21:548 CPU/(85458:85458): INICIANDO CPU...
+[INFO] 01:24:21:548 CPU/(85458:85458): CPU se conectó a memoria
+[INFO] 01:24:21:549 CPU/(85458:85459): CPU listo para recibir clientes
+[INFO] 01:25:43:993 CPU/(85807:85807): INICIANDO CPU...
+[INFO] 01:25:43:994 CPU/(85807:85807): CPU se conectó a memoria
+[INFO] 01:25:43:995 CPU/(85807:85808): CPU listo para recibir clientes
+[INFO] 01:28:35:304 CPU/(86336:86336): INICIANDO CPU...
+[INFO] 01:28:35:313 CPU/(86336:86336): CPU se conectó a memoria
+[INFO] 01:28:35:318 CPU/(86336:86337): CPU listo para recibir clientes
+[INFO] 01:28:39:696 CPU/(86336:86337): Se conecto un cliente!
+[INFO] 01:47:51:484 CPU/(90844:90844): INICIANDO CPU...
+[ERROR] 01:47:51:485 CPU/(90844:90844): Error al conectarse!
+[INFO] 01:47:51:485 CPU/(90844:90844): CPU se conectó a memoria
+[INFO] 01:47:51:486 CPU/(90844:90845): CPU listo para recibir clientes
+[INFO] 01:47:59:139 CPU/(90938:90938): INICIANDO CPU...
+[ERROR] 01:47:59:271 CPU/(90938:90938): Error al conectarse!
+[INFO] 01:47:59:274 CPU/(90938:90938): CPU se conectó a memoria
+[INFO] 01:47:59:361 CPU/(90938:90940): CPU listo para recibir clientes
+[INFO] 02:10:41:123 CPU/(95815:95815): INICIANDO CPU...
+[INFO] 02:10:41:252 CPU/(95815:95815): CPU se conectó a memoria
+[INFO] 02:10:41:349 CPU/(95815:95828): CPU listo para recibir clientes
+[INFO] 02:10:46:813 CPU/(95850:95850): INICIANDO CPU...
+[INFO] 02:10:46:813 CPU/(95850:95850): CPU se conectó a memoria
+[INFO] 02:10:46:822 CPU/(95850:95851): CPU listo para recibir clientes
+[INFO] 02:12:45:456 CPU/(96302:96302): INICIANDO CPU...
+[INFO] 02:12:45:457 CPU/(96302:96302): CPU se conectó a memoria
+[INFO] 02:12:45:458 CPU/(96302:96303): CPU listo para recibir clientes
+[INFO] 02:13:57:625 CPU/(96839:96839): INICIANDO CPU...
+[INFO] 02:13:57:626 CPU/(96839:96839): CPU se conectó a memoria
+[INFO] 02:13:57:630 CPU/(96839:96841): CPU listo para recibir clientes
+[INFO] 02:14:03:512 CPU/(96839:96841): Se conecto un cliente!
+[INFO] 02:15:14:445 CPU/(97396:97396): INICIANDO CPU...
+[INFO] 02:15:14:453 CPU/(97396:97396): CPU se conectó a memoria
+[INFO] 02:15:14:460 CPU/(97396:97397): CPU listo para recibir clientes
+[INFO] 02:15:23:235 CPU/(97396:97397): Se conecto un cliente!
+[INFO] 02:15:41:880 CPU/(97730:97730): INICIANDO CPU...
+[INFO] 02:15:41:882 CPU/(97730:97730): CPU se conectó a memoria
+[INFO] 02:15:41:904 CPU/(97730:97731): CPU listo para recibir clientes
+[INFO] 02:15:44:861 CPU/(97730:97731): Se conecto un cliente!
+[INFO] 02:16:55:688 CPU/(97730:97731): Se conecto un cliente!
+[INFO] 02:17:07:904 CPU/(98313:98313): INICIANDO CPU...
+[INFO] 02:17:07:906 CPU/(98313:98313): CPU se conectó a memoria
+[INFO] 02:17:07:912 CPU/(98313:98314): CPU listo para recibir clientes
+[INFO] 02:17:09:483 CPU/(98313:98314): Se conecto un cliente!
+[INFO] 02:17:37:613 CPU/(98692:98692): INICIANDO CPU...
+[INFO] 02:17:37:614 CPU/(98692:98692): CPU se conectó a memoria
+[INFO] 02:17:37:615 CPU/(98692:98693): CPU listo para recibir clientes
+[INFO] 02:17:38:973 CPU/(98692:98693): Se conecto un cliente!
+[INFO] 02:20:29:666 CPU/(99279:99279): INICIANDO CPU...
+[INFO] 02:20:29:674 CPU/(99279:99279): CPU se conectó a memoria
+[INFO] 02:20:29:675 CPU/(99279:99280): CPU listo para recibir clientes
+[INFO] 02:20:36:549 CPU/(99279:99280): Se conecto un cliente!
+[INFO] 02:21:25:172 CPU/(99864:99864): INICIANDO CPU...
+[INFO] 02:21:25:179 CPU/(99864:99864): CPU se conectó a memoria
+[INFO] 02:21:25:180 CPU/(99864:99865): CPU listo para recibir clientes
+[INFO] 02:21:33:292 CPU/(99864:99865): Se conecto un cliente!
+[INFO] 02:21:58:323 CPU/(100285:100285): INICIANDO CPU...
+[INFO] 02:21:58:348 CPU/(100285:100285): CPU se conectó a memoria
+[INFO] 02:21:58:352 CPU/(100285:100286): CPU listo para recibir clientes
+[INFO] 02:22:01:646 CPU/(100285:100286): Se conecto un cliente!

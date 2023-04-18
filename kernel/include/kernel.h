@@ -29,6 +29,8 @@ t_kernel_config *configuracionKernel;
 
 t_kernel_config *leerConfiguracion();
 void crear_pcb();
-void crear_hilo_consola();
+void crear_hilo_memoria();
+void crear_hilo_filesystem();
 void crear_hilo_cpu();
+void crear_hilo_consola();
 #endif

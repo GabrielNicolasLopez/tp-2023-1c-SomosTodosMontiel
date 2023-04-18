@@ -9911,3 +9911,114 @@
 [ERROR] 17:23:42:039 Filesystem/(21011:21011): Kernel se desconecto.
 [ERROR] 17:23:42:039 Filesystem/(21011:21011): Kernel se desconecto.
 [INFO] 22:33:36:130 Filesystem/(33402:33402): Filesystem listo para recibir a Kernel
+[ERROR] 01:38:12:259 Filesystem/(88708:88708): Error al conectarse!
+[INFO] 01:38:12:259 Filesystem/(88708:88708): Filesystem listo para recibir a Kernel
+[INFO] 01:38:51:450 Filesystem/(88937:88937): INICIANDO FILESYSTEM...
+[INFO] 01:39:03:722 Filesystem/(88983:88983): INICIANDO FILESYSTEM...
+[INFO] 01:41:15:791 Filesystem/(89527:89527): INICIANDO FILESYSTEM...
+[INFO] 01:43:00:346 Filesystem/(89921:89921): INICIANDO FILESYSTEM...
+[INFO] 01:43:00:542 Filesystem/(89921:89937): Filesystem listo para recibir a Kernel
+[INFO] 01:43:00:542 Filesystem/(89921:89937): Filesystem listo para recibir a Kernel
+[INFO] 01:43:44:256 Filesystem/(90072:90072): INICIANDO FILESYSTEM...
+[INFO] 01:43:53:715 Filesystem/(90135:90135): INICIANDO FILESYSTEM...
+[INFO] 01:44:43:579 Filesystem/(90298:90298): INICIANDO FILESYSTEM...
+[INFO] 01:44:57:513 Filesystem/(90366:90366): INICIANDO FILESYSTEM...
+[INFO] 01:44:57:690 Filesystem/(90366:90382): Filesystem listo para recibir a Kernel
+[ERROR] 01:44:57:704 Filesystem/(90366:90383): Error al conectarse!
+[INFO] 01:44:57:710 Filesystem/(90366:90383): Me conecté a memoria
+[INFO] 01:44:57:710 Filesystem/(90366:90383): Me conecté a memoria
+recibir a Kernel
+[INFO] 01:48:32:965 Filesystem/(91800:91800): INICIANDO FILESYSTEM...
+[INFO] 01:48:40:548 Filesystem/(91879:91879): INICIANDO FILESYSTEM...
+[INFO] 01:48:40:707 Filesystem/(91879:91881): Filesystem listo para recibir a Kernel
+[INFO] 01:48:40:707 Filesystem/(91879:91881): Filesystem listo para recibir a Kernel
+[INFO] 01:52:44:564 Filesystem/(92506:92506): INICIANDO FILESYSTEM...
+[INFO] 01:54:32:621 Filesystem/(92773:92773): INICIANDO FILESYSTEM...
+[INFO] 01:54:53:969 Filesystem/(92854:92854): INICIANDO FILESYSTEM...
+[INFO] 01:54:54:139 Filesystem/(92854:92867): Filesystem listo para recibir a Kernel
+[INFO] 01:54:54:139 Filesystem/(92854:92867): Filesystem listo para recibir a Kernel
+[ERROR] 01:54:54:155 Filesystem/(92854:92868): Error al conectarse!
+[INFO] 01:54:54:160 Filesystem/(92854:92868): Me conecté a memoria
+[INFO] 01:56:08:349 Filesystem/(92979:92979): INICIANDO FILESYSTEM...
+[INFO] 01:56:41:250 Filesystem/(93073:93073): INICIANDO FILESYSTEM...
+[INFO] 01:56:55:149 Filesystem/(93143:93143): INICIANDO FILESYSTEM...
+[INFO] 01:57:23:535 Filesystem/(93223:93223): INICIANDO FILESYSTEM...
+[INFO] 01:57:23:704 Filesystem/(93223:93227): Filesystem listo para recibir a Kernel
+[INFO] 01:59:29:833 Filesystem/(94138:94138): INICIANDO FILESYSTEM...
+[INFO] 02:02:47:738 Filesystem/(94632:94632): INICIANDO FILESYSTEM...
+[INFO] 02:02:47:738 Filesystem/(94632:94632): Hola FL 1
+[INFO] 02:02:47:739 Filesystem/(94632:94632): Hola FL 2
+[INFO] 02:03:02:060 Filesystem/(94683:94683): INICIANDO FILESYSTEM...
+[INFO] 02:03:02:125 Filesystem/(94683:94683): Hola FL 1
+[INFO] 02:03:02:148 Filesystem/(94683:94683): Hola FL 2
+[INFO] 02:03:02:227 Filesystem/(94683:94685): Filesystem listo para recibir a Kernel
+[INFO] 02:03:02:227 Filesystem/(94683:94685): Filesystem listo para recibir a Kernel
+[ERROR] 02:03:02:244 Filesystem/(94683:94686): Error al conectarse!
+[INFO] 02:03:02:245 Filesystem/(94683:94686): Me conecté a memoria
+[INFO] 02:03:38:942 Filesystem/(94776:94776): INICIANDO FILESYSTEM...
+[INFO] 02:03:39:007 Filesystem/(94776:94776): Hola FL 1
+[INFO] 02:03:39:032 Filesystem/(94776:94776): Hola FL 2
+[INFO] 02:03:39:118 Filesystem/(94776:94791): Filesystem listo para recibir a Kernel
+[INFO] 02:03:39:119 Filesystem/(94776:94776): Hola FL 3
+[INFO] 02:03:40:844 Filesystem/(94801:94801): INICIANDO FILESYSTEM...
+[INFO] 02:03:40:844 Filesystem/(94801:94801): Hola FL 1
+[INFO] 02:03:40:846 Filesystem/(94801:94801): Hola FL 2
+[INFO] 02:03:40:846 Filesystem/(94801:94801): Hola FL 3
+[INFO] 02:10:15:449 Filesystem/(95534:95534): INICIANDO FILESYSTEM...
+[INFO] 02:10:15:449 Filesystem/(95534:95534): Hola FL 1
+[INFO] 02:10:15:449 Filesystem/(95534:95534): Hola FL 2
+[ERROR] 02:10:15:449 Filesystem/(95534:95534): Error al conectarse!
+[INFO] 02:10:15:449 Filesystem/(95534:95534): FL se conectó a memoria
+[INFO] 02:10:35:611 Filesystem/(95761:95761): INICIANDO FILESYSTEM...
+[INFO] 02:10:35:611 Filesystem/(95761:95761): Hola FL 1
+[INFO] 02:10:35:612 Filesystem/(95761:95761): Hola FL 2
+[INFO] 02:10:35:614 Filesystem/(95761:95761): FL se conectó a memoria
+[INFO] 02:12:18:326 Filesystem/(96156:96156): INICIANDO FILESYSTEM...
+[INFO] 02:12:18:326 Filesystem/(96156:96156): Hola FL 1
+[INFO] 02:12:18:326 Filesystem/(96156:96156): Hola FL 2
+[INFO] 02:12:18:336 Filesystem/(96156:96156): FL se conectó a memoria
+[INFO] 02:13:20:785 Filesystem/(96612:96612): INICIANDO FILESYSTEM...
+[INFO] 02:13:20:786 Filesystem/(96612:96612): Hola FL 1
+[INFO] 02:13:20:786 Filesystem/(96612:96612): Hola FL 2
+[INFO] 02:13:20:796 Filesystem/(96612:96612): FL se conectó a memoria
+[INFO] 02:13:20:796 Filesystem/(96612:96612): 3
+[INFO] 02:13:53:529 Filesystem/(96779:96779): INICIANDO FILESYSTEM...
+[INFO] 02:13:53:529 Filesystem/(96779:96779): Hola FL 1
+[INFO] 02:13:53:529 Filesystem/(96779:96779): Hola FL 2
+[INFO] 02:13:53:534 Filesystem/(96779:96779): FL se conectó a memoria
+[INFO] 02:13:53:535 Filesystem/(96779:96780): Filesystem listo para recibir a Kernel
+[INFO] 02:15:19:682 Filesystem/(97460:97460): INICIANDO FILESYSTEM...
+[INFO] 02:15:19:682 Filesystem/(97460:97460): Hola FL 1
+[INFO] 02:15:19:693 Filesystem/(97460:97460): Hola FL 2
+[INFO] 02:15:19:694 Filesystem/(97460:97460): FL se conectó a memoria
+[INFO] 02:15:19:695 Filesystem/(97460:97461): Filesystem listo para recibir a Kernel
+[INFO] 02:15:42:372 Filesystem/(97737:97737): INICIANDO FILESYSTEM...
+[INFO] 02:15:42:372 Filesystem/(97737:97737): Hola FL 1
+[INFO] 02:15:42:372 Filesystem/(97737:97737): Hola FL 2
+[INFO] 02:15:42:379 Filesystem/(97737:97737): FL se conectó a memoria
+[INFO] 02:15:42:381 Filesystem/(97737:97738): Filesystem listo para recibir a Kernel
+[INFO] 02:16:55:676 Filesystem/(97737:97738): Se conecto un cliente!
+[INFO] 02:17:08:416 Filesystem/(98320:98320): INICIANDO FILESYSTEM...
+[INFO] 02:17:08:429 Filesystem/(98320:98320): Hola FL 1
+[INFO] 02:17:08:430 Filesystem/(98320:98320): Hola FL 2
+[INFO] 02:17:08:436 Filesystem/(98320:98320): FL se conectó a memoria
+[INFO] 02:17:08:439 Filesystem/(98320:98322): Filesystem listo para recibir a Kernel
+[INFO] 02:17:09:480 Filesystem/(98320:98322): Se conecto un cliente!
+[INFO] 02:20:30:077 Filesystem/(99289:99289): INICIANDO FILESYSTEM...
+[INFO] 02:20:30:078 Filesystem/(99289:99289): Hola FL 1
+[INFO] 02:20:30:078 Filesystem/(99289:99289): Hola FL 2
+[INFO] 02:20:30:078 Filesystem/(99289:99289): FL se conectó a memoria
+[INFO] 02:20:30:078 Filesystem/(99289:99290): Filesystem listo para recibir a Kernel
+[INFO] 02:20:36:530 Filesystem/(99289:99290): Se conecto un cliente!
+[INFO] 02:21:27:932 Filesystem/(99914:99914): INICIANDO FILESYSTEM...
+[INFO] 02:21:27:933 Filesystem/(99914:99914): Hola FL 1
+[INFO] 02:21:27:934 Filesystem/(99914:99914): Hola FL 2
+[INFO] 02:21:27:941 Filesystem/(99914:99914): FL se conectó a memoria
+[INFO] 02:21:27:955 Filesystem/(99914:99915): Filesystem listo para recibir a Kernel
+[INFO] 02:21:33:255 Filesystem/(99914:99915): Se conecto un cliente!
+[INFO] 02:21:52:547 Filesystem/(100199:100199): INICIANDO FILESYSTEM...
+[INFO] 02:21:52:548 Filesystem/(100199:100199): Hola FL 1
+[INFO] 02:21:52:549 Filesystem/(100199:100199): Hola FL 2
+[INFO] 02:21:52:552 Filesystem/(100199:100199): FL se conectó a memoria
+[INFO] 02:21:52:554 Filesystem/(100199:100200): Filesystem listo para recibir a Kernel
+[INFO] 02:21:53:834 Filesystem/(100199:100200): Se conecto un cliente!

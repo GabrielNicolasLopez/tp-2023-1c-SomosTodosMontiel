@@ -15,13 +15,15 @@
 typedef struct 
 {
 	char* PUERTO_ESCUCHA;
-}t_configuracion_CPU;
+	char* IP_MEMORIA;
+	char* PUERTO_MEMORIA;
+}t_cpu_config;
 
-t_configuracion_CPU *configuracion_CPU;
+t_cpu_config *configuracionCPU;
+t_cpu_config *leerConfiguracion();
 
-t_configuracion_CPU *leerConfiguracion(t_log* logger);
 //void crear_hilos_cpu();
-void conectar_kernel();
+void crear_hilo_kernel();
 void crear_pcb();
 
 #endif

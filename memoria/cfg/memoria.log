@@ -15884,3 +15884,112 @@
 [ERROR] 23:06:44:081 Memoria/(33194:33194): Un cliente se desconecto.
 [ERROR] 23:06:44:081 Memoria/(33194:33194): Un cliente se desconecto.
 [ERROR] 23:06:44:081 Memoria/(33194:33194): Un cliente se desconecto.
+[INFO] 01:02:10:135 Memoria/(80872:80872): Memoria lista para recibir a los modulos
+[INFO] 01:02:45:889 Memoria/(81087:81087): Memoria lista para recibir a los modulos
+[INFO] 01:03:17:905 Memoria/(81205:81205): Memoria lista para recibir a los modulos
+[INFO] 01:03:47:977 Memoria/(81346:81346): Memoria lista para recibir a los modulos
+[INFO] 01:04:02:270 Memoria/(81431:81431): Memoria lista para recibir a los modulos
+[INFO] 01:04:28:105 Memoria/(81544:81544): Memoria lista para recibir a los modulos
+[INFO] 01:04:47:765 Memoria/(81641:81641): Memoria lista para recibir a los modulos
+[INFO] 01:06:29:027 Memoria/(82167:82167): INICIANDO MEMORIA...
+[INFO] 01:06:34:967 Memoria/(82202:82202): INICIANDO MEMORIA...
+[INFO] 01:07:13:327 Memoria/(82331:82331): INICIANDO MEMORIA...
+[INFO] 01:07:13:509 Memoria/(82331:82350): MEMORIA listo para recibir al kernel
+[INFO] 01:07:13:550 Memoria/(82331:82351): MEMORIA listo para recibir al CPU
+[INFO] 01:07:13:556 Memoria/(82331:82352): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 01:07:16:785 Memoria/(82365:82365): INICIANDO MEMORIA...
+[INFO] 01:07:16:785 Memoria/(82365:82366): MEMORIA listo para recibir al kernel
+[INFO] 01:07:16:786 Memoria/(82365:82368): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 01:07:16:786 Memoria/(82365:82367): MEMORIA listo para recibir al CPU
+[INFO] 01:21:51:365 Memoria/(84916:84916): INICIANDO MEMORIA...
+[INFO] 01:21:51:366 Memoria/(84916:84918): MEMORIA listo para recibir al CPU
+[INFO] 01:21:51:366 Memoria/(84916:84917): MEMORIA listo para recibir al kernel
+[INFO] 01:21:51:367 Memoria/(84916:84919): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 01:24:15:540 Memoria/(84916:84917): Se conecto un cliente!
+[INFO] 01:25:42:093 Memoria/(85773:85773): INICIANDO MEMORIA...
+[INFO] 01:25:42:094 Memoria/(85773:85775): MEMORIA listo para recibir al CPU
+[INFO] 01:25:42:094 Memoria/(85773:85774): MEMORIA listo para recibir al kernel
+[INFO] 01:25:42:102 Memoria/(85773:85776): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 01:25:43:994 Memoria/(85773:85774): Se conecto un cliente!
+[INFO] 01:28:32:023 Memoria/(86283:86283): INICIANDO MEMORIA...
+[INFO] 01:28:32:025 Memoria/(86283:86284): MEMORIA listo para recibir al kernel
+[INFO] 01:28:32:025 Memoria/(86283:86285): MEMORIA listo para recibir al CPU
+[INFO] 01:28:32:025 Memoria/(86283:86286): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 01:28:35:306 Memoria/(86283:86284): Se conecto un cliente!
+[INFO] 02:10:24:530 Memoria/(95576:95576): INICIANDO MEMORIA...
+[INFO] 02:10:24:721 Memoria/(95576:95579): MEMORIA listo para recibir al CPU
+[INFO] 02:10:24:723 Memoria/(95576:95578): MEMORIA listo para recibir al kernel
+[INFO] 02:10:24:723 Memoria/(95576:95580): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:10:32:555 Memoria/(95717:95717): INICIANDO MEMORIA...
+[INFO] 02:10:32:558 Memoria/(95717:95722): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:10:32:560 Memoria/(95717:95720): MEMORIA listo para recibir al kernel
+[INFO] 02:10:32:572 Memoria/(95717:95721): MEMORIA listo para recibir al CPU
+[INFO] 02:10:35:613 Memoria/(95717:95720): Se conecto un cliente!
+[INFO] 02:12:15:615 Memoria/(96124:96124): INICIANDO MEMORIA...
+[INFO] 02:12:15:620 Memoria/(96124:96127): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:12:15:620 Memoria/(96124:96125): MEMORIA listo para recibir al kernel
+[INFO] 02:12:15:620 Memoria/(96124:96126): MEMORIA listo para recibir al CPU
+[INFO] 02:12:18:326 Memoria/(96124:96125): Se conecto un cliente!
+[INFO] 02:12:44:114 Memoria/(96275:96275): INICIANDO MEMORIA...
+[INFO] 02:12:44:115 Memoria/(96275:96277): MEMORIA listo para recibir al CPU
+[INFO] 02:12:44:115 Memoria/(96275:96276): MEMORIA listo para recibir al kernel
+[INFO] 02:12:44:115 Memoria/(96275:96278): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:12:45:456 Memoria/(96275:96277): Se conecto un cliente!
+[INFO] 02:13:19:499 Memoria/(96588:96588): INICIANDO MEMORIA...
+[INFO] 02:13:19:499 Memoria/(96588:96589): MEMORIA listo para recibir al kernel
+[INFO] 02:13:19:500 Memoria/(96588:96590): MEMORIA listo para recibir al CPU
+[INFO] 02:13:19:501 Memoria/(96588:96591): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:13:20:786 Memoria/(96588:96589): Se conecto un cliente!
+[INFO] 02:13:52:373 Memoria/(96752:96752): INICIANDO MEMORIA...
+[INFO] 02:13:52:375 Memoria/(96752:96755): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:13:52:375 Memoria/(96752:96754): MEMORIA listo para recibir al CPU
+[INFO] 02:13:52:378 Memoria/(96752:96753): MEMORIA listo para recibir al kernel
+[INFO] 02:13:53:534 Memoria/(96752:96753): Se conecto un cliente!
+[INFO] 02:13:57:626 Memoria/(96752:96754): Se conecto un cliente!
+[INFO] 02:15:11:744 Memoria/(97370:97370): INICIANDO MEMORIA...
+[INFO] 02:15:11:745 Memoria/(97370:97371): MEMORIA listo para recibir al kernel
+[INFO] 02:15:11:746 Memoria/(97370:97372): MEMORIA listo para recibir al CPU
+[INFO] 02:15:11:748 Memoria/(97370:97373): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:15:14:446 Memoria/(97370:97372): Se conecto un cliente!
+[INFO] 02:15:19:694 Memoria/(97370:97371): Se conecto un cliente!
+[INFO] 02:15:41:446 Memoria/(97720:97720): INICIANDO MEMORIA...
+[INFO] 02:15:41:446 Memoria/(97720:97723): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:15:41:459 Memoria/(97720:97721): MEMORIA listo para recibir al kernel
+[INFO] 02:15:41:459 Memoria/(97720:97722): MEMORIA listo para recibir al CPU
+[INFO] 02:15:41:883 Memoria/(97720:97722): Se conecto un cliente!
+[INFO] 02:15:42:373 Memoria/(97720:97721): Se conecto un cliente!
+[INFO] 02:16:55:659 Memoria/(97720:97723): Se conecto un cliente!
+[INFO] 02:17:07:442 Memoria/(98300:98300): INICIANDO MEMORIA...
+[INFO] 02:17:07:444 Memoria/(98300:98301): MEMORIA listo para recibir al kernel
+[INFO] 02:17:07:444 Memoria/(98300:98303): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:17:07:446 Memoria/(98300:98302): MEMORIA listo para recibir al CPU
+[INFO] 02:17:07:906 Memoria/(98300:98302): Se conecto un cliente!
+[INFO] 02:17:08:431 Memoria/(98300:98301): Se conecto un cliente!
+[INFO] 02:17:09:476 Memoria/(98300:98303): Se conecto un cliente!
+[INFO] 02:17:36:211 Memoria/(98664:98664): INICIANDO MEMORIA...
+[INFO] 02:17:36:213 Memoria/(98664:98666): MEMORIA listo para recibir al CPU
+[INFO] 02:17:36:214 Memoria/(98664:98665): MEMORIA listo para recibir al kernel
+[INFO] 02:17:36:214 Memoria/(98664:98667): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:17:37:613 Memoria/(98664:98666): Se conecto un cliente!
+[INFO] 02:17:38:973 Memoria/(98664:98667): Se conecto un cliente!
+[INFO] 02:20:28:461 Memoria/(99251:99251): INICIANDO MEMORIA...
+[INFO] 02:20:28:462 Memoria/(99251:99253): MEMORIA listo para recibir al CPU
+[INFO] 02:20:28:462 Memoria/(99251:99252): MEMORIA listo para recibir al kernel
+[INFO] 02:20:28:462 Memoria/(99251:99254): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:20:29:667 Memoria/(99251:99253): Se conecto un cliente!
+[INFO] 02:20:30:078 Memoria/(99251:99252): Se conecto un cliente!
+[INFO] 02:20:36:528 Memoria/(99251:99254): Se conecto un cliente!
+[INFO] 02:21:23:229 Memoria/(99831:99831): INICIANDO MEMORIA...
+[INFO] 02:21:23:230 Memoria/(99831:99832): MEMORIA listo para recibir al kernel
+[INFO] 02:21:23:230 Memoria/(99831:99834): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:21:23:230 Memoria/(99831:99833): MEMORIA listo para recibir al CPU
+[INFO] 02:21:25:179 Memoria/(99831:99833): Se conecto un cliente!
+[INFO] 02:21:27:934 Memoria/(99831:99832): Se conecto un cliente!
+[INFO] 02:21:33:254 Memoria/(99831:99834): Se conecto un cliente!
+[INFO] 02:21:52:184 Memoria/(100193:100193): INICIANDO MEMORIA...
+[INFO] 02:21:52:184 Memoria/(100193:100195): MEMORIA listo para recibir al CPU
+[INFO] 02:21:52:185 Memoria/(100193:100194): MEMORIA listo para recibir al kernel
+[INFO] 02:21:52:185 Memoria/(100193:100196): MEMORIA listo para recibir al FILESYSTEM
+[INFO] 02:21:52:552 Memoria/(100193:100194): Se conecto un cliente!
+[INFO] 02:21:53:834 Memoria/(100193:100196): Se conecto un cliente!
+[INFO] 02:21:58:339 Memoria/(100193:100195): Se conecto un cliente!

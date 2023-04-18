@@ -28,7 +28,9 @@
 			"memoria.h": "c",
 			"list.h": "c",
 			"stdio.h": "c",
-			"shared_utils.h": "c"
+			"shared_utils.h": "c",
+			"config.h": "c",
+			"log.h": "c"
 		}
 	}
 }

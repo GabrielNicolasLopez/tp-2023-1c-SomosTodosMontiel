@@ -4,40 +4,48 @@ int main(void) {
 	
 	//Creo el logger
 	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_DEBUG);
-	
-	//Creo el config
-	t_config* config = config_create(CONFIG_PATH);
+
+	log_info(logger, "INICIANDO KERNEL...");
 
 	//Leo la configuracion de kernel
 	configuracionKernel = leerConfiguracion();
 
-	//Kernel como cliente
-	//Me conecto a memoria
-	//int conexion_con_memoria = crear_conexion(configuracionKernel.IP_MEMORIA, configuracionKernel.PUERTO_MEMORIA, logger);
-	//Me conecto a filesystem
-	//int conexion_con_filesystem = crear_conexion(configuracionKernel.IP_FILESYSTEM, configuracionKernel.PUERTO_FILESYSTEM, logger);
-	//int conexion_con_filesystem = crear_conexion("127.0.0.1", configuracionKernel.PUERTO_FILESYSTEM, logger);
-	
-
 	crear_hilos_kernel();
-	log_info(logger, "kernel termino de esperar");
 }
 
 void crear_hilos_kernel(){
-	pthread_t hiloConsola, hiloCPU;
+	pthread_t hiloConsola, hiloCPU, hiloFilesystem, hiloMemoria;
 
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
 	pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
+	pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
+	pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
 
 	pthread_detach(hiloCPU);
+	pthread_detach(hiloFilesystem);
+	pthread_detach(hiloMemoria);
 
 	pthread_join(hiloConsola, NULL);
+}
+
+void crear_hilo_memoria(){
+	//Me conecto a memoria
+	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_MEMORIA, configuracionKernel->PUERTO_MEMORIA, logger);
+	log_info(logger, "Hola, me conecté a memoria");
+	while(1){}	
+}
+
+void crear_hilo_filesystem(){
+	//Me conecto a filesystem
+	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_FILESYSTEM, configuracionKernel->PUERTO_FILESYSTEM, logger);
+	log_info(logger, "Hola, me conecté a filesystem");
+	while(1){}
 }
 
 void crear_hilo_cpu(){
 	//Me conecto a cpu
 	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
-	log_info(logger, "Hola, se conecto cpu");
+	log_info(logger, "Hola, me conecté a cpu");
 	while(1){}
 }
 
