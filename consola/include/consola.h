@@ -17,23 +17,23 @@ typedef struct
     char* puerto;
 } t_consola_config;
 
-typedef struct
+typedef enum
 {
 	//4 bytes
-    char AX;
-    char BX;
-    char CX;
-    char DX;
+    AX,
+    BX,
+    CX,
+    DX,
     //8 bytes
-    char EAX;
-    char EBX;
-    char ECX;
-    char EDX;
+    EAX,
+    EBX,
+    ECX,
+    EDX,
     //16 bytes
-    char RAX;
-    char RBX;
-    char RCX;
-    char RDX;
+    RAX,
+    RBX,
+    RCX,
+    RDX
 } t_registro;
 
 typedef enum
@@ -62,12 +62,14 @@ typedef enum
 
 typedef struct
 {
-	t_tipoInstruccion tipoInstruccion; //F_read ó SET, etc
-	uint32_t paramInt; //
-    //char* paramIO; 
-	uint32_t sizeParamIO;
-	t_registro paramReg[2];
+	t_tipoInstruccion tipo; 
+	uint32_t paramIntA, paramIntB; // En caso de que se deban guardar dos int
+    char* recurso; //Disco, etc
+	uint32_t longitudRecurso; //Longitud de la palabra 
+	t_registro registros[2]; //Puede que con 1 solo es suficiente
+    char* cadena[16];
 } t_instruccion;
+// __attribute__((packed)) t_instruccion; esto tiene que ir?
 
 
 t_consola_config leerConfiguracion(t_log* logger);

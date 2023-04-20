@@ -13,18 +13,15 @@ int main(int argc, char** argv){
 
 	//Leo la configuracion y la muestro
 	t_consola_config consola_config = leerConfiguracion(logger);
-	//log_info(logger, "Me conecté a la ip: %s", consola_config.ip);
-	//log_info(logger, "Me conecté al puerto: %s", consola_config.puerto);
-
 
 	//Abro el archivo de instrucciones para sacar las instrucciones
 	FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);
 
 	//Creo estructuras
-	//t_instrucciones *instrucciones = crearEstructurasInstrucciones();
+	t_instrucciones *instrucciones = crearListaInstrucciones();
 
 	//Agrego las instrucciones del archivo a la lista
-	//agregarInstruccionesDesdeArchivo(instrucciones, archivoInstrucciones);
+	agregarInstruccionesDesdeArchivo(instrucciones, archivoInstrucciones);
 
 	//Creo el paquete con las instrucciones
 	//t_paquete *paqueteInstrucciones = crear_paquete_instrucciones();
@@ -55,10 +52,11 @@ int main(int argc, char** argv){
 	//Destruyo el logger
     log_destroy(logger);
 }
-/*
+
+
 void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* archivoInstrucciones){
 	if (archivoInstrucciones == NULL){
-		log_error(logger, "NO SE PUEDE ABRIR EL ARCHIVO DE INSTRUCCIONES, CERRANDO CONSOLA...");
+		log_error(logger, "NO SE PUEDE ABRIR EL ARCHIVO DE INSTRUCCIONES, ABORTANDO CONSOLA...");
 		exit(1);
 	}
 	log_info(logger, "ARCHIVO DE INSTRUCCIONES ABIERTO, LEYENDO INSTRUCCIONES...");
@@ -67,89 +65,91 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 	while (fgets(buffer, 256, archivoInstrucciones) != NULL){ //Mientras pueda leer del archivo
 		//Una vez que lee una linea, crea una lista con cada una de las palabras que se generan luego haberlas separado por un espacio 
 		char **palabras = string_split(buffer, " "); 
-		t_instruccion *instr = malloc(sizeof(t_instruccion));
-		
+		t_instruccion *instruccion = malloc(sizeof(t_instruccion));
 
-		if (strcmp(palabra[0], "SET") == 0){
-			instr->instCode = SET;
-			instr->paramReg[0] = devolverRegistro(palabra[1]);
-			instr->paramInt = atoi(palabra[2]);
-			instr->paramReg[1] = -1; // Se asigna -1 a los parametros que no se usa en la instruccion
-			instr->paramIO = "";
-			instr->sizeParamIO = 1;
-			free(palabra[0]);
-			free(palabra[1]);
-			free(palabra[2]);
+		if (strcmp(palabras[0], "F_READ") == 0){
+			//Ejemplo: SET AX HOLA
+			instruccion->tipo = F_READ;
+			instruccion->registros[0] = devolverRegistro(palabras[1]);
+			strcpy(instruccion->cadena, palabras[2]);
+			//Anular el resto de parametros no usados
+			instruccion-> paramIntA = -1;
+			instruccion-> paramIntB = -1;
+			instruccion-> recurso = "";
+			instruccion->registros[1] = -1;
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
 		}
-		else if (strcmp(palabra[0], "ADD") == 0)
+		else if (strcmp(palabras[0], "ADD") == 0)
 		{
 			instr->instCode = ADD;
-			instr->paramReg[0] = devolverRegistro(palabra[1]);
-			instr->paramReg[1] = devolverRegistro(palabra[2]);
+			instr->paramReg[0] = devolverRegistro(palabras[1]);
+			instr->paramReg[1] = devolverRegistro(palabras[2]);
 			instr->paramInt = -1;
 			instr->paramIO = "";
 			instr->sizeParamIO = 1;
-			free(palabra[0]);
-			free(palabra[1]);
-			free(palabra[2]);
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
 		}
-		else if (strcmp(palabra[0], "MOV_IN") == 0)
+		else if (strcmp(palabras[0], "MOV_IN") == 0)
 		{
 			instr->instCode = MOV_IN;
-			instr->paramReg[0] = devolverRegistro(palabra[1]);
-			instr->paramInt = atoi(palabra[2]);
+			instr->paramReg[0] = devolverRegistro(palabras[1]);
+			instr->paramInt = atoi(palabras[2]);
 			instr->paramReg[1] = -1;
 			instr->paramIO = "";
 			instr->sizeParamIO = 1;
-			free(palabra[0]);
-			free(palabra[1]);
-			free(palabra[2]);
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
 		}
-		else if (strcmp(palabra[0], "MOV_OUT") == 0)
+		else if (strcmp(palabras[0], "MOV_OUT") == 0)
 		{
 			instr->instCode = MOV_OUT;
-			instr->paramInt = atoi(palabra[1]);
-			instr->paramReg[0] = devolverRegistro(palabra[2]);
+			instr->paramInt = atoi(palabras[1]);
+			instr->paramReg[0] = devolverRegistro(palabras[2]);
 			instr->paramReg[1] = -1;
 			instr->paramIO = "";
 			instr->sizeParamIO = 1;
-			free(palabra[0]);
-			free(palabra[1]);
-			free(palabra[2]);
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
 		}
-		else if (strcmp(palabra[0], "I/O") == 0)
+		else if (strcmp(palabras[0], "I/O") == 0)
 		{
 			instr->instCode = IO;
-			if (strcmp(palabra[1], "TECLADO") == 0 || strcmp(palabra[1], "PANTALLA") == 0)
+			if (strcmp(palabras[1], "TECLADO") == 0 || strcmp(palabras[1], "PANTALLA") == 0)
 			{	
 				char * io = string_new();
-				string_append(&io,palabra[1]);
+				string_append(&io,palabras[1]);
 				instr->paramIO = io;
 				instr->sizeParamIO = strlen(io) + 1;
-				instr->paramReg[0] = devolverRegistro(palabra[2]);
+				instr->paramReg[0] = devolverRegistro(palabras[2]);
 				instr->paramInt = -1;
 				instr->paramReg[1] = -1;
-				free(palabra[0]);
-				free(palabra[1]);
-				free(palabra[2]);
+				free(palabras[0]);
+				free(palabras[1]);
+				free(palabras[2]);
 			}
 			else 
 			{
 				char * io = string_new();
-				string_append(&io,palabra[1]);
+				string_append(&io,palabras[1]);
 				instr->paramIO = io;
 				instr->sizeParamIO = strlen(io) + 1;
-				instr->paramInt = atoi(palabra[2]);
+				instr->paramInt = atoi(palabras[2]);
 				instr->paramReg[0] = -1;
 				instr->paramReg[1] = -1;
-				free(palabra[0]);
-				free(palabra[1]);
-				free(palabra[2]);
+				free(palabras[0]);
+				free(palabras[1]);
+				free(palabras[2]);
 			}
 		
 		}
 		
-		else if (strcmp(palabra[0], "EXIT") == 0)
+		else if (strcmp(palabras[0], "EXIT") == 0)
 		{
 			instr->instCode = EXIT;
 			instr->paramInt = -1;
@@ -157,21 +157,21 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			instr->paramReg[1] = -1;
 			instr->paramIO = "";
 			instr->sizeParamIO = 1;
-			free(palabra[0]);
+			free(palabras[0]);
 		}
 		list_add(instrucciones, instr);
 		printf("\ninstCode: %d, Num: %d, RegCPU[0]: %d,RegCPU[1] %d, dispIO: %s\n",
 			instr->instCode, instr->paramInt, instr->paramReg[0], instr->paramReg[1], instr->paramIO);
 
-		free(palabra);
+		free(palabras);
 	}
 	fclose(instructionsFile);
 	log_info(logger, "Se parsearon #Instrucciones: %d", list_size(instrucciones));
 
 
-}*/
+}
 
-/*t_registro devolverRegistro(char *registro){
+t_registro devolverRegistro(char *registro){
 
 	if (strcmp(registro, "AX") == 0 || strcmp(registro, "AX\n") == 0)
 	{
@@ -189,13 +189,13 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 	{
 		return DX;
 	}
-}*/
+}
 
-/*t_instrucciones *crearEstructurasInstrucciones(){
+t_instrucciones *crearListaInstrucciones(){
 	t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
 	instrucciones->listaInstrucciones = list_create();
 	return instrucciones;
-}*/
+}
 
 FILE *abrirArchivo(char *nombreArchivo, t_log* logger){
 	if (!nombreArchivo){ //Probar
