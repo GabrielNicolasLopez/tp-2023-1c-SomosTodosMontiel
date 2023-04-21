@@ -15,21 +15,21 @@ int main(int argc, char** argv){
 	t_consola_config consola_config = leerConfiguracion(logger);
 
 	//Abro el archivo de instrucciones para sacar las instrucciones
-	FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);
+	//FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);
 
-	//Creo estructuras
-	t_instrucciones *instrucciones = crearListaInstrucciones();
+	/*t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
+	instrucciones->listaInstrucciones = list_create();
 
 	//Agrego las instrucciones del archivo a la lista
 	agregarInstruccionesDesdeArchivo(instrucciones, archivoInstrucciones);
 
 	//Creo el paquete con las instrucciones
 	//t_paquete *paqueteInstrucciones = crear_paquete_instrucciones();
-
+	*/
 	//Consola se conecta a kernel
 	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
 
-	log_info(logger, "CONSOLA-KERNEL");
+	//log_info(logger, "CONSOLA-KERNEL");
 	enviar_mensaje("HOLA SOY LA CONSOLA", conexionKernel);
 	
 	//Enviamos el paquete
@@ -39,7 +39,7 @@ int main(int argc, char** argv){
 	//Liberamos la memoria de las instrucciones
 	//limpiarInformacion(instrucciones);
 
-	log_info(logger, "INSTRUCCIONES ENVIADAS, ESPERANDO...\n");
+	//log_info(logger, "INSTRUCCIONES ENVIADAS, ESPERANDO...\n");
 
 
 	/*while(){
@@ -67,108 +67,296 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		char **palabras = string_split(buffer, " "); 
 		t_instruccion *instruccion = malloc(sizeof(t_instruccion));
 
-		if (strcmp(palabras[0], "F_READ") == 0){
-			//Ejemplo: SET AX HOLA
-			instruccion->tipo = F_READ;
-			instruccion->registros[0] = devolverRegistro(palabras[1]);
-			strcpy(instruccion->cadena, palabras[2]);
+		if (strcmp(palabras[0], "SET") == 0){
+			instruccion->tipo = SET;
+			instruccion->registros[0] = devolverRegistro(palabras[1]); //Registro
+			char *contenidoRegistro = string_new();
+			string_append(&contenidoRegistro, palabras[2]);
+			instruccion->cadenaRegistro = contenidoRegistro;
 			//Anular el resto de parametros no usados
 			instruccion-> paramIntA = -1;
 			instruccion-> paramIntB = -1;
 			instruccion-> recurso = "";
+			instruccion->nombreArchivo = "";
 			instruccion->registros[1] = -1;
 			free(palabras[0]);
 			free(palabras[1]);
 			free(palabras[2]);
 		}
-		else if (strcmp(palabras[0], "ADD") == 0)
-		{
-			instr->instCode = ADD;
-			instr->paramReg[0] = devolverRegistro(palabras[1]);
-			instr->paramReg[1] = devolverRegistro(palabras[2]);
-			instr->paramInt = -1;
-			instr->paramIO = "";
-			instr->sizeParamIO = 1;
+		else if (strcmp(palabras[0], "MOV_IN") == 0){
+			instruccion->tipo = MOV_IN;
+			instruccion->registros[0] = devolverRegistro(palabras[1]); //Registro
+			instruccion->paramIntA = atoi(palabras[2]); //Direccion logica
+			//Anular el resto de parametros no usados
+			instruccion->paramIntB = -1;
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			instruccion->nombreArchivo = "";
 			free(palabras[0]);
 			free(palabras[1]);
 			free(palabras[2]);
 		}
-		else if (strcmp(palabras[0], "MOV_IN") == 0)
-		{
-			instr->instCode = MOV_IN;
-			instr->paramReg[0] = devolverRegistro(palabras[1]);
-			instr->paramInt = atoi(palabras[2]);
-			instr->paramReg[1] = -1;
-			instr->paramIO = "";
-			instr->sizeParamIO = 1;
+		else if (strcmp(palabras[0], "MOV_OUT") == 0){
+			//MOV_OUT 120 AX
+			instruccion->tipo = MOV_OUT;
+			instruccion->paramIntA = atoi(palabras[1]); //Direccion logica
+			instruccion->registros[0] = devolverRegistro(palabras[2]); //Registro
+			//Anular el resto de parametros no usados
+			instruccion->paramIntB = -1;
+			instruccion->recurso = "";
+			instruccion->cadenaRegistro = "";
+			instruccion->nombreArchivo = "";
+			instruccion->registros[1] = -1;
 			free(palabras[0]);
 			free(palabras[1]);
 			free(palabras[2]);
 		}
-		else if (strcmp(palabras[0], "MOV_OUT") == 0)
-		{
-			instr->instCode = MOV_OUT;
-			instr->paramInt = atoi(palabras[1]);
-			instr->paramReg[0] = devolverRegistro(palabras[2]);
-			instr->paramReg[1] = -1;
-			instr->paramIO = "";
-			instr->sizeParamIO = 1;
+		else if (strcmp(palabras[0], "I/O") == 0){
+			instruccion->tipo = IO;
+			instruccion->paramIntA = atoi(palabras[1]); //Tiempo
+			//Anular el resto de parametros no usados
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1; 
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			instruccion->nombreArchivo = "";
 			free(palabras[0]);
 			free(palabras[1]);
 			free(palabras[2]);
 		}
-		else if (strcmp(palabras[0], "I/O") == 0)
-		{
-			instr->instCode = IO;
-			if (strcmp(palabras[1], "TECLADO") == 0 || strcmp(palabras[1], "PANTALLA") == 0)
-			{	
-				char * io = string_new();
-				string_append(&io,palabras[1]);
-				instr->paramIO = io;
-				instr->sizeParamIO = strlen(io) + 1;
-				instr->paramReg[0] = devolverRegistro(palabras[2]);
-				instr->paramInt = -1;
-				instr->paramReg[1] = -1;
-				free(palabras[0]);
-				free(palabras[1]);
-				free(palabras[2]);
-			}
-			else 
-			{
-				char * io = string_new();
-				string_append(&io,palabras[1]);
-				instr->paramIO = io;
-				instr->sizeParamIO = strlen(io) + 1;
-				instr->paramInt = atoi(palabras[2]);
-				instr->paramReg[0] = -1;
-				instr->paramReg[1] = -1;
-				free(palabras[0]);
-				free(palabras[1]);
-				free(palabras[2]);
-			}
-		
+		else if (strcmp(palabras[0], "F_OPEN") == 0){
+			instruccion->tipo = F_OPEN;
+			char * nombreArchivo = string_new();
+			string_append(&nombreArchivo, palabras[1]);
+			instruccion->cadenaRegistro = nombreArchivo;
+			//Anular el resto de parametros no usados
+			instruccion->paramIntA = -1;
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1;
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
 		}
-		
+		else if (strcmp(palabras[0], "F_CLOSE") == 0)
+		{
+			instruccion->tipo = F_CLOSE;
+			char * nombreArchivo = string_new();
+			string_append(&nombreArchivo, palabras[1]);
+			instruccion->cadenaRegistro = nombreArchivo;
+			//Anular el resto de parametros no usados
+			instruccion->paramIntA = -1;
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1; 
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
+		else if (strcmp(palabras[0], "F_SEEK") == 0){
+			instruccion->tipo = F_SEEK;
+			char * nombreArchivo = string_new();
+			string_append(&nombreArchivo, palabras[1]);
+			instruccion->cadenaRegistro = nombreArchivo;
+			instruccion->paramIntA = atoi(palabras[2]); //Posicion del archivo
+			//Anular el resto de parametros no usados
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1; 
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
+		else if (strcmp(palabras[0], "F_READ") == 0)
+		{
+			instruccion->tipo = F_READ;
+			char * nombreArchivo = string_new();
+			string_append(&nombreArchivo, palabras[1]);
+			instruccion->cadenaRegistro = nombreArchivo;
+			instruccion->paramIntA = -1; //Direccion logica
+			instruccion->paramIntB = -1; //Cantidad de bytes
+			//Anular el resto de parametros no usados
+			instruccion->registros[0] = -1;
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
+		else if (strcmp(palabras[0], "F_WRITE") == 0)
+		{
+			instruccion->tipo = F_WRITE;
+			char * nombreArchivo = string_new();
+			string_append(&nombreArchivo, palabras[1]);
+			instruccion->cadenaRegistro = nombreArchivo;
+			instruccion->paramIntA = atoi(palabras[2]); //Direccion logica
+			instruccion->paramIntB = atoi(palabras[3]); //Cantidad de bytes
+			//Anular el resto de parametros no usados
+			instruccion->registros[0] = -1; 
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+			free(palabras[3]);
+		}
+		else if (strcmp(palabras[0], "F_TRUNCATE") == 0){
+			instruccion->tipo = F_TRUNCATE;
+			char * nombreArchivo = string_new();
+			string_append(&nombreArchivo, palabras[1]);
+			instruccion->cadenaRegistro = nombreArchivo;
+			instruccion->paramIntA = atoi(palabras[2]); //Tamaño del archivo
+			//Anular el resto de parametros no usados
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1;
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
+		else if (strcmp(palabras[0], "WAIT") == 0){
+			instruccion->tipo = WAIT;
+			//Arreglar
+			char * recurso = string_new();
+			string_append(&recurso, palabras[1]);
+			instruccion->cadenaRegistro = recurso;
+			//Arreglar
+			//Anular el resto de parametros no usados
+			instruccion->paramIntA = -1; 
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1; 
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->nombreArchivo = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
+		else if (strcmp(palabras[0], "SIGNAL") == 0){
+			instruccion->tipo = SIGNAL;
+
+			char *recurso = string_new();
+			string_append(&recurso, palabras[1]);
+			instruccion->recurso = recurso;
+
+			//strcpy(instruccion->recurso, palabras[1]);
+			//Anular el resto de parametros no usados
+			instruccion->paramIntA = -1; 
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1; 
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->nombreArchivo = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
+		else if (strcmp(palabras[0], "CREATE_SEGMENT") == 0)
+		{
+			instruccion->tipo = CREATE_SEGMENT;
+			instruccion->paramIntA = atoi(palabras[1]); //ID segmento
+			instruccion->paramIntB = atoi(palabras[2]); //Tamaño del segmento
+			//Anular el resto de parametros no usados
+			instruccion->registros[0] = -1;
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			instruccion->nombreArchivo = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
+		else if (strcmp(palabras[0], "DELETE_SEGMENT") == 0)
+		{
+			instruccion->tipo = DELETE_SEGMENT;
+			instruccion->paramIntA = atoi(palabras[1]); //ID segmento
+			//Anular el resto de parametros no usados
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1; 
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			instruccion->nombreArchivo = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
+		else if (strcmp(palabras[0], "YIELD") == 0){
+			instruccion->tipo = YIELD;
+			//Anular el resto de parametros no usados
+			instruccion->paramIntA = -1;
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1;
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			instruccion->nombreArchivo = "";
+			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
+		}
 		else if (strcmp(palabras[0], "EXIT") == 0)
 		{
-			instr->instCode = EXIT;
-			instr->paramInt = -1;
-			instr->paramReg[0] = -1;
-			instr->paramReg[1] = -1;
-			instr->paramIO = "";
-			instr->sizeParamIO = 1;
+			instruccion->tipo = EXIT;
+			//Anular el resto de parametros no usados
+			instruccion->paramIntA = -1;
+			instruccion->paramIntB = -1;
+			instruccion->registros[0] = -1;
+			instruccion->registros[1] = -1;
+			instruccion->cadenaRegistro = "";
+			instruccion->recurso = "";
+			instruccion->nombreArchivo = "";
 			free(palabras[0]);
+			free(palabras[1]);
+			free(palabras[2]);
 		}
-		list_add(instrucciones, instr);
-		printf("\ninstCode: %d, Num: %d, RegCPU[0]: %d,RegCPU[1] %d, dispIO: %s\n",
-			instr->instCode, instr->paramInt, instr->paramReg[0], instr->paramReg[1], instr->paramIO);
 
+		//Agrego la instruccion a la lista de instrucciones
+		list_add(instrucciones->listaInstrucciones, instruccion);
+
+		//Imprimir instrucciones para ver que se hayan leido bien
+		if(instruccion->tipo == EXIT)
+			log_info(logger, "%s", nombresInstrucciones[instruccion->tipo]);
+		/*if(instruccion->tipo == YIELD)
+			log_info(logger, "%s", nombresInstrucciones[instruccion->tipo]);*/
+		if(instruccion->tipo == SET)
+			log_info(logger, "%s %s %s", nombresInstrucciones[instruccion->tipo], nombresRegistros[instruccion->registros[0]], instruccion->cadenaRegistro);
+		if(instruccion->tipo == MOV_IN)
+			log_info(logger, "%s %s %d", nombresInstrucciones[instruccion->tipo], nombresRegistros[instruccion->registros[0]], instruccion->paramIntA);
+		if(instruccion->tipo == MOV_OUT)
+			log_info(logger, "%s %d %s", nombresInstrucciones[instruccion->tipo], instruccion->paramIntA, nombresRegistros[instruccion->registros[0]]);
+		if(instruccion->tipo == WAIT || instruccion->tipo == SIGNAL)
+			log_info(logger, "%s %s", nombresInstrucciones[instruccion->tipo], instruccion->recurso);
+		if(instruccion->tipo == IO)
+			log_info(logger, "%s %d", nombresInstrucciones[instruccion->tipo], instruccion->paramIntA);
+		if(instruccion->tipo == F_OPEN)
+			log_info(logger, "%s %s", nombresInstrucciones[instruccion->tipo], instruccion->nombreArchivo);
+		if(instruccion->tipo == F_TRUNCATE || instruccion->tipo == F_SEEK)
+			log_info(logger, "%s %s %d", nombresInstrucciones[instruccion->tipo], instruccion->nombreArchivo, instruccion->paramIntA);
+		if(instruccion->tipo == CREATE_SEGMENT || instruccion->tipo == F_WRITE || instruccion->tipo == F_READ)
+			log_info(logger, "%s %d %d", nombresInstrucciones[instruccion->tipo], instruccion->paramIntA, instruccion->paramIntB );
+		if(instruccion->tipo == DELETE_SEGMENT)
+			log_info(logger, "%s %d", nombresInstrucciones[instruccion->tipo], instruccion->paramIntA);
+		if(instruccion->tipo == F_CLOSE)
+			log_info(logger, "%s %s", nombresInstrucciones[instruccion->tipo], instruccion->nombreArchivo);
 		free(palabras);
 	}
-	fclose(instructionsFile);
-	log_info(logger, "Se parsearon #Instrucciones: %d", list_size(instrucciones));
 
+	fclose(archivoInstrucciones);
 
+	log_info(logger, "Se parsearon %d instrucciones.", list_size(instrucciones->listaInstrucciones));
 }
 
 t_registro devolverRegistro(char *registro){
@@ -191,11 +379,11 @@ t_registro devolverRegistro(char *registro){
 	}
 }
 
-t_instrucciones *crearListaInstrucciones(){
+/*t_instrucciones *crearListaInstrucciones(){
 	t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
 	instrucciones->listaInstrucciones = list_create();
 	return instrucciones;
-}
+}*/
 
 FILE *abrirArchivo(char *nombreArchivo, t_log* logger){
 	if (!nombreArchivo){ //Probar
