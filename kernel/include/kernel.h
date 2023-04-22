@@ -53,4 +53,7 @@ void crear_hilo_cpu();
 void crear_hilo_consola();
 void crear_hilos_kernel();
 void cargarRecursos();
+int enviarMensaje(int socket, char *msj);
+void *serializarMensaje(char *msj, size_t *size_stream);
+int enviarStream(int socket, void *stream, size_t stream_size);
 #endif

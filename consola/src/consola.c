@@ -24,35 +24,132 @@ int main(int argc, char** argv){
 	agregarInstruccionesDesdeArchivo(instrucciones, archivoInstrucciones);
 
 	//Creo el paquete con las instrucciones
-	//t_paquete *paqueteInstrucciones = crear_paquete_instrucciones();
+	t_paquete *paqueteInstrucciones = crear_paquete_instrucciones(instrucciones);
 	
 	//Consola se conecta a kernel
-	//conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
+	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
 
 	//log_info(logger, "CONSOLA-KERNEL");
 	//enviar_mensaje("HOLA SOY LA CONSOLA", conexionKernel);
 	
 	//Enviamos el paquete
-	//enviar_paquete(paqueteInstrucciones, conexionKernel);
+	enviar_paquete(paqueteInstrucciones, conexionKernel);
 	//Borramos el paquete
-	//eliminar_paquete(paqueteInstrucciones);
+	eliminar_paquete(paqueteInstrucciones);
 	//Liberamos la memoria de las instrucciones
 	//limpiarInformacion(instrucciones);
 
-	//log_info(logger, "INSTRUCCIONES ENVIADAS, ESPERANDO...\n");
+	log_info(logger, "INSTRUCCIONES ENVIADAS, ESPERANDO...");
+	
+	char *mensaje = recibirMensaje(conexionKernel);
+	log_info(logger, "Kernel dice: %s", mensaje);
 
-
-	/*while(){
-		//Esperar mensajes desde kernel, etc	
-	}*/
-
-    //Libero la conexion con kernel
-    //liberar_conexion(conexionKernel);
-
-	//Destruyo el logger
-    log_destroy(logger);
+	//Intentar cambiar el while(1) por semáforos
+	while(1){
+		log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
+		t_paquete *paquete = recibir_paquete(conexionKernel);
+		switch (paquete->codigo_operacion){
+		case TERMINAR_CONSOLA:
+			log_info(logger , "FINALIZANDO LA CONSOLA");
+			liberar_conexion(conexionKernel);
+			//Destruyo el logger
+    		log_destroy(logger);
+			return EXIT_SUCCESS;
+		}
+	}
 }
 
+char *recibirMensaje(int socket){
+	size_t *tamanio_mensaje;
+	char *msj;
+
+	tamanio_mensaje = recibirStream(socket, sizeof(*tamanio_mensaje));
+
+	if (tamanio_mensaje ){
+		if ((msj = recibirStream(socket, *tamanio_mensaje))){
+			free(tamanio_mensaje);
+			return msj;
+		}
+		free(tamanio_mensaje);
+	}
+	return NULL;
+}
+
+void *recibirStream(int socket, size_t stream_size){
+	void *stream = malloc(stream_size);
+
+	if (recv(socket, stream, stream_size, 0) == -1)
+	{
+		free(stream);
+		stream = NULL;
+		exit(-1);
+	}
+
+	return stream;
+}
+
+int calcularSizeListaInstrucciones(t_instrucciones *instrucciones){
+	int total = 0;
+	for (int i = 0 ; i < list_size(instrucciones->listaInstrucciones); i++){
+
+		t_instruccion* instruccion = list_get(instrucciones->listaInstrucciones,i);
+		total += sizeof(t_tipoInstruccion);
+		total += sizeof(t_registro) * 2;
+		total += sizeof(uint32_t) * 2;
+		total += sizeof(instruccion->recurso);
+		total += sizeof(instruccion->nombreArchivo);
+		total += sizeof(instruccion->cadenaRegistro);
+	}
+	return total;
+}
+
+t_paquete *crear_paquete_instrucciones(t_instrucciones *instrucciones){
+	log_info(logger,"Empiezo a serializar las instrucciones");
+	t_buffer *buffer = malloc(sizeof(t_buffer));
+	buffer->size = 	sizeof(uint32_t) //Cantidad de instrucciones
+					+ calcularSizeListaInstrucciones(instrucciones); // Peso de las instrucciones
+
+	void *stream = malloc(buffer->size);
+
+	int offset = 0; // Desplazamiento
+	memcpy(stream + offset, &(instrucciones->cantidadInstrucciones), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	
+	// Serializa las instrucciones
+	int i = 0;
+
+	while (i < list_size(instrucciones->listaInstrucciones)){
+		t_instruccion* instrucccion = list_get(instrucciones->listaInstrucciones, i);
+		memcpy(stream + offset,&instrucccion->tipo, sizeof(t_tipoInstruccion));
+		offset += sizeof(t_tipoInstruccion);
+		memcpy(stream + offset,&instrucccion->registros[0], sizeof(t_registro));
+		offset += sizeof(t_registro);
+		memcpy(stream + offset,&instrucccion->registros[1], sizeof(t_registro));
+		offset += sizeof(t_registro);
+		memcpy(stream + offset,&instrucccion->paramIntA, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(stream + offset,&instrucccion->paramIntB, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(stream + offset,&instrucccion->recurso, sizeof(instrucccion->recurso));
+		offset += sizeof(instrucccion->recurso);
+		memcpy(stream + offset,&instrucccion->cadenaRegistro, sizeof(instrucccion->cadenaRegistro));
+		offset += sizeof(instrucccion->cadenaRegistro);
+		memcpy(stream + offset,&instrucccion->nombreArchivo, sizeof(instrucccion->nombreArchivo));
+		offset += sizeof(instrucccion->nombreArchivo);
+		i++;
+	}
+
+	buffer->stream = stream; // Payload
+
+	// free(informacion->instrucciones);
+	// free(informacion->segmentos);
+
+	// lleno el paquete
+	t_paquete *paquete = malloc(sizeof(t_paquete));
+	paquete->codigo_operacion = NEW;
+	paquete->buffer = buffer;
+	return paquete;
+}
 
 void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* archivoInstrucciones){
 	if (archivoInstrucciones == NULL){
@@ -395,28 +492,15 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 t_registro devolverRegistro(char *registro){
 
 	if (strcmp(registro, "AX") == 0 || strcmp(registro, "AX\n") == 0)
-	{
 		return AX;
-	}
 	else if (strcmp(registro, "BX") == 0 || strcmp(registro, "BX\n") == 0)
-	{
 		return BX;
-	}
 	else if (strcmp(registro, "CX") == 0 || strcmp(registro, "CX\n") == 0)
-	{
 		return CX;
-	}
 	else if (strcmp(registro, "DX") == 0 || strcmp(registro, "DX\n") == 0)
-	{
 		return DX;
-	}
+	return -1;
 }
-
-/*t_instrucciones *crearListaInstrucciones(){
-	t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
-	instrucciones->listaInstrucciones = list_create();
-	return instrucciones;
-}*/
 
 FILE *abrirArchivo(char *nombreArchivo, t_log* logger){
 	if (!nombreArchivo){ //Probar

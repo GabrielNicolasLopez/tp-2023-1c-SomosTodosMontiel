@@ -261,6 +261,51 @@ int size_char_array(char **array)
 	return i;
 }
 
+t_instrucciones recibir_informacion(cliente_fd){
+	int size;
+	void *buffer = recibir_buffer(&size, cliente_fd);
+	t_instrucciones instrucciones;
+	int offset = 0;
+	memcpy(&(instrucciones.cantidadInstrucciones), buffer + offset, sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	instrucciones.listaInstrucciones = list_create();
+	t_instruccion *instruccion;
+
+	int k = 0;
+
+	while (k < instrucciones.cantidadInstrucciones){
+		instruccion = malloc(sizeof(t_instruccion));
+		//El tipo de instruccion
+		memcpy(&instruccion->tipo, buffer + offset, sizeof(t_tipoInstruccion));
+		offset += sizeof(t_tipoInstruccion);
+		//Los registros
+		memcpy(&instruccion->registros[0], buffer + offset, sizeof(t_registro));
+		offset += sizeof(t_registro);
+		memcpy(&instruccion->registros[1], buffer + offset, sizeof(t_registro));
+		offset += sizeof(t_registro);
+		//Los int
+		memcpy(&instruccion->paramIntA, buffer + offset, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(&instruccion->paramIntB, buffer + offset, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		//Los 3 char*
+		memcpy(&instruccion->recurso, buffer + offset, sizeof(instruccion->recurso));
+		offset += sizeof(instruccion->recurso);
+		memcpy(&instruccion->cadenaRegistro, buffer + offset, sizeof(instruccion->cadenaRegistro));
+		offset += sizeof(instruccion->cadenaRegistro);
+		memcpy(&instruccion->nombreArchivo, buffer + offset, sizeof(instruccion->nombreArchivo));
+		offset += sizeof(instruccion->nombreArchivo);
+
+		list_add(instrucciones.listaInstrucciones, instruccion);
+		k++;
+	}
+
+	free(buffer);
+
+	return instrucciones;
+}
+
+
 // Serializar 
 /*
 void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje)
