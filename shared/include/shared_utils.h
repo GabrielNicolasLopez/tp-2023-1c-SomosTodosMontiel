@@ -18,6 +18,31 @@ typedef enum
 	MENSAJE,
 	PAQUETE
 }op_code;
+typedef enum
+{
+	SET,
+	ADD,
+	MOV_IN,
+	MOV_OUT,
+	IO,
+	EXIT
+} t_instCode;
+
+typedef enum
+{
+	AX,
+	BX,
+	CX,
+	DX
+} t_registro;
+typedef struct
+{
+	t_instCode instCode;
+	uint32_t paramInt;
+	char* paramIO;
+	uint32_t sizeParamIO;
+	t_registro paramReg[2];
+} __attribute__((packed)) t_instruccion;
 
 typedef struct
 {

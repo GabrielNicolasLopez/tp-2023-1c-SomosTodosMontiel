@@ -9,6 +9,7 @@ int main(void) {
 
 	//Leo la configuracion de kernel
 	configuracionKernel = leerConfiguracion();
+	cargarRecursos();
 
 	crear_hilos_kernel();
 }
@@ -78,6 +79,12 @@ t_kernel_config *leerConfiguracion(){
 
 	//Leo los datos del config para que kernel funcione como servidor (no tiene IP para funcionar como servido)
 	configuracionKernel->PUERTO_ESCUCHA = config_get_string_value(config, "PUERTO_ESCUCHA");
+	configuracionKernel->ALGORITMO_PLANIFICACION = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+	configuracionKernel->ESTIMACION_INICIAL =config_get_string_value(config, "ESTIMACION_INICIAL");
+	configuracionKernel->HRRN_ALFA=config_get_int_value(config, "HRRN_ALFA");
+	configuracionKernel->GRADO_MAX_MULTIPROGRAMACION=config_get_int_value(config, "GRADO_MAX_MULTIPROGRAMACION");
+	configuracionKernel->RECURSOS=config_get_array_value(config, "RECURSOS"); 
+	configuracionKernel->INSTANCIAS_RECURSOS=config_get_array_value(config, "INSTANCIAS_RECURSOS");
 	
 	//Leo los datos del config para que kernel se conecte al resto de modulo
 	configuracionKernel->IP_MEMORIA = config_get_string_value(config, "IP_MEMORIA");
@@ -94,3 +101,34 @@ t_kernel_config *leerConfiguracion(){
 /*void iterator(char* value) {
 	log_info(logger,"%s", value);
 }*/
+
+void cargarRecursos(){
+	
+	for (int i = 0; i < string_array_size(configuracionKernel->RECURSOS); i++){
+		//log_info(logger, "Tamaño %d\n", size_char_array(configuracionKernel.RECURSOS));
+		char *recursoNuevo = configuracionKernel->RECURSOS[i];
+		t_recurso *recurso = malloc(sizeof(t_recurso));
+
+		recurso->nombre = recursoNuevo;
+		recurso->lista_block = list_create();
+		int var_instancias_recursos=atoi(configuracionKernel->INSTANCIAS_RECURSOS[i]);
+		recurso->instancias_recursos = var_instancias_recursos;
+		//el segundo valor del sem_init es entre cuantos hilos se comparte el semaforo, para id
+		//deberia ser entre todos los hilos que va a tener kernel abiertos
+		//sem_init(&recurso->contador_bloqueo, 0, var_instancias_recursos);
+		//pthread_mutex_init(&recurso->mutex_lista_blocked, NULL);
+
+		//log_info(logger, "recursos %s , %d \n", recurso->recurso, recurso->tiempoEjecucion);
+		//agregrar_recurso(recurso);
+		log_info(logger,"Se cargo un recurso de nombre: %s y instancias %i", recurso->nombre, recurso->instancias_recursos);
+	
+	}
+}
+
+
+// void agregrar_recurso(t_recurso *recurso)
+// {
+// 	pthread_mutex_lock(&mutex_lista_blocked);
+// 	list_add(LISTA_BLOCKED, recurso);
+// 	pthread_mutex_unlock(&mutex_lista_blocked);
+// }
