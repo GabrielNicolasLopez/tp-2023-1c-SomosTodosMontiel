@@ -15,9 +15,9 @@ int main(int argc, char** argv){
 	t_consola_config consola_config = leerConfiguracion(logger);
 
 	//Abro el archivo de instrucciones para sacar las instrucciones
-	//FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);
+	FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);
 
-	/*t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
+	t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
 	instrucciones->listaInstrucciones = list_create();
 
 	//Agrego las instrucciones del archivo a la lista
@@ -25,12 +25,12 @@ int main(int argc, char** argv){
 
 	//Creo el paquete con las instrucciones
 	//t_paquete *paqueteInstrucciones = crear_paquete_instrucciones();
-	*/
+	
 	//Consola se conecta a kernel
-	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
+	//conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
 
 	//log_info(logger, "CONSOLA-KERNEL");
-	enviar_mensaje("HOLA SOY LA CONSOLA", conexionKernel);
+	//enviar_mensaje("HOLA SOY LA CONSOLA", conexionKernel);
 	
 	//Enviamos el paquete
 	//enviar_paquete(paqueteInstrucciones, conexionKernel);
@@ -47,7 +47,7 @@ int main(int argc, char** argv){
 	}*/
 
     //Libero la conexion con kernel
-    liberar_conexion(conexionKernel);
+    //liberar_conexion(conexionKernel);
 
 	//Destruyo el logger
     log_destroy(logger);
@@ -63,16 +63,15 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 	const unsigned MAX_LENGTH = 256;
 	char buffer[MAX_LENGTH];
 	while (fgets(buffer, 256, archivoInstrucciones) != NULL){ //Mientras pueda leer del archivo
-		//Una vez que lee una linea, crea una lista con cada una de las palabras que se generan luego haberlas separado por un espacio 
-		char **palabras = string_split(buffer, " "); 
+		//Una vez que lee una linea, crea una lista con cada una de las palabras que se generan luego haberlas separado por un espacio
+		char **palabras = string_split(buffer, " ");
 		t_instruccion *instruccion = malloc(sizeof(t_instruccion));
 
 		if (strcmp(palabras[0], "SET") == 0){
 			instruccion->tipo = SET;
 			instruccion->registros[0] = devolverRegistro(palabras[1]); //Registro
-			char *contenidoRegistro = string_new();
-			string_append(&contenidoRegistro, palabras[2]);
-			instruccion->cadenaRegistro = contenidoRegistro;
+			instruccion->cadenaRegistro = malloc(sizeof(instruccion->cadenaRegistro));
+			strcpy(instruccion->cadenaRegistro, palabras[2]);
 			//Anular el resto de parametros no usados
 			instruccion-> paramIntA = -1;
 			instruccion-> paramIntB = -1;
@@ -128,9 +127,13 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		}
 		else if (strcmp(palabras[0], "F_OPEN") == 0){
 			instruccion->tipo = F_OPEN;
+			/*
 			char * nombreArchivo = string_new();
 			string_append(&nombreArchivo, palabras[1]);
 			instruccion->cadenaRegistro = nombreArchivo;
+			*/
+			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
+			strcpy(instruccion->nombreArchivo, palabras[1]);
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1;
 			instruccion->paramIntB = -1;
@@ -145,9 +148,13 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		else if (strcmp(palabras[0], "F_CLOSE") == 0)
 		{
 			instruccion->tipo = F_CLOSE;
+			/*
 			char * nombreArchivo = string_new();
 			string_append(&nombreArchivo, palabras[1]);
 			instruccion->cadenaRegistro = nombreArchivo;
+			*/
+			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
+			strcpy(instruccion->nombreArchivo, palabras[1]);
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1;
 			instruccion->paramIntB = -1;
@@ -161,9 +168,13 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		}
 		else if (strcmp(palabras[0], "F_SEEK") == 0){
 			instruccion->tipo = F_SEEK;
+			/*
 			char * nombreArchivo = string_new();
 			string_append(&nombreArchivo, palabras[1]);
 			instruccion->cadenaRegistro = nombreArchivo;
+			*/
+			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
+			strcpy(instruccion->nombreArchivo, palabras[1]);
 			instruccion->paramIntA = atoi(palabras[2]); //Posicion del archivo
 			//Anular el resto de parametros no usados
 			instruccion->paramIntB = -1;
@@ -178,11 +189,15 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		else if (strcmp(palabras[0], "F_READ") == 0)
 		{
 			instruccion->tipo = F_READ;
+			/*
 			char * nombreArchivo = string_new();
 			string_append(&nombreArchivo, palabras[1]);
 			instruccion->cadenaRegistro = nombreArchivo;
-			instruccion->paramIntA = -1; //Direccion logica
-			instruccion->paramIntB = -1; //Cantidad de bytes
+			*/
+			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
+			strcpy(instruccion->nombreArchivo, palabras[1]);
+			instruccion->paramIntA = atoi(palabras[2]); //Direccion logica
+			instruccion->paramIntB = atoi(palabras[3]); //Cantidad de bytes
 			//Anular el resto de parametros no usados
 			instruccion->registros[0] = -1;
 			instruccion->registros[1] = -1;
@@ -195,9 +210,13 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		else if (strcmp(palabras[0], "F_WRITE") == 0)
 		{
 			instruccion->tipo = F_WRITE;
+			/*
 			char * nombreArchivo = string_new();
 			string_append(&nombreArchivo, palabras[1]);
 			instruccion->cadenaRegistro = nombreArchivo;
+			*/
+			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
+			strcpy(instruccion->nombreArchivo, palabras[1]);
 			instruccion->paramIntA = atoi(palabras[2]); //Direccion logica
 			instruccion->paramIntB = atoi(palabras[3]); //Cantidad de bytes
 			//Anular el resto de parametros no usados
@@ -212,9 +231,13 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		}
 		else if (strcmp(palabras[0], "F_TRUNCATE") == 0){
 			instruccion->tipo = F_TRUNCATE;
+			/*
 			char * nombreArchivo = string_new();
 			string_append(&nombreArchivo, palabras[1]);
 			instruccion->cadenaRegistro = nombreArchivo;
+			*/
+			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
+			strcpy(instruccion->nombreArchivo, palabras[1]);
 			instruccion->paramIntA = atoi(palabras[2]); //Tamaño del archivo
 			//Anular el resto de parametros no usados
 			instruccion->paramIntB = -1;
@@ -229,9 +252,13 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		else if (strcmp(palabras[0], "WAIT") == 0){
 			instruccion->tipo = WAIT;
 			//Arreglar
+			/*
 			char * recurso = string_new();
 			string_append(&recurso, palabras[1]);
 			instruccion->cadenaRegistro = recurso;
+			*/
+			instruccion->recurso = malloc(sizeof(instruccion->recurso));
+			strcpy(instruccion->recurso, palabras[1]);
 			//Arreglar
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1; 
@@ -246,12 +273,13 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		}
 		else if (strcmp(palabras[0], "SIGNAL") == 0){
 			instruccion->tipo = SIGNAL;
-
+			/*
 			char *recurso = string_new();
 			string_append(&recurso, palabras[1]);
 			instruccion->recurso = recurso;
-
-			//strcpy(instruccion->recurso, palabras[1]);
+			*/
+			instruccion->recurso = malloc(sizeof(instruccion->recurso));
+			strcpy(instruccion->recurso, palabras[1]);
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1; 
 			instruccion->paramIntB = -1;
@@ -293,7 +321,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			free(palabras[1]);
 			free(palabras[2]);
 		}
-		else if (strcmp(palabras[0], "YIELD") == 0){
+		else if (strcmp(palabras[0], "YIELD") == 0 || strcmp(palabras[0], "YIELD\n") == 0){
 			instruccion->tipo = YIELD;
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1;
@@ -326,31 +354,36 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		//Agrego la instruccion a la lista de instrucciones
 		list_add(instrucciones->listaInstrucciones, instruccion);
 
+		//printf("instruccion: %s\n", nombresInstrucciones[instruccion->tipo]);
+
 		//Imprimir instrucciones para ver que se hayan leido bien
 		if(instruccion->tipo == EXIT)
 			log_info(logger, "%s", nombresInstrucciones[instruccion->tipo]);
-		/*if(instruccion->tipo == YIELD)
-			log_info(logger, "%s", nombresInstrucciones[instruccion->tipo]);*/
-		if(instruccion->tipo == SET)
+		else if(instruccion->tipo == YIELD)
+			log_info(logger, "%s", nombresInstrucciones[instruccion->tipo]);
+		else if(instruccion->tipo == SET)
 			log_info(logger, "%s %s %s", nombresInstrucciones[instruccion->tipo], nombresRegistros[instruccion->registros[0]], instruccion->cadenaRegistro);
-		if(instruccion->tipo == MOV_IN)
+		else if(instruccion->tipo == MOV_IN)
 			log_info(logger, "%s %s %d", nombresInstrucciones[instruccion->tipo], nombresRegistros[instruccion->registros[0]], instruccion->paramIntA);
-		if(instruccion->tipo == MOV_OUT)
+		else if(instruccion->tipo == MOV_OUT)
 			log_info(logger, "%s %d %s", nombresInstrucciones[instruccion->tipo], instruccion->paramIntA, nombresRegistros[instruccion->registros[0]]);
-		if(instruccion->tipo == WAIT || instruccion->tipo == SIGNAL)
+		else if(instruccion->tipo == WAIT || instruccion->tipo == SIGNAL)
 			log_info(logger, "%s %s", nombresInstrucciones[instruccion->tipo], instruccion->recurso);
-		if(instruccion->tipo == IO)
+		else if(instruccion->tipo == IO)
 			log_info(logger, "%s %d", nombresInstrucciones[instruccion->tipo], instruccion->paramIntA);
-		if(instruccion->tipo == F_OPEN)
+		else if(instruccion->tipo == F_OPEN)
 			log_info(logger, "%s %s", nombresInstrucciones[instruccion->tipo], instruccion->nombreArchivo);
-		if(instruccion->tipo == F_TRUNCATE || instruccion->tipo == F_SEEK)
+		else if(instruccion->tipo == F_TRUNCATE || instruccion->tipo == F_SEEK)
 			log_info(logger, "%s %s %d", nombresInstrucciones[instruccion->tipo], instruccion->nombreArchivo, instruccion->paramIntA);
-		if(instruccion->tipo == CREATE_SEGMENT || instruccion->tipo == F_WRITE || instruccion->tipo == F_READ)
+		else if(instruccion->tipo == CREATE_SEGMENT)
 			log_info(logger, "%s %d %d", nombresInstrucciones[instruccion->tipo], instruccion->paramIntA, instruccion->paramIntB );
-		if(instruccion->tipo == DELETE_SEGMENT)
+		else if(instruccion->tipo == F_WRITE || instruccion->tipo == F_READ)
+			log_info(logger, "%s %s %d %d", nombresInstrucciones[instruccion->tipo], instruccion->nombreArchivo, instruccion->paramIntA, instruccion->paramIntB );
+		else if(instruccion->tipo == DELETE_SEGMENT)
 			log_info(logger, "%s %d", nombresInstrucciones[instruccion->tipo], instruccion->paramIntA);
-		if(instruccion->tipo == F_CLOSE)
+		else if(instruccion->tipo == F_CLOSE)
 			log_info(logger, "%s %s", nombresInstrucciones[instruccion->tipo], instruccion->nombreArchivo);
+		
 		free(palabras);
 	}
 
