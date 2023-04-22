@@ -9,6 +9,7 @@ int main(void) {
 
 	//Leo la configuracion de kernel
 	configuracionKernel = leerConfiguracion();
+	
 	cargarRecursos();
 
 	crear_hilos_kernel();
