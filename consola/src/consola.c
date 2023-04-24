@@ -47,7 +47,7 @@ int main(int argc, char** argv){
 	//Intentar cambiar el while(1) por semáforos
 	while(1){
 		log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
-		t_paquete *paquete = recibir_paquete(conexionKernel);
+		t_paquete *paquete =(t_paquete*) recibir_paquete(conexionKernel);
 		switch (paquete->codigo_operacion){
 		case TERMINAR_CONSOLA:
 			log_info(logger , "FINALIZANDO LA CONSOLA");
@@ -163,7 +163,10 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		//Una vez que lee una linea, crea una lista con cada una de las palabras que se generan luego haberlas separado por un espacio
 		char **palabras = string_split(buffer, " ");
 		t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-
+		if(string_ends_with(palabras[0],"\n")){
+			palabras[0]=string_replace(palabras[0], "\n", "");
+			printf("La palabra a parsear es: %s", palabras[0]);
+		}
 		if (strcmp(palabras[0], "SET") == 0){
 			instruccion->tipo = SET;
 			instruccion->registros[0] = devolverRegistro(palabras[1]); //Registro
@@ -418,7 +421,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			free(palabras[1]);
 			free(palabras[2]);
 		}
-		else if (strcmp(palabras[0], "YIELD") == 0 || strcmp(palabras[0], "YIELD\n") == 0){
+		else if (strcmp(palabras[0], "YIELD") == 0){
 			instruccion->tipo = YIELD;
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1;
