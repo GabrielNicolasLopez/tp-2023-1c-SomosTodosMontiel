@@ -12,7 +12,6 @@
 #include <commons/config.h>
 #include <string.h>
 #include <assert.h>
-#include <estructuras_globales.h>
 
 typedef enum
 {
@@ -99,6 +98,11 @@ typedef struct
 	op_code codigo_operacion;
 	t_buffer *buffer;
 } t_paquete;
+
+typedef struct
+{
+	int hola;
+} t_pcb;
 
 
 
