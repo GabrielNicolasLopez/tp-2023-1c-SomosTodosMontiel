@@ -302,59 +302,59 @@ t_instrucciones recibir_informacion(cliente_fd){
 
 // Serializar 
 
-void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje){
-	t_buffer *buffer = malloc(sizeof(t_buffer));
+// void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje){
+// 	t_buffer *buffer = malloc(sizeof(t_buffer));
 
-	/*buffer->size = sizeof(uint32_t) * 5 + calcularSizeInfo(pcb->informacion)
-	+ list_size(pcb->informacion->segmentos) * sizeof(uint32_t)
-	+ list_size(pcb->tablaSegmentos) * sizeof(t_tabla_segmentos) 
-	+ sizeof(int) + sizeof(t_registros);*/
+// 	/*buffer->size = sizeof(uint32_t) * 5 + calcularSizeInfo(pcb->informacion)
+// 	+ list_size(pcb->informacion->segmentos) * sizeof(uint32_t)
+// 	+ list_size(pcb->tablaSegmentos) * sizeof(t_tabla_segmentos) 
+// 	+ sizeof(int) + sizeof(t_registros);*/
 
-	buffer->size = 3 * sizeof(uint32_t) + calcularSizeListaInstrucciones(pcb->instrucciones);
+// 	buffer->size = 3 * sizeof(uint32_t) + calcularSizeListaInstrucciones(pcb->instrucciones);
 
-	void *stream = malloc(buffer->size);
-	int offset = 0;
+// 	void *stream = malloc(buffer->size);
+// 	int offset = 0;
 
-	memcpy(stream + offset, &pcb->id, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+// 	memcpy(stream + offset, &pcb->id, sizeof(uint32_t));
+// 	offset += sizeof(uint32_t);
 
-	memcpy(stream + offset, &pcb->program_counter, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+// 	memcpy(stream + offset, &pcb->program_counter, sizeof(uint32_t));
+// 	offset += sizeof(uint32_t);
 
-	memcpy(stream + offset, &pcb->socket, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+// 	memcpy(stream + offset, &pcb->socket, sizeof(uint32_t));
+// 	offset += sizeof(uint32_t);
 
-	memcpy(stream + offset, &pcb->instrucciones, calcularSizeListaInstrucciones(pcb->instrucciones));
-	offset += calcularSizeListaInstrucciones(pcb->instrucciones);
+// 	memcpy(stream + offset, &pcb->instrucciones, calcularSizeListaInstrucciones(pcb->instrucciones));
+// 	offset += calcularSizeListaInstrucciones(pcb->instrucciones);
 
 
-	int i = 0;
+// 	int i = 0;
 
-	while (i < list_size(pcb->informacion->instrucciones)){
-		t_instruccion* instrucccion = list_get(pcb->informacion->instrucciones, i);
-		memcpy(stream + offset,&instrucccion->instCode, sizeof(t_instCode));
-		offset += sizeof(t_instCode);
-		memcpy(stream + offset,&instrucccion->paramInt, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(stream + offset,&instrucccion->sizeParamIO, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		//printf("\ndispositivo%s\n" ,instrucccion->paramIO);
-		memcpy(stream + offset,instrucccion->paramIO,instrucccion->sizeParamIO);
-		offset += instrucccion->sizeParamIO;
-		memcpy(stream + offset,&instrucccion->paramReg[0], sizeof(t_registro));
-		offset += sizeof(t_registro);
-		memcpy(stream + offset,&instrucccion->paramReg[1], sizeof(t_registro));
-		offset += sizeof(t_registro);
-		i++;
-		//printf(PRINT_COLOR_MAGENTA "Estoy serializando las instruccion %d" PRINT_COLOR_RESET "\n", i);
-	}
+// 	while (i < list_size(pcb->informacion->instrucciones)){
+// 		t_instruccion* instrucccion = list_get(pcb->informacion->instrucciones, i);
+// 		memcpy(stream + offset,&instrucccion->instCode, sizeof(t_instCode));
+// 		offset += sizeof(t_instCode);
+// 		memcpy(stream + offset,&instrucccion->paramInt, sizeof(uint32_t));
+// 		offset += sizeof(uint32_t);
+// 		memcpy(stream + offset,&instrucccion->sizeParamIO, sizeof(uint32_t));
+// 		offset += sizeof(uint32_t);
+// 		//printf("\ndispositivo%s\n" ,instrucccion->paramIO);
+// 		memcpy(stream + offset,instrucccion->paramIO,instrucccion->sizeParamIO);
+// 		offset += instrucccion->sizeParamIO;
+// 		memcpy(stream + offset,&instrucccion->paramReg[0], sizeof(t_registro));
+// 		offset += sizeof(t_registro);
+// 		memcpy(stream + offset,&instrucccion->paramReg[1], sizeof(t_registro));
+// 		offset += sizeof(t_registro);
+// 		i++;
+// 		//printf(PRINT_COLOR_MAGENTA "Estoy serializando las instruccion %d" PRINT_COLOR_RESET "\n", i);
+// 	}
 
-	buffer->stream = stream;
+// 	buffer->stream = stream;
 
-	crearPaquete(buffer, tipoMensaje, socket);
+// 	crearPaquete(buffer, tipoMensaje, socket);
 
-	//free(buffer);
-}
+// 	//free(buffer);
+// }
 
 /*int calcularSizeInfo(t_informacion* info){
 	int total = 0;

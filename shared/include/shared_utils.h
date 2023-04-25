@@ -14,6 +14,8 @@
 #include <assert.h>
 #include <estructuras_globales.h>
 
+const char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
+
 typedef enum
 {
 	MENSAJE,
@@ -24,8 +26,6 @@ typedef enum
 typedef enum {
 	TERMINAR_CONSOLA,
 } t_tipoMensaje;
-
-const char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
 
 typedef enum
 {
@@ -120,7 +120,7 @@ void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio);
 void enviar_paquete(t_paquete *paquete, int socket_cliente);
 void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete *paquete);
-t_buffer *cargar_buffer_a_t_pcb(t_pcb t_pcb);
+//t_buffer *cargar_buffer_a_t_pcb(t_pcb t_pcb);
 void cargar_buffer_a_paquete(t_buffer *buffer, int conexion);
 //t_pcb *deserializar_pcb(t_buffer *buffer);
 //void deserializar_paquete(int conexion);

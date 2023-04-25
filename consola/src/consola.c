@@ -47,7 +47,7 @@ int main(int argc, char** argv){
 	//Intentar cambiar el while(1) por semáforos
 	while(1){
 		log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
-		t_paquete *paquete = recibir_paquete(conexionKernel);
+		t_paquete *paquete =(t_paquete*)recibir_paquete(conexionKernel);
 		switch (paquete->codigo_operacion){
 		case TERMINAR_CONSOLA:
 			log_info(logger , "FINALIZANDO LA CONSOLA");
@@ -163,11 +163,12 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		//Una vez que lee una linea, crea una lista con cada una de las palabras que se generan luego haberlas separado por un espacio
 		char **palabras = string_split(buffer, " ");
 		t_instruccion *instruccion = malloc(sizeof(t_instruccion));
-
+		quitarSaltoDeLinea(palabras, 0);
 		if (strcmp(palabras[0], "SET") == 0){
 			instruccion->tipo = SET;
 			instruccion->registros[0] = devolverRegistro(palabras[1]); //Registro
 			instruccion->cadenaRegistro = malloc(sizeof(instruccion->cadenaRegistro));
+			quitarSaltoDeLinea(palabras, 2);
 			strcpy(instruccion->cadenaRegistro, palabras[2]);
 			//Anular el resto de parametros no usados
 			instruccion-> paramIntA = -1;
@@ -182,6 +183,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		else if (strcmp(palabras[0], "MOV_IN") == 0){
 			instruccion->tipo = MOV_IN;
 			instruccion->registros[0] = devolverRegistro(palabras[1]); //Registro
+			quitarSaltoDeLinea(palabras, 2);
 			instruccion->paramIntA = atoi(palabras[2]); //Direccion logica
 			//Anular el resto de parametros no usados
 			instruccion->paramIntB = -1;
@@ -197,6 +199,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			//MOV_OUT 120 AX
 			instruccion->tipo = MOV_OUT;
 			instruccion->paramIntA = atoi(palabras[1]); //Direccion logica
+			quitarSaltoDeLinea(palabras, 2);
 			instruccion->registros[0] = devolverRegistro(palabras[2]); //Registro
 			//Anular el resto de parametros no usados
 			instruccion->paramIntB = -1;
@@ -210,6 +213,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		}
 		else if (strcmp(palabras[0], "I/O") == 0){
 			instruccion->tipo = IO;
+			quitarSaltoDeLinea(palabras, 1);
 			instruccion->paramIntA = atoi(palabras[1]); //Tiempo
 			//Anular el resto de parametros no usados
 			instruccion->paramIntB = -1;
@@ -230,6 +234,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			instruccion->cadenaRegistro = nombreArchivo;
 			*/
 			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
+			quitarSaltoDeLinea(palabras, 1);
 			strcpy(instruccion->nombreArchivo, palabras[1]);
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1;
@@ -251,6 +256,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			instruccion->cadenaRegistro = nombreArchivo;
 			*/
 			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
+			quitarSaltoDeLinea(palabras, 1);
 			strcpy(instruccion->nombreArchivo, palabras[1]);
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1;
@@ -272,6 +278,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			*/
 			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
 			strcpy(instruccion->nombreArchivo, palabras[1]);
+			quitarSaltoDeLinea(palabras, 2);
 			instruccion->paramIntA = atoi(palabras[2]); //Posicion del archivo
 			//Anular el resto de parametros no usados
 			instruccion->paramIntB = -1;
@@ -294,6 +301,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
 			strcpy(instruccion->nombreArchivo, palabras[1]);
 			instruccion->paramIntA = atoi(palabras[2]); //Direccion logica
+			quitarSaltoDeLinea(palabras, 3);
 			instruccion->paramIntB = atoi(palabras[3]); //Cantidad de bytes
 			//Anular el resto de parametros no usados
 			instruccion->registros[0] = -1;
@@ -315,6 +323,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
 			strcpy(instruccion->nombreArchivo, palabras[1]);
 			instruccion->paramIntA = atoi(palabras[2]); //Direccion logica
+			quitarSaltoDeLinea(palabras, 3);
 			instruccion->paramIntB = atoi(palabras[3]); //Cantidad de bytes
 			//Anular el resto de parametros no usados
 			instruccion->registros[0] = -1; 
@@ -335,6 +344,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			*/
 			instruccion->nombreArchivo = malloc(sizeof(instruccion->nombreArchivo));
 			strcpy(instruccion->nombreArchivo, palabras[1]);
+			quitarSaltoDeLinea(palabras, 2);
 			instruccion->paramIntA = atoi(palabras[2]); //Tamaño del archivo
 			//Anular el resto de parametros no usados
 			instruccion->paramIntB = -1;
@@ -355,6 +365,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			instruccion->cadenaRegistro = recurso;
 			*/
 			instruccion->recurso = malloc(sizeof(instruccion->recurso));
+			quitarSaltoDeLinea(palabras, 1);
 			strcpy(instruccion->recurso, palabras[1]);
 			//Arreglar
 			//Anular el resto de parametros no usados
@@ -376,6 +387,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			instruccion->recurso = recurso;
 			*/
 			instruccion->recurso = malloc(sizeof(instruccion->recurso));
+			quitarSaltoDeLinea(palabras, 1);
 			strcpy(instruccion->recurso, palabras[1]);
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1; 
@@ -392,6 +404,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		{
 			instruccion->tipo = CREATE_SEGMENT;
 			instruccion->paramIntA = atoi(palabras[1]); //ID segmento
+			quitarSaltoDeLinea(palabras, 2);
 			instruccion->paramIntB = atoi(palabras[2]); //Tamaño del segmento
 			//Anular el resto de parametros no usados
 			instruccion->registros[0] = -1;
@@ -406,6 +419,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		else if (strcmp(palabras[0], "DELETE_SEGMENT") == 0)
 		{
 			instruccion->tipo = DELETE_SEGMENT;
+			quitarSaltoDeLinea(palabras, 1);
 			instruccion->paramIntA = atoi(palabras[1]); //ID segmento
 			//Anular el resto de parametros no usados
 			instruccion->paramIntB = -1;
@@ -418,7 +432,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			free(palabras[1]);
 			free(palabras[2]);
 		}
-		else if (strcmp(palabras[0], "YIELD") == 0 || strcmp(palabras[0], "YIELD\n") == 0){
+		else if (strcmp(palabras[0], "YIELD") == 0 ){
 			instruccion->tipo = YIELD;
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1;
@@ -491,13 +505,17 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 
 t_registro devolverRegistro(char *registro){
 
-	if (strcmp(registro, "AX") == 0 || strcmp(registro, "AX\n") == 0)
+	if(string_ends_with(registro,"\n")){
+		registro=string_replace(registro, "\n", "");
+		printf("La palabra a parsear es: %s", registro);
+	}
+	if (strcmp(registro, "AX") == 0)
 		return AX;
-	else if (strcmp(registro, "BX") == 0 || strcmp(registro, "BX\n") == 0)
+	else if (strcmp(registro, "BX") == 0)
 		return BX;
-	else if (strcmp(registro, "CX") == 0 || strcmp(registro, "CX\n") == 0)
+	else if (strcmp(registro, "CX") == 0)
 		return CX;
-	else if (strcmp(registro, "DX") == 0 || strcmp(registro, "DX\n") == 0)
+	else if (strcmp(registro, "DX") == 0)
 		return DX;
 	return -1;
 }
@@ -537,4 +555,11 @@ t_consola_config leerConfiguracion(t_log* logger){
 	//log_info(logger, "Me conecté al PUERTO: %s", configuracionConsola.puerto);
 
 	return configuracionConsola;
+}
+
+void quitarSaltoDeLinea(char **palabras, int lugar){
+	if(string_ends_with(palabras[lugar],"\n")){
+	palabras[lugar]=string_replace(palabras[lugar], "\n", "");
+	printf("La palabra a parsear es: %s", palabras[lugar]);
+	}
 }
