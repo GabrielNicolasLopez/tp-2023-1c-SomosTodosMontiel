@@ -163,6 +163,14 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 		//Una vez que lee una linea, crea una lista con cada una de las palabras que se generan luego haberlas separado por un espacio
 		char **palabras = string_split(buffer, " ");
 		t_instruccion *instruccion = malloc(sizeof(t_instruccion));
+		int i = 0;
+		while (palabras[i]!=NULL){
+			if(string_ends_with(palabras[i],"\n")){
+				char *palabraSinSaltoLinea=string_replace(palabras[i], "\n", "");
+				palabras[i]= palabraSinSaltoLinea;
+			}
+			i++;
+		}
 
 		if (strcmp(palabras[0], "SET") == 0){
 			instruccion->tipo = SET;
@@ -418,7 +426,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 			free(palabras[1]);
 			free(palabras[2]);
 		}
-		else if (strcmp(palabras[0], "YIELD") == 0 || strcmp(palabras[0], "YIELD\n") == 0){
+		else if (strcmp(palabras[0], "YIELD") == 0){
 			instruccion->tipo = YIELD;
 			//Anular el resto de parametros no usados
 			instruccion->paramIntA = -1;
