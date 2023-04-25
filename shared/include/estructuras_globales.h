@@ -14,13 +14,13 @@
 #include <assert.h>
 #include <shared_utils.h>
 
-// typedef struct
-// {
-//     uint32_t id;
-//     uint32_t program_counter;
-//     uint32_t socket;
-//     t_instrucciones *instrucciones;
-//     // Agregar lo que falta de la consigna
-// } t_pcb;
+typedef struct
+{
+    uint32_t id;
+    uint32_t program_counter;
+    uint32_t socket;
+    t_instrucciones *instrucciones;
+    // Agregar lo que falta de la consigna
+} t_pcb;
 
 #endif
