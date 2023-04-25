@@ -1,12 +1,6 @@
 #include "shared_utils.h"
 
-char* mi_funcion_compartida(){
-    return "Hice uso de la shared!";
-}
-
-
 // Esto es del cliente
-
 void *serializar_paquete(t_paquete *paquete, int bytes)
 {
 	void *magic = malloc(bytes);
@@ -307,15 +301,16 @@ t_instrucciones recibir_informacion(cliente_fd){
 
 
 // Serializar 
-/*
-void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje)
-{
+
+void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje){
 	t_buffer *buffer = malloc(sizeof(t_buffer));
 
-	buffer->size = sizeof(uint32_t) * 5 + calcularSizeInfo(pcb->informacion)
+	/*buffer->size = sizeof(uint32_t) * 5 + calcularSizeInfo(pcb->informacion)
 	+ list_size(pcb->informacion->segmentos) * sizeof(uint32_t)
 	+ list_size(pcb->tablaSegmentos) * sizeof(t_tabla_segmentos) 
-	+ sizeof(int) + sizeof(t_registros);
+	+ sizeof(int) + sizeof(t_registros);*/
+
+	buffer->size = 3 * sizeof(uint32_t) + calcularSizeListaInstrucciones(pcb->instrucciones);
 
 	void *stream = malloc(buffer->size);
 	int offset = 0;
@@ -326,26 +321,16 @@ void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje)
 	memcpy(stream + offset, &pcb->program_counter, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(stream + offset, &pcb->socket, sizeof(int));
-	offset += sizeof(int);
-
-	memcpy(stream + offset, &pcb->registros, sizeof(t_registros));
-	offset += sizeof(t_registros);
-
-	memcpy(stream + offset, &(pcb->informacion->instrucciones->elements_count), sizeof(uint32_t));
+	memcpy(stream + offset, &pcb->socket, sizeof(uint32_t));
 	offset += sizeof(uint32_t);
 
-	memcpy(stream + offset, &(pcb->informacion->segmentos->elements_count), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-
-	memcpy(stream + offset, &(pcb->tablaSegmentos->elements_count), sizeof(uint32_t));
-	offset += sizeof(uint32_t);
+	memcpy(stream + offset, &pcb->instrucciones, calcularSizeListaInstrucciones(pcb->instrucciones));
+	offset += calcularSizeListaInstrucciones(pcb->instrucciones);
 
 
-	int i = 0, j = 0 , n = 0;
+	int i = 0;
 
-	while (i < list_size(pcb->informacion->instrucciones))
-	{
+	while (i < list_size(pcb->informacion->instrucciones)){
 		t_instruccion* instrucccion = list_get(pcb->informacion->instrucciones, i);
 		memcpy(stream + offset,&instrucccion->instCode, sizeof(t_instCode));
 		offset += sizeof(t_instCode);
@@ -364,34 +349,12 @@ void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje)
 		//printf(PRINT_COLOR_MAGENTA "Estoy serializando las instruccion %d" PRINT_COLOR_RESET "\n", i);
 	}
 
-	while (j < list_size(pcb->informacion->segmentos))
-	{
-		uint32_t segmento = list_get(pcb->informacion->segmentos, j);
-		memcpy(stream + offset, &segmento, sizeof(uint32_t));
-
-		offset += sizeof(uint32_t);
-
-		j++;
-		//printf(PRINT_COLOR_YELLOW "Estoy serializando el segmento: %d" PRINT_COLOR_RESET "\n", j);
-
-	}
-
-
-	while (n < list_size(pcb->tablaSegmentos))
-	{
-
-		memcpy(stream + offset, list_get(pcb->tablaSegmentos, n), sizeof(t_tabla_segmentos));
-		offset += sizeof(t_tabla_segmentos);
-		n++;
-		//printf(PRINT_COLOR_YELLOW "Estoy serializando el segmento: %d" PRINT_COLOR_RESET "\n", n);
-	}
-
 	buffer->stream = stream;
 
 	crearPaquete(buffer, tipoMensaje, socket);
 
 	//free(buffer);
-}*/
+}
 
 /*int calcularSizeInfo(t_informacion* info){
 	int total = 0;
