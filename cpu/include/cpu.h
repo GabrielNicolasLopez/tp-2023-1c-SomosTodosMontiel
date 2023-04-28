@@ -9,7 +9,8 @@
 #include "tests.h"
 
 #define CONFIG_PATH "./cfg/cpu.cfg"
-#define LOG_PATH "./cfg/cpu.log"
+//#define LOG_PATH "./cfg/cpu.log" LOG QUE PERSISTE EN EL REPO REMOTO
+#define LOG_PATH "./cfg/cpuPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "CPU"
 
 typedef struct 

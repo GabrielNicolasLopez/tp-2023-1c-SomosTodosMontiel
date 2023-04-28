@@ -9,7 +9,8 @@
 #include <string.h>
 
 #define CONFIG_PATH "./cfg/filesystem.cfg"
-#define LOG_PATH "./cfg/filesystem.log"
+//#define LOG_PATH "./cfg/filesystem.log" LOG QUE PERSISTE EN EL REPO REMOTO
+#define LOG_PATH "./cfg/filesystem.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Filesystem"
 
 typedef struct

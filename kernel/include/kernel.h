@@ -12,7 +12,8 @@
 #include <pthread.h>
 
 #define CONFIG_PATH "./cfg/kernel.cfg"
-#define LOG_PATH "./cfg/kernel.log"
+//#define LOG_PATH "./cfg/kernel.log" LOG QUE PERSISTE EN EL REPO REMOTO
+#define LOG_PATH "./cfg/kernelPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Kernel"
 
 typedef struct

@@ -8,7 +8,8 @@
 #include <commons/config.h>
 
 #define CONFIG_PATH "./cfg/memoria.cfg"
-#define LOG_PATH "./cfg/memoria.log"
+//#define LOG_PATH "./cfg/memoria.log" LOG QUE PERSISTE EN EL REPO REMOTO
+#define LOG_PATH "./cfg/memoriaPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Memoria"
 
 

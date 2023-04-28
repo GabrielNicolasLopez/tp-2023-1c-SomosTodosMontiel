@@ -10022,3 +10022,10 @@ recibir a Kernel
 [INFO] 02:21:52:552 Filesystem/(100199:100199): FL se conectó a memoria
 [INFO] 02:21:52:554 Filesystem/(100199:100200): Filesystem listo para recibir a Kernel
 [INFO] 02:21:53:834 Filesystem/(100199:100200): Se conecto un cliente!
+[INFO] 16:11:25:927 Filesystem/(5044:5044): INICIANDO FILESYSTEM...
+[INFO] 16:11:25:953 Filesystem/(5044:5044): Hola FL 1
+[INFO] 16:11:25:958 Filesystem/(5044:5044): Hola FL 2
+[ERROR] 16:11:25:958 Filesystem/(5044:5044): Error al conectarse!
+[INFO] 16:11:25:958 Filesystem/(5044:5044): FL se conectó a memoria
+[INFO] 16:11:25:959 Filesystem/(5044:5048): Filesystem listo para recibir a Kernel
+[INFO] 16:11:32:053 Filesystem/(5044:5048): Se conecto un cliente!

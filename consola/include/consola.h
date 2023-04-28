@@ -10,7 +10,8 @@
 #include "tests.h"
 
 #define CONFIG_PATH "./cfg/consola.cfg"
-#define LOG_PATH "./cfg/consola.log"
+//#define LOG_PATH "./cfg/consola.log" LOG QUE PERSISTE EN EL REPO REMOTO
+#define LOG_PATH "./cfg/consolaPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "consola"
 
 typedef struct
