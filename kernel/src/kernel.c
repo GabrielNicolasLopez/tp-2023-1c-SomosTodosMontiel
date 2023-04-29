@@ -25,6 +25,7 @@ void crear_hilos_kernel()
 	pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
 	pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
 
+	pthread_detach(hiloConsola);
 	pthread_detach(hiloCPU);
 	pthread_detach(hiloFilesystem);
 	pthread_detach(hiloMemoria);
@@ -65,7 +66,7 @@ void crear_hilo_cpu()
 void crear_hilo_consola()
 {
 	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA, logger);
-	log_info(logger, "Kernel listo para recibir clientes");
+	log_info(logger, "Kernel listo para recibir clientes consola");
 
 	while (1)
 	{
@@ -76,6 +77,13 @@ void crear_hilo_consola()
 		log_info(logger, "El codigo de operacion es: %s", nombresCodigoOperaciones[cod_op]);
 
 		t_instrucciones instrucciones = recibir_informacion(socketCliente);
+
+		//Imprimir instrucciones para ver que se hayan leido bien
+		int i=0;
+		while(i<list_size(instrucciones.listaInstrucciones)){
+			printf("%p\n",list_get(instrucciones.listaInstrucciones, i));
+		}
+
 		if(!enviarMensaje(socketCliente, "Llegaron las instrucciones"))
 			log_error(logger, "Error al enviar el mensaje");
 

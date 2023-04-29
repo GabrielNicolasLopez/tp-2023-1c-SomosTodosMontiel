@@ -46,6 +46,57 @@ typedef struct
     sem_t contador_bloqueo;
 }t_recurso;
 
+typedef struct
+{
+	char ax[4];
+	char bx[4];
+	char cx[4];
+	char dx[4];
+}t_registro;
+
+typedef struct
+{
+	char eax[8];
+	char ebx[8];
+	char ecx[8];
+	char edx[8];
+}t_registroE;
+
+typedef struct
+{
+	char rax[16];
+	char rbx[16];
+	char rcx[16];
+	char rdx[16];
+}t_registroR;
+
+typedef struct
+{
+	t_registro *registro;
+	t_registroE *registroE;
+	t_registroR *registroR;
+}t_registrosCPU;
+
+typedef struct
+{
+	uint32_t pid;
+	uint32_t program_counter;
+	t_instrucciones *instrucciones;
+	t_list tablaDeSegmentos;
+	t_registrosCPU *registrosCPU;
+}t_contextoEjecucion;
+
+
+
+typedef struct
+{
+    uint32_t pid;
+    uint32_t program_counter;
+    uint32_t socket;
+	t_contextoEjecucion *contextoEjecucion;
+	t_recurso *Recurso;
+} t_pcb;
+
 t_kernel_config *leerConfiguracion();
 void crear_pcb();
 void crear_hilo_memoria();
