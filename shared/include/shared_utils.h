@@ -13,6 +13,10 @@
 #include <string.h>
 #include <assert.h>
 
+const char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
+const char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT",
+                                      "IO", "WAIT", "SIGNAL", "F_OPEN", "F_CLOSE", "DELETE_SEGMENT", "YIELD", "EXIT"};
+
 typedef enum
 {
 	MENSAJE,
@@ -23,8 +27,6 @@ typedef enum
 typedef enum {
 	TERMINAR_CONSOLA,
 } t_tipoMensaje;
-
-const char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
 
 typedef enum
 {
@@ -78,14 +80,13 @@ typedef struct
     char *recurso;                 // Disco, etc
     char *cadenaRegistro;          // Texto guardado en el registro
     char *nombreArchivo;
-} t_instruccion;
-// __attribute__((packed)) t_instruccion; esto tiene que ir?
+} __attribute__((packed)) t_instruccion; //esto tiene que ir?
 
-typedef struct
+typedef struct t_instrucciones
 {
 	t_list *listaInstrucciones;
 	uint32_t cantidadInstrucciones;
-} t_instrucciones;
+} __attribute__((packed)) t_instrucciones;
 
 typedef struct
 {
@@ -98,13 +99,6 @@ typedef struct
 	op_code codigo_operacion;
 	t_buffer *buffer;
 } t_paquete;
-
-typedef struct
-{
-	int hola;
-} t_pcb;
-
-
 
 extern t_log* logger;
 
@@ -124,7 +118,7 @@ void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio);
 void enviar_paquete(t_paquete *paquete, int socket_cliente);
 void liberar_conexion(int socket_cliente);
 void eliminar_paquete(t_paquete *paquete);
-t_buffer *cargar_buffer_a_t_pcb(t_pcb t_pcb);
+//t_buffer *cargar_buffer_a_t_pcb(t_pcb t_pcb);
 void cargar_buffer_a_paquete(t_buffer *buffer, int conexion);
 //t_pcb *deserializar_pcb(t_buffer *buffer);
 //void deserializar_paquete(int conexion);

@@ -52,7 +52,7 @@ typedef struct
 	char bx[4];
 	char cx[4];
 	char dx[4];
-}t_registro;
+}t_registroC;
 
 typedef struct
 {
@@ -86,8 +86,6 @@ typedef struct
 	t_registrosCPU *registrosCPU;
 }t_contextoEjecucion;
 
-
-
 typedef struct
 {
     uint32_t pid;
@@ -108,4 +106,5 @@ void cargarRecursos();
 int enviarMensaje(int socket, char *msj);
 void *serializarMensaje(char *msj, size_t *size_stream);
 int enviarStream(int socket, void *stream, size_t stream_size);
+t_instrucciones recibir_informacion_pfqa(int cliente_fd);
 #endif

@@ -91,7 +91,7 @@ void *recibirStream(int socket, size_t stream_size){
 int calcularSizeListaInstrucciones(t_instrucciones *instrucciones){
 	int total = 0;
 	for (int i = 0 ; i < list_size(instrucciones->listaInstrucciones); i++){
-
+		
 		t_instruccion* instruccion = list_get(instrucciones->listaInstrucciones,i);
 		total += sizeof(t_tipoInstruccion);
 		total += sizeof(t_registro) * 2;
@@ -99,6 +99,7 @@ int calcularSizeListaInstrucciones(t_instrucciones *instrucciones){
 		total += sizeof(instruccion->recurso);
 		total += sizeof(instruccion->nombreArchivo);
 		total += sizeof(instruccion->cadenaRegistro);
+		//log_info(logger, "total: %d", sizeof(total));
 	}
 	return total;
 }
@@ -106,14 +107,20 @@ int calcularSizeListaInstrucciones(t_instrucciones *instrucciones){
 t_paquete *crear_paquete_instrucciones(t_instrucciones *instrucciones){
 	log_info(logger,"Empiezo a serializar las instrucciones");
 	t_buffer *buffer = malloc(sizeof(t_buffer));
-	buffer->size = 	sizeof(uint32_t) //Cantidad de instrucciones
-					+ calcularSizeListaInstrucciones(instrucciones); // Peso de las instrucciones
+	//log_error(logger, "buffer: %d", sizeof(buffer));
+	/*buffer->size = sizeof(uint32_t)*2 //Cantidad de instrucciones
+				   + calcularSizeListaInstrucciones(instrucciones); // Peso de las instrucciones*/
 
+	buffer->size = sizeof(uint32_t) + calcularSizeListaInstrucciones(instrucciones);
+	//log_error(logger, "peso lista: %d", calcularSizeListaInstrucciones(instrucciones));
 	void *stream = malloc(buffer->size);
+	//log_error(logger, "tamaño: %d", sizeof(stream));
 
 	int offset = 0; // Desplazamiento
 	memcpy(stream + offset, &(instrucciones->cantidadInstrucciones), sizeof(uint32_t));
 	offset += sizeof(uint32_t);
+	//log_error(logger, "tamaño: %d", sizeof(stream));
+	//log_error(logger, "cantidadInstrucciones: %d", instrucciones->cantidadInstrucciones);
 	
 	// Serializa las instrucciones
 	int i = 0;
@@ -138,6 +145,9 @@ t_paquete *crear_paquete_instrucciones(t_instrucciones *instrucciones){
 		offset += sizeof(instrucccion->nombreArchivo);
 		i++;
 	}
+	
+	//log_error(logger, "stream: %d", sizeof((*(t_instruccion*)stream)));
+	//log_error(logger, "offset: %d", sizeof(offset));
 
 	buffer->stream = stream; // Payload
 
@@ -493,7 +503,7 @@ void agregarInstruccionesDesdeArchivo(t_instrucciones *instrucciones, FILE* arch
 	}
 
 	fclose(archivoInstrucciones);
-
+	instrucciones->cantidadInstrucciones = list_size(instrucciones->listaInstrucciones);
 	log_info(logger, "Se parsearon %d instrucciones.", list_size(instrucciones->listaInstrucciones));
 }
 

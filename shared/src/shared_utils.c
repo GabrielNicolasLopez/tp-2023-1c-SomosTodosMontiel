@@ -1,9 +1,9 @@
 #include "shared_utils.h"
 
-char* mi_funcion_compartida(){
-    return "Hice uso de la shared!";
+char *mi_funcion_compartida()
+{
+	return "Hice uso de la shared!";
 }
-
 
 // Esto es del cliente
 
@@ -22,7 +22,7 @@ void *serializar_paquete(t_paquete *paquete, int bytes)
 	return magic;
 }
 
-int crear_conexion(char *ip, char *puerto, t_log* logger)
+int crear_conexion(char *ip, char *puerto, t_log *logger)
 {
 	struct addrinfo hints;
 	struct addrinfo *server_info;
@@ -44,11 +44,11 @@ int crear_conexion(char *ip, char *puerto, t_log* logger)
 	// connect():
 	if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
 	{
-		log_error(logger,"Error al conectarse!");
+		log_error(logger, "Error al conectarse!");
 	}
 
 	freeaddrinfo(server_info);
-	
+
 	return socket_cliente;
 }
 
@@ -128,8 +128,7 @@ void liberar_conexion(int socket_cliente)
 t_log *logger;
 t_log *loggerMinimo;
 
-
-int iniciar_servidor(char *IP, char *PUERTO, t_log* logger)
+int iniciar_servidor(char *IP, char *PUERTO, t_log *logger)
 {
 	int socket_servidor;
 
@@ -172,11 +171,11 @@ int iniciar_servidor(char *IP, char *PUERTO, t_log* logger)
 
 	listen(socket_servidor, SOMAXCONN); // SOMAXCONN: es la cantidad maxima de conexiones vivas que admite el sistema operativo
 	freeaddrinfo(servinfo);
-	//log_trace(logger, "Listo para escuchar a mi cliente");
+	// log_trace(logger, "Listo para escuchar a mi cliente");
 	return socket_servidor;
 }
 
-int esperar_cliente(int socket_servidor, t_log* logger)
+int esperar_cliente(int socket_servidor, t_log *logger)
 {
 
 	// Aceptamos un nuevo cliente
@@ -204,7 +203,7 @@ int recibir_operacion(int socket_cliente)
 		return cod_op;
 	else
 	{
-		
+
 		return -1;
 	}
 }
@@ -261,12 +260,14 @@ int size_char_array(char **array)
 	return i;
 }
 
-t_instrucciones recibir_informacion(cliente_fd){
+t_instrucciones recibir_informacion(int cliente_fd){
 	int size;
 	void *buffer = recibir_buffer(&size, cliente_fd);
+	log_info(logger, "size: %d", size);
 	t_instrucciones instrucciones;
 	int offset = 0;
 	memcpy(&(instrucciones.cantidadInstrucciones), buffer + offset, sizeof(uint32_t));
+	//printf("la cantidad de instrucciones es: %d", instrucciones.cantidadInstrucciones);
 	offset += sizeof(uint32_t);
 	instrucciones.listaInstrucciones = list_create();
 	t_instruccion *instruccion;
@@ -275,20 +276,20 @@ t_instrucciones recibir_informacion(cliente_fd){
 
 	while (k < instrucciones.cantidadInstrucciones){
 		instruccion = malloc(sizeof(t_instruccion));
-		//El tipo de instruccion
+		// El tipo de instruccion
 		memcpy(&instruccion->tipo, buffer + offset, sizeof(t_tipoInstruccion));
 		offset += sizeof(t_tipoInstruccion);
-		//Los registros
+		// Los registros
 		memcpy(&instruccion->registros[0], buffer + offset, sizeof(t_registro));
 		offset += sizeof(t_registro);
 		memcpy(&instruccion->registros[1], buffer + offset, sizeof(t_registro));
 		offset += sizeof(t_registro);
-		//Los int
+		// Los int
 		memcpy(&instruccion->paramIntA, buffer + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
 		memcpy(&instruccion->paramIntB, buffer + offset, sizeof(uint32_t));
 		offset += sizeof(uint32_t);
-		//Los 3 char*
+		// Los 3 char*
 		memcpy(&instruccion->recurso, buffer + offset, sizeof(instruccion->recurso));
 		offset += sizeof(instruccion->recurso);
 		memcpy(&instruccion->cadenaRegistro, buffer + offset, sizeof(instruccion->cadenaRegistro));
@@ -301,12 +302,10 @@ t_instrucciones recibir_informacion(cliente_fd){
 	}
 
 	free(buffer);
-
 	return instrucciones;
 }
 
-
-// Serializar 
+// Serializar
 /*
 void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje)
 {
@@ -314,7 +313,7 @@ void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje)
 
 	buffer->size = sizeof(uint32_t) * 5 + calcularSizeInfo(pcb->informacion)
 	+ list_size(pcb->informacion->segmentos) * sizeof(uint32_t)
-	+ list_size(pcb->tablaSegmentos) * sizeof(t_tabla_segmentos) 
+	+ list_size(pcb->tablaSegmentos) * sizeof(t_tabla_segmentos)
 	+ sizeof(int) + sizeof(t_registros);
 
 	void *stream = malloc(buffer->size);
@@ -508,7 +507,7 @@ t_pcb *deserializoPCB(t_buffer *buffer)
 		stream += sizeof(t_registro);
 		memcpy(&instruccion->paramReg[1],stream , sizeof(t_registro));
 		stream += sizeof(t_registro);
-		
+
 		list_add(pcb->informacion->instrucciones, instruccion);
 		k++;
 	}
@@ -545,7 +544,7 @@ void imprimirInstruccionesYSegmentos(t_informacion informacion)
 	printf("Instrucciones:");
 	for (int i = 0; i < informacion.instrucciones_size; ++i)
 	{
-		
+
 		instruccion = list_get(informacion.instrucciones, i);
 		//printf("\n codigo %d", instruccion->instCode);
 		//printf("\n dispositivo io %s", instruccion->paramIO);

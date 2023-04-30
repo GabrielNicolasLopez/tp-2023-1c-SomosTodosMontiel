@@ -20,8 +20,7 @@ typedef struct
     char *puerto;
 } t_consola_config;
 
-const char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT",
-                                      "IO", "WAIT", "SIGNAL", "F_OPEN", "F_CLOSE", "DELETE_SEGMENT", "YIELD", "EXIT"};
+
 const char *nombresRegistros[] = {"AX", "BX", "CX", "DX"};
 
 t_consola_config leerConfiguracion(t_log *logger);

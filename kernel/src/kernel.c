@@ -14,6 +14,7 @@ int main(void)
 	// cargarRecursos();
 
 	crear_hilos_kernel();
+	log_error(logger, "termine de ejecutar");
 }
 
 void crear_hilos_kernel()
@@ -21,14 +22,14 @@ void crear_hilos_kernel()
 	pthread_t hiloConsola, hiloCPU, hiloFilesystem, hiloMemoria;
 
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
-	pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
-	pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
-	pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
+	//pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
+	//pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
+	//pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
 
-	pthread_detach(hiloConsola);
-	pthread_detach(hiloCPU);
-	pthread_detach(hiloFilesystem);
-	pthread_detach(hiloMemoria);
+	//pthread_detach(hiloConsola);
+	//pthread_detach(hiloCPU);
+	//pthread_detach(hiloFilesystem);
+	//pthread_detach(hiloMemoria);
 
 	pthread_join(hiloConsola, NULL);
 }
@@ -72,16 +73,18 @@ void crear_hilo_consola()
 	{
 		pthread_t hilo_atender_consola;
 		int socketCliente = esperar_cliente(server_fd, logger);
-
+		
 		int cod_op = recibir_operacion(socketCliente);
-		log_info(logger, "El codigo de operacion es: %s", nombresCodigoOperaciones[cod_op]);
+		//log_info(logger, "El codigo de operacion es: %s", nombresCodigoOperaciones[cod_op]);
 
-		t_instrucciones instrucciones = recibir_informacion(socketCliente);
+		t_instrucciones instrucciones = recibir_informacion_pfqa(socketCliente);
 
 		//Imprimir instrucciones para ver que se hayan leido bien
 		int i=0;
-		while(i<list_size(instrucciones.listaInstrucciones)){
-			printf("%p\n",list_get(instrucciones.listaInstrucciones, i));
+		while(i< instrucciones.cantidadInstrucciones){
+			t_instruccion *instruccion = list_get(instrucciones.listaInstrucciones, i);
+			log_info(logger, "%s", nombresInstrucciones[instruccion->tipo]);
+			i++;
 		}
 
 		if(!enviarMensaje(socketCliente, "Llegaron las instrucciones"))
@@ -203,3 +206,48 @@ void cargarRecursos()
 // 	list_add(LISTA_BLOCKED, recurso);
 // 	pthread_mutex_unlock(&mutex_lista_blocked);
 // }
+
+t_instrucciones recibir_informacion_pfqa(int cliente_fd){
+	int size;
+	void *buffer = recibir_buffer(&size, cliente_fd);
+	log_info(logger, "size: %d", size);
+	t_instrucciones instrucciones;
+	int offset = 0;
+	memcpy(&(instrucciones.cantidadInstrucciones), buffer + offset, sizeof(uint32_t));
+	//printf("la cantidad de instrucciones es: %d", instrucciones.cantidadInstrucciones);
+	offset += sizeof(uint32_t);
+	instrucciones.listaInstrucciones = list_create();
+	t_instruccion *instruccion;
+
+	int k = 0;
+
+	while (k < instrucciones.cantidadInstrucciones){
+		instruccion = malloc(sizeof(t_instruccion));
+		// El tipo de instruccion
+		memcpy(&instruccion->tipo, buffer + offset, sizeof(t_tipoInstruccion));
+		offset += sizeof(t_tipoInstruccion);
+		// Los registros
+		memcpy(&instruccion->registros[0], buffer + offset, sizeof(t_registro));
+		offset += sizeof(t_registro);
+		memcpy(&instruccion->registros[1], buffer + offset, sizeof(t_registro));
+		offset += sizeof(t_registro);
+		// Los int
+		memcpy(&instruccion->paramIntA, buffer + offset, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(&instruccion->paramIntB, buffer + offset, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		// Los 3 char*
+		memcpy(&instruccion->recurso, buffer + offset, sizeof(instruccion->recurso));
+		offset += sizeof(instruccion->recurso);
+		memcpy(&instruccion->cadenaRegistro, buffer + offset, sizeof(instruccion->cadenaRegistro));
+		offset += sizeof(instruccion->cadenaRegistro);
+		memcpy(&instruccion->nombreArchivo, buffer + offset, sizeof(instruccion->nombreArchivo));
+		offset += sizeof(instruccion->nombreArchivo);
+
+		list_add(instrucciones.listaInstrucciones, instruccion);
+		k++;
+	}
+
+	free(buffer);
+	return instrucciones;
+}
