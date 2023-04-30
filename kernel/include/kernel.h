@@ -10,6 +10,7 @@
 #include <semaphore.h>
 #include <commons/string.h>
 #include <pthread.h>
+#include <time.h>
 
 #define CONFIG_PATH "./cfg/kernel.cfg"
 //#define LOG_PATH "./cfg/kernel.log" LOG QUE PERSISTE EN EL REPO REMOTO
@@ -89,14 +90,27 @@ typedef struct
 typedef struct
 {
     uint32_t pid;
-    uint32_t program_counter;
     uint32_t socket;
-	t_contextoEjecucion *contextoEjecucion;
-	t_recurso *Recurso;
+	uint32_t program_counter;
+	t_instrucciones *instrucciones;
+	t_list *tablaDeSegmentos;
+	//t_registrosCPU *registrosCPU;
+	time_t estimacionProxRafaga;
+	time_t llegadaReady;
+	t_list *taap; //Tabla de Archivos Abiertos del Proceso
 } t_pcb;
 
+typedef struct
+{
+	char* inicioArchivo;
+}t_entradaTAAP;
+
+
+t_list *tgaa; //Tabla General Archivos Abiertos
+
+
 t_kernel_config *leerConfiguracion();
-void crear_pcb();
+void crear_pcb(int socketCliente, t_instrucciones *instrucciones);
 void crear_hilo_memoria();
 void crear_hilo_filesystem();
 void crear_hilo_cpu();
@@ -107,4 +121,9 @@ int enviarMensaje(int socket, char *msj);
 void *serializarMensaje(char *msj, size_t *size_stream);
 int enviarStream(int socket, void *stream, size_t stream_size);
 t_instrucciones recibir_informacion_pfqa(int cliente_fd);
+
+
+const int contadorIdPCB=0;
+t_list *LISTA_NEW;
+
 #endif

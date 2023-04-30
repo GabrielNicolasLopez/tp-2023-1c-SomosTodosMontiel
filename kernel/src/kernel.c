@@ -90,6 +90,8 @@ void crear_hilo_consola()
 		if(!enviarMensaje(socketCliente, "Llegaron las instrucciones"))
 			log_error(logger, "Error al enviar el mensaje");
 
+		crear_pcb(socketCliente, &instrucciones);
+
 		//Envio un paquete para que consola finalice
 		t_paquete* paquete = crear_paquete();
 		paquete->codigo_operacion = TERMINAR_CONSOLA;
@@ -137,10 +139,27 @@ int enviarStream(int socket, void *stream, size_t stream_size){
 	return 1;
 }
 
-void crear_pcb()
+void crear_pcb(int socketCliente, t_instrucciones *instrucciones)
 {
 	log_info(logger, "Se conecto una consola");
+	t_pcb *pcb = malloc(sizeof(t_pcb));
+
+	pcb->pid = contadorIdPCB;
+	pcb->socket = socketCliente;
+	pcb-> program_counter= 0;
+	pcb-> instrucciones= instrucciones;
+	pcb-> tablaDeSegmentos= list_create();
+	//pcb-> registrosCPU;
+	pcb->estimacionProxRafaga=time(NULL);
+	pcb->llegadaReady=time(NULL);
+	pcb->taap= list_create();
+	list_add(LISTA_NEW, pcb);
+	log_debug(logger, "Estado Actual: NEW , proceso id: %d", pcb->pid);
+	log_info(logger, "Creación de Proceso: se crea el proceso %d en NEW", pcb->pid); 
+	log_info(logger, "Cant de elementos de new: %d", list_size(LISTA_NEW));
 }
+
+
 
 t_kernel_config *leerConfiguracion()
 {
