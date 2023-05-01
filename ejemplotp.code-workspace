@@ -30,7 +30,8 @@
 			"stdio.h": "c",
 			"shared_utils.h": "c",
 			"config.h": "c",
-			"log.h": "c"
+			"log.h": "c",
+			"semaphore.h": "c"
 		}
 	}
 }

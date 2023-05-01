@@ -10,6 +10,7 @@ int main(void)
 
 	// Leo la configuracion de kernel
 	configuracionKernel = leerConfiguracion();
+	sem_init(&multiprogramacion, 0, configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);
 
 	// cargarRecursos();
 
@@ -19,13 +20,20 @@ int main(void)
 
 void crear_hilos_kernel()
 {
-	pthread_t hiloConsola, hiloCPU, hiloFilesystem, hiloMemoria;
+	pthread_t hiloConsola, hiloCPU, hiloFilesystem, hiloMemoria, planifCortoPlazo, planiLargoPlazo;
+
+	sem_init(&cantPCB, 0, 0);
+	
 
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
 	//pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
 	//pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
 	//pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
+	pthread_create(&planiLargoPlazo, NULL, (void *)planiLargoPlazo, NULL);
+	pthread_create(&planifCortoPlazo, NULL, (void *)planifCortoPlazo, NULL);
 
+	pthread_detach(planifCortoPlazo);
+	pthread_detach(planiLargoPlazo);
 	//pthread_detach(hiloConsola);
 	//pthread_detach(hiloCPU);
 	//pthread_detach(hiloFilesystem);
@@ -34,8 +42,124 @@ void crear_hilos_kernel()
 	pthread_join(hiloConsola, NULL);
 }
 
-void crear_hilo_memoria()
-{
+
+void planiLargoPlazo(){
+	while (1){
+		//Espera a que haya alguna PCB disponible para pasarla a READY
+		sem_wait(&cantPCB);
+		agregar_pcb();
+	}
+}
+
+void planifCortoPlazo(){
+	while (1){
+		sem_wait(&cantPCBReady);
+		log_info(logger, "Llego pcb a plani corto plazo");
+		t_tipo_algoritmo algoritmo = obtenerAlgoritmo();
+
+		switch (algoritmo){
+		case FIFO:
+			log_debug(logger, "Implementando algoritmo FIFO");
+			log_debug(logger, " Cola Ready FIFO:");
+			cargarListaReadyIdPCB(LISTA_READY);
+			implementar_fifo();
+
+			break;
+		case HRRN:
+			log_debug(logger, "Implementando algoritmo RR");
+			log_debug(logger, " Cola Ready RR:");
+			cargarListaReadyIdPCB(LISTA_READY);
+			implementar_hrrn();
+
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void implementar_fifo(){
+
+}
+
+void implementar_hrrn(){
+	
+}
+
+t_tipo_algoritmo obtenerAlgoritmo(){
+	char *algoritmoConfig = configuracionKernel->ALGORITMO_PLANIFICACION;
+	t_tipo_algoritmo algoritmo;
+
+	if(!strcmp(algoritmo, "FIFO"))
+		algoritmo = FIFO;
+	else if(!strcmp(algoritmo, "RR"))
+		algoritmo = HRRN;
+	else
+		log_error(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
+	return algoritmo;
+}
+
+void agregar_pcb(){
+	sem_wait(&multiprogramacion);
+
+	log_info(logger, "Agregando un pcb a lista ready...");
+
+	//Bloqueo la lista de NEW para sacar una pcb
+	pthread_mutex_lock(&listaNew);
+	//Saco el 1er elemento de la lista de new (ESO NO TIENE NADA QUE VER CON FIFO. SIEMPRE SE USA FIFO PARA SACAR PCBS DE NEW)
+	t_pcb *pcb = list_remove(LISTA_NEW, 0); 
+	//Desbloqueo la lista para que la puedan usar los otros hilos
+	pthread_mutex_unlock(&listaNew); 
+
+	// solicito que memoria inicialice sus estructuras
+	/*pthread_mutex_lock(&mutex_conexion_memoria);
+	serializarPCB(conexionMemoria, pcb, ASIGNAR_RECURSOS);
+	pthread_mutex_unlock(&mutex_conexion_memoria);
+	free(pcb);
+	log_info(logger, "Envio recursos a memoria\n");
+
+	// memoria me devuelve el pcb modificado
+	pthread_mutex_lock(&mutex_conexion_memoria);
+	t_paqueteActual *paquete = recibirPaquete(conexionMemoria);
+	// pthread_mutex_unlock(&mutex_conexion_memoria);
+	log_info(logger, "Recibo recursos de memoria\n");
+	if (paquete == NULL)
+	{
+		log_error(logger, "Paquete nulo\n");
+	}
+	else
+	{
+		log_info(logger, "Paquete no nulo\n");
+	}
+	// pthread_mutex_lock(&mutex_conexion_memoria);
+	pcb = deserializoPCB(paquete->buffer);
+	pthread_mutex_unlock(&mutex_conexion_memoria);*/
+
+	// imprimirInstruccionesYSegmentos(*(pcb->informacion));
+	/*for (int i = 0; i < list_size(pcb->tablaSegmentos); i++)
+	{
+		t_tabla_segmentos *tablaSegmento = malloc(sizeof(t_tabla_segmentos));
+
+		t_tabla_segmentos *segmento = list_get(pcb->tablaSegmentos, i);
+		log_info(logger,"El id del segmento es: %d\n", segmento->id);
+
+		log_info(logger,"El id de la tabla es: %d\n", segmento->indiceTablaPaginas);
+	}*/
+
+	pasar_a_ready(pcb);
+
+	//log_debug(logger, "Estado Anterior: NEW , proceso id: %d", pcb->pid);
+	//log_debug(logger, "Estado Actual: READY , proceso id: %d", pcb->pid);
+	// Cambio de estado
+	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: NEW, Estado Actual: READY", pcb->pid);
+	log_info(logger, "Cant de elementos de ready: %d\n", list_size(LISTA_READY));
+
+	//Aumento el semaforo de cantidad de PCBs en ready 
+	sem_post(&cantPCBReady);
+	//log_info(logger, "Envie a memoria los recursos para asignar");
+}
+
+void crear_hilo_memoria(){
 	// Me conecto a memoria
 	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_MEMORIA, configuracionKernel->PUERTO_MEMORIA, logger);
 	log_info(logger, "Hola, me conecté a memoria");
@@ -44,8 +168,7 @@ void crear_hilo_memoria()
 	}
 }
 
-void crear_hilo_filesystem()
-{
+void crear_hilo_filesystem(){
 	// Me conecto a filesystem
 	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_FILESYSTEM, configuracionKernel->PUERTO_FILESYSTEM, logger);
 	log_info(logger, "Hola, me conecté a filesystem");
@@ -54,8 +177,7 @@ void crear_hilo_filesystem()
 	}
 }
 
-void crear_hilo_cpu()
-{
+void crear_hilo_cpu(){
 	// Me conecto a cpu
 	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
 	log_info(logger, "Hola, me conecté a cpu");
@@ -64,12 +186,13 @@ void crear_hilo_cpu()
 	}
 }
 
-void crear_hilo_consola()
-{
+void crear_hilo_consola(){
 	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA, logger);
 	log_info(logger, "Kernel listo para recibir clientes consola");
 
+	//Estas creaciones deben estar en OTRO LADO, esto es temporal
 	LISTA_NEW = list_create();
+	LISTA_READY = list_create();
 
 	while (1){
 		pthread_t hilo_atender_consola;
@@ -119,7 +242,7 @@ void crear_pcb(void *datos){
 	log_info(logger, "Creación de Proceso: se crea el proceso %d en NEW", pcb->pid); 
 	log_info(logger, "Cant de elementos de new: %d", list_size(LISTA_NEW));
 
-	//sem_post(&cantPCB);
+	sem_post(&cantPCB);
 }
 
 void pasar_a_new(t_pcb *pcb){
@@ -129,7 +252,12 @@ void pasar_a_new(t_pcb *pcb){
 	log_debug(logger, "Paso a NEW el proceso %d", pcb->pid);
 }
 
-
+void pasar_a_ready(t_pcb *pcb){
+	pthread_mutex_lock(&listaReady);
+	list_add(LISTA_READY, pcb);
+	pthread_mutex_unlock(&listaReady);
+	log_debug(logger, "Paso a READY el proceso %d", pcb->pid);
+}
 
 
 

@@ -12,6 +12,10 @@
 #include <commons/config.h>
 #include <string.h>
 #include <assert.h>
+#include <semaphore.h>
+#include <commons/string.h>
+#include <pthread.h>
+#include <time.h>
 
 char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
 char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT",
