@@ -41,50 +41,11 @@ typedef struct
 
 typedef struct
 {
-	char ax[4];
-	char bx[4];
-	char cx[4];
-	char dx[4];
-}t_registroC;
-
-typedef struct
-{
-	char eax[8];
-	char ebx[8];
-	char ecx[8];
-	char edx[8];
-}t_registroE;
-
-typedef struct
-{
-	char rax[16];
-	char rbx[16];
-	char rcx[16];
-	char rdx[16];
-}t_registroR;
-
-typedef struct
-{
-	t_registro *registro;
-	t_registroE *registroE;
-	t_registroR *registroR;
-}t_registrosCPU;
-
-typedef struct
-{
-	uint32_t pid;
-	uint32_t program_counter;
-	t_instrucciones *instrucciones;
-	t_list tablaDeSegmentos;
-	t_registrosCPU *registrosCPU;
-}t_contextoEjecucion;
-
-typedef struct
-{
     uint32_t pid;
     uint32_t socket;
 	uint32_t program_counter;
 	t_instrucciones *instrucciones;
+	t_registrosCPU *registrosCPU;
 	t_list *tablaDeSegmentos;
 	//t_registrosCPU *registrosCPU;
 	time_t estimacionProxRafaga;
@@ -125,6 +86,14 @@ int enviarMensaje(int socket, char *msj);
 void *serializarMensaje(char *msj, size_t *size_stream);
 int enviarStream(int socket, void *stream, size_t stream_size);
 t_instrucciones recibir_informacion(int cliente_fd);
+t_paquete *crear_paquete_contexto_ejecucion(t_pcb *pcb);
+void implementar_fifo();
+void implementar_hrrn();
+void agregar_pcb();
+//t_tipo_algoritmo obtenerAlgoritmo();
+
+void pasar_a_new(t_pcb *pcb);
+void pasar_a_ready(t_pcb *pcb);
 
 
 int PID_PCB = -1;

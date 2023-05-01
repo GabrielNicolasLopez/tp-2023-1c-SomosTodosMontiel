@@ -26,7 +26,7 @@ void crear_hilos_kernel()
 	
 
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
-	//pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
+	pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
 	//pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
 	//pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
 	pthread_create(&planiLargoPlazo, NULL, (void *)planiLargoPlazo, NULL);
@@ -35,7 +35,7 @@ void crear_hilos_kernel()
 	pthread_detach(planifCortoPlazo);
 	pthread_detach(planiLargoPlazo);
 	//pthread_detach(hiloConsola);
-	//pthread_detach(hiloCPU);
+	pthread_detach(hiloCPU);
 	//pthread_detach(hiloFilesystem);
 	//pthread_detach(hiloMemoria);
 
@@ -43,40 +43,40 @@ void crear_hilos_kernel()
 }
 
 
-void planiLargoPlazo(){
-	while (1){
-		//Espera a que haya alguna PCB disponible para pasarla a READY
-		sem_wait(&cantPCB);
-		agregar_pcb();
-	}
-}
+// void planiLargoPlazo(){
+// 	while (1){
+// 		//Espera a que haya alguna PCB disponible para pasarla a READY
+// 		sem_wait(&cantPCB);
+// 		agregar_pcb();
+// 	}
+// }
 
-void planifCortoPlazo(){
-	while (1){
-		sem_wait(&cantPCBReady);
-		log_info(logger, "Llego pcb a plani corto plazo");
-		t_tipo_algoritmo algoritmo = obtenerAlgoritmo();
+// void planifCortoPlazo(){
+// 	while (1){
+// 		sem_wait(&cantPCBReady);
+// 		log_info(logger, "Llego pcb a plani corto plazo");
+// 		t_tipo_algoritmo algoritmo = obtenerAlgoritmo();
 
-		switch (algoritmo){
-		case FIFO:
-			log_debug(logger, "Implementando algoritmo FIFO");
-			log_debug(logger, " Cola Ready FIFO:");
-			cargarListaReadyIdPCB(LISTA_READY);
-			implementar_fifo();
+// 		switch (algoritmo){
+// 		case FIFO:
+// 			log_debug(logger, "Implementando algoritmo FIFO");
+// 			log_debug(logger, " Cola Ready FIFO:");
+// 			cargarListaReadyIdPCB(LISTA_READY);
+// 			implementar_fifo();
 
-			break;
-		case HRRN:
-			log_debug(logger, "Implementando algoritmo RR");
-			log_debug(logger, " Cola Ready RR:");
-			cargarListaReadyIdPCB(LISTA_READY);
-			implementar_hrrn();
+// 			break;
+// 		case HRRN:
+// 			log_debug(logger, "Implementando algoritmo RR");
+// 			log_debug(logger, " Cola Ready RR:");
+// 			cargarListaReadyIdPCB(LISTA_READY);
+// 			implementar_hrrn();
 
-			break;
-		default:
-			break;
-		}
-	}
-}
+// 			break;
+// 		default:
+// 			break;
+// 		}
+// 	}
+// }
 
 void implementar_fifo(){
 
@@ -86,18 +86,18 @@ void implementar_hrrn(){
 	
 }
 
-t_tipo_algoritmo obtenerAlgoritmo(){
-	char *algoritmoConfig = configuracionKernel->ALGORITMO_PLANIFICACION;
-	t_tipo_algoritmo algoritmo;
+// t_tipo_algoritmo obtenerAlgoritmo(){
+// 	char *algoritmoConfig = configuracionKernel->ALGORITMO_PLANIFICACION;
+// 	t_tipo_algoritmo algoritmo;
 
-	if(!strcmp(algoritmo, "FIFO"))
-		algoritmo = FIFO;
-	else if(!strcmp(algoritmo, "RR"))
-		algoritmo = HRRN;
-	else
-		log_error(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
-	return algoritmo;
-}
+// 	if(!strcmp(algoritmo, "FIFO"))
+// 		algoritmo = FIFO;
+// 	else if(!strcmp(algoritmo, "RR"))
+// 		algoritmo = HRRN;
+// 	else
+// 		log_error(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
+// 	return algoritmo;
+// }
 
 void agregar_pcb(){
 	sem_wait(&multiprogramacion);
@@ -183,6 +183,15 @@ void crear_hilo_cpu(){
 	log_info(logger, "Hola, me conecté a cpu");
 	while (1)
 	{
+		t_paquete *paqueteContextoEjecucion = crear_paquete_contexto_ejecucion(list_get(LISTA_NEW, 0));
+
+		//log_info(logger, "CONSOLA-KERNEL");
+		//enviar_mensaje("HOLA SOY LA CONSOLA", conexionKernel);
+		
+		//Enviamos el paquete
+		enviar_paquete(paqueteContextoEjecucion, conexion_con_cpu);
+		//Borramos el paquete
+		eliminar_paquete(paqueteContextoEjecucion);
 	}
 }
 
@@ -412,3 +421,107 @@ void cargarRecursos()
 	free(buffer);
 	return instrucciones;
 }*/
+
+t_paquete *crear_paquete_contexto_ejecucion(t_pcb *pcb){	
+	log_info(logger,"Empiezo a serializar contexto de ejecucion");
+	t_buffer *buffer = malloc(sizeof(t_buffer));
+	//log_error(logger, "buffer: %d", sizeof(buffer));
+	/*buffer->size = sizeof(uint32_t)*2 //Cantidad de instrucciones
+				   + calcularSizeListaInstrucciones(instrucciones); // Peso de las instrucciones*/
+
+	buffer->size = 
+	sizeof(uint32_t) +	//pid
+	sizeof(uint32_t) +	//program_counter
+	sizeof(uint32_t) + calcularSizeListaInstrucciones(pcb->instrucciones) + //t_instrucciones
+	calcularSizeTablaSegmentos(pcb->tablaDeSegmentos) +	//tabla de segmentos
+	calcularSizeRegistroCPU(pcb->registrosCPU)	// t_registrosCPU
+	;
+	//log_error(logger, "peso lista: %d", calcularSizeListaInstrucciones(instrucciones));
+	void *stream = malloc(buffer->size);
+	//log_error(logger, "tamaño: %d", sizeof(stream));
+
+	int offset = 0; // Desplazamiento
+	memcpy(stream + offset, &(pcb->pid), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(stream + offset, &(pcb->program_counter), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+
+	memcpy(stream + offset, &(pcb->instrucciones->cantidadInstrucciones), sizeof(uint32_t));
+	offset += sizeof(uint32_t);
+	//log_error(logger, "tamaño: %d", sizeof(stream));
+	//log_error(logger, "cantidadInstrucciones: %d", instrucciones->cantidadInstrucciones);
+	
+	// Serializa las instrucciones
+	int i = 0;
+
+	while (i < list_size(pcb->instrucciones->listaInstrucciones)){
+		t_instruccion* instrucccion = list_get(pcb->instrucciones->listaInstrucciones, i);
+		memcpy(stream + offset,&instrucccion->tipo, sizeof(t_tipoInstruccion));
+		offset += sizeof(t_tipoInstruccion);
+		memcpy(stream + offset,&instrucccion->registros[0], sizeof(t_registro));
+		offset += sizeof(t_registro);
+		memcpy(stream + offset,&instrucccion->registros[1], sizeof(t_registro));
+		offset += sizeof(t_registro);
+		memcpy(stream + offset,&instrucccion->paramIntA, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(stream + offset,&instrucccion->paramIntB, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		memcpy(stream + offset,&instrucccion->recurso, sizeof(instrucccion->recurso));
+		offset += sizeof(instrucccion->recurso);
+		memcpy(stream + offset,&instrucccion->cadenaRegistro, sizeof(instrucccion->cadenaRegistro));
+		offset += sizeof(instrucccion->cadenaRegistro);
+		memcpy(stream + offset,&instrucccion->nombreArchivo, sizeof(instrucccion->nombreArchivo));
+		offset += sizeof(instrucccion->nombreArchivo);
+		i++;
+	}
+
+	t_registrosCPU* registrosCPU = pcb->registrosCPU;
+	memcpy(stream + offset,&registrosCPU->registro, sizeof(t_registro));
+	offset += sizeof(t_registro);
+	memcpy(stream + offset,&registrosCPU->registroE, sizeof(t_registroE));
+	offset += sizeof(t_registroE);
+	memcpy(stream + offset,&registrosCPU->registroR, sizeof(t_registroR));
+	offset += sizeof(t_registroR);
+
+
+	int j=0;
+
+	while (j < list_size(pcb->tablaDeSegmentos)){
+		entrada_tablaDeSegmentos* entrada_tablaDeSegmentos = list_get(pcb->tablaDeSegmentos, j);
+		memcpy(stream + offset,&entrada_tablaDeSegmentos->prueba, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+		i++;
+	}
+
+	
+	//log_error(logger, "stream: %d", sizeof((*(t_instruccion*)stream)));
+	//log_error(logger, "offset: %d", sizeof(offset));
+
+	buffer->stream = stream; // Payload
+
+	// free(informacion->instrucciones);
+	// free(informacion->segmentos);
+
+	// lleno el paquete
+	t_paquete *paquete = malloc(sizeof(t_paquete));
+	paquete->codigo_operacion = NEW;
+	paquete->buffer = buffer;
+	return paquete;
+}
+
+int calcularSizeListaInstrucciones(t_instrucciones *instrucciones){
+	int total = 0;
+	for (int i = 0 ; i < list_size(instrucciones->listaInstrucciones); i++){
+		
+		t_instruccion* instruccion = list_get(instrucciones->listaInstrucciones,i);
+		total += sizeof(t_tipoInstruccion);
+		total += sizeof(t_registro) * 2;
+		total += sizeof(uint32_t) * 2;
+		total += sizeof(instruccion->recurso);
+		total += sizeof(instruccion->nombreArchivo);
+		total += sizeof(instruccion->cadenaRegistro);
+		//log_info(logger, "total: %d", sizeof(total));
+	}
+	return total;
+}

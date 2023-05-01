@@ -86,11 +86,59 @@ typedef struct
     char *nombreArchivo;
 } __attribute__((packed)) t_instruccion; //esto tiene que ir?
 
-typedef struct t_instrucciones
+typedef struct
 {
 	t_list *listaInstrucciones;
 	uint32_t cantidadInstrucciones;
 } __attribute__((packed)) t_instrucciones;
+
+typedef struct
+{
+	unsigned char ax[4];
+	unsigned char bx[4];
+	unsigned char cx[4];
+	unsigned char dx[4];
+}t_registroC;
+
+typedef struct
+{
+	unsigned char eax[8];
+	unsigned char ebx[8];
+	unsigned char ecx[8];
+	unsigned char edx[8];
+}t_registroE;
+
+typedef struct
+{
+	unsigned char rax[16];
+	unsigned char rbx[16];
+	unsigned char rcx[16];
+	unsigned char rdx[16];
+}t_registroR;
+
+typedef struct
+{
+	t_registro *registro;
+	t_registroE *registroE;
+	t_registroR *registroR;
+}t_registrosCPU;
+
+
+typedef struct
+{
+    uint32_t prueba;
+}entrada_tablaDeSegmentos;
+
+typedef struct
+{
+	uint32_t pid;
+	uint32_t program_counter;
+	t_instrucciones *instrucciones;
+	t_list *tablaDeSegmentos;
+	t_registrosCPU *registrosCPU;
+}__attribute__((packed)) t_contextoEjecucion;
+
+
 
 typedef struct
 {
