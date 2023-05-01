@@ -105,12 +105,18 @@ typedef struct
 	char* inicioArchivo;
 }t_entradaTAAP;
 
+typedef struct
+{
+	int socket;
+	t_instrucciones instrucciones;
+} t_datosCrearPCB;
+
 
 t_list *tgaa; //Tabla General Archivos Abiertos
 
 
 t_kernel_config *leerConfiguracion();
-void crear_pcb(int socketCliente, t_instrucciones *instrucciones);
+void crear_pcb(int socketCliente, t_instrucciones instrucciones);
 void crear_hilo_memoria();
 void crear_hilo_filesystem();
 void crear_hilo_cpu();
@@ -123,7 +129,7 @@ int enviarStream(int socket, void *stream, size_t stream_size);
 t_instrucciones recibir_informacion_pfqa(int cliente_fd);
 
 
-const int contadorIdPCB=0;
+int PID_PCB = -1;
 t_list *LISTA_NEW;
 
 #endif
