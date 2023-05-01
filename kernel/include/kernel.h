@@ -1,21 +1,13 @@
 #ifndef KERNEL_H
 #define KERNEL_H
-#include <stdio.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include <stdbool.h>
-#include <string.h>
 #include "shared_utils.h"
-#include "tests.h"
-#include <semaphore.h>
-#include <commons/string.h>
-#include <pthread.h>
-#include <time.h>
 
 #define CONFIG_PATH "./cfg/kernel.cfg"
 //#define LOG_PATH "./cfg/kernel.log" LOG QUE PERSISTE EN EL REPO REMOTO
 #define LOG_PATH "./cfg/kernelPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Kernel"
+
+t_config *config;
 
 typedef struct
 {
@@ -111,6 +103,12 @@ typedef struct
 	t_instrucciones instrucciones;
 } t_datosCrearPCB;
 
+typedef enum
+{
+	FIFO,
+	HRRN
+} t_tipo_algoritmo;
+
 
 t_list *tgaa; //Tabla General Archivos Abiertos
 
@@ -131,10 +129,18 @@ t_instrucciones recibir_informacion(int cliente_fd);
 
 int PID_PCB = -1;
 t_list *LISTA_NEW;
+t_list *LISTA_READY;
 
 //MUTEX's
 pthread_mutex_t PID;
 pthread_mutex_t listaNew;
+pthread_mutex_t listaReady;
+pthread_mutex_t cantPCBReady;
+
+
+//Semaforos
+sem_t cantPCB;
+sem_t multiprogramacion;
 
 
 #endif
