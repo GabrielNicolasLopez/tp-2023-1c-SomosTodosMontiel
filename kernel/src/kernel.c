@@ -69,8 +69,9 @@ void crear_hilo_consola()
 	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA, logger);
 	log_info(logger, "Kernel listo para recibir clientes consola");
 
-	while (1)
-	{
+	LISTA_NEW = list_create();
+
+	while (1){
 		pthread_t hilo_atender_consola;
 		int socketCliente = esperar_cliente(server_fd, logger);
 		
@@ -80,31 +81,52 @@ void crear_hilo_consola()
 		t_instrucciones instrucciones = recibir_informacion_pfqa(socketCliente);
 
 		//Imprimir instrucciones para ver que se hayan leido bien
-		int i=0;
+		/*int i=0;
 		while(i< instrucciones.cantidadInstrucciones){
 			t_instruccion *instruccion = list_get(instrucciones.listaInstrucciones, i);
 			log_info(logger, "%s", nombresInstrucciones[instruccion->tipo]);
 			i++;
-		}
+		}*/
 
 		if(!enviarMensaje(socketCliente, "Llegaron las instrucciones"))
 			log_error(logger, "Error al enviar el mensaje");
 
-		crear_pcb(socketCliente, &instrucciones);
+		crear_pcb(socketCliente, instrucciones);
 
 		//Envio un paquete para que consola finalice
 		t_paquete* paquete = crear_paquete();
 		paquete->codigo_operacion = TERMINAR_CONSOLA;
-
-		agregar_a_paquete(paquete, NULL, NULL);
-
+		agregar_a_paquete(paquete, NULL, 0);
 		enviar_paquete(paquete, socketCliente);
-
-		log_info(logger, "Envio de terminar consola");
+		log_info(logger, "Se terminó una consola");
 		
-		pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, NULL);
-		pthread_detach(hilo_atender_consola);
+		//Crear un t_datosCrearPCB para pasarle al hilo
+
+		//pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, NULL);
+		//pthread_join(hilo_atender_consola, NULL);
 	}
+}
+
+void crear_pcb(int socketCliente, t_instrucciones instrucciones){
+	t_pcb *pcb = malloc(sizeof(t_pcb));
+
+	pcb->pid                  = ++PID_PCB;
+	pcb->socket               = socketCliente;
+	pcb->program_counter      = 0;
+	pcb->instrucciones        = &instrucciones;
+	pcb->tablaDeSegmentos     = list_create();
+	//pcb-> registrosCPU;
+	pcb->estimacionProxRafaga = time(NULL);
+	pcb->llegadaReady         = time(NULL);
+	pcb->taap                 = list_create();
+
+	//Agrego la pcb creada a la lista de procesos NEW
+	list_add(LISTA_NEW, pcb);
+
+	log_debug(logger, "Estado Actual: NEW , proceso id: %d", pcb->pid);
+	log_info(logger, "Creación de Proceso: se crea el proceso %d en NEW", pcb->pid); 
+	log_info(logger, "Cant de elementos de new: %d", list_size(LISTA_NEW));
+	log_error(logger, "socket: %d", pcb->socket);
 }
 
 int enviarMensaje(int socket, char *msj){
@@ -139,30 +161,7 @@ int enviarStream(int socket, void *stream, size_t stream_size){
 	return 1;
 }
 
-void crear_pcb(int socketCliente, t_instrucciones *instrucciones)
-{
-	log_info(logger, "Se conecto una consola");
-	t_pcb *pcb = malloc(sizeof(t_pcb));
-
-	pcb->pid = contadorIdPCB;
-	pcb->socket = socketCliente;
-	pcb-> program_counter= 0;
-	pcb-> instrucciones= instrucciones;
-	pcb-> tablaDeSegmentos= list_create();
-	//pcb-> registrosCPU;
-	pcb->estimacionProxRafaga=time(NULL);
-	pcb->llegadaReady=time(NULL);
-	pcb->taap= list_create();
-	list_add(LISTA_NEW, pcb);
-	log_debug(logger, "Estado Actual: NEW , proceso id: %d", pcb->pid);
-	log_info(logger, "Creación de Proceso: se crea el proceso %d en NEW", pcb->pid); 
-	log_info(logger, "Cant de elementos de new: %d", list_size(LISTA_NEW));
-}
-
-
-
-t_kernel_config *leerConfiguracion()
-{
+t_kernel_config *leerConfiguracion(){
 
 	// Creo el config para leer IP y PUERTO
 	t_config *config = config_create(CONFIG_PATH);
@@ -229,7 +228,6 @@ void cargarRecursos()
 t_instrucciones recibir_informacion_pfqa(int cliente_fd){
 	int size;
 	void *buffer = recibir_buffer(&size, cliente_fd);
-	log_info(logger, "size: %d", size);
 	t_instrucciones instrucciones;
 	int offset = 0;
 	memcpy(&(instrucciones.cantidadInstrucciones), buffer + offset, sizeof(uint32_t));
