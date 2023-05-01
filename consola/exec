@@ -2,5 +2,5 @@
 FILE=consola
 make $FILE
 if test -f "./$FILE"; then
-    ./$FILE
+    ./$FILE ./cfg/consola.cfg ./cfg/pseudocodigo.pse
 fi

@@ -116,7 +116,7 @@ t_list *tgaa; //Tabla General Archivos Abiertos
 
 
 t_kernel_config *leerConfiguracion();
-void crear_pcb(int socketCliente, t_instrucciones instrucciones);
+void crear_pcb(void *datos);
 void crear_hilo_memoria();
 void crear_hilo_filesystem();
 void crear_hilo_cpu();
@@ -126,10 +126,15 @@ void cargarRecursos();
 int enviarMensaje(int socket, char *msj);
 void *serializarMensaje(char *msj, size_t *size_stream);
 int enviarStream(int socket, void *stream, size_t stream_size);
-t_instrucciones recibir_informacion_pfqa(int cliente_fd);
+t_instrucciones recibir_informacion(int cliente_fd);
 
 
 int PID_PCB = -1;
 t_list *LISTA_NEW;
+
+//MUTEX's
+pthread_mutex_t PID;
+pthread_mutex_t listaNew;
+
 
 #endif

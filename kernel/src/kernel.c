@@ -76,22 +76,13 @@ void crear_hilo_consola()
 		int socketCliente = esperar_cliente(server_fd, logger);
 		
 		int cod_op = recibir_operacion(socketCliente);
-		//log_info(logger, "El codigo de operacion es: %s", nombresCodigoOperaciones[cod_op]);
 
-		t_instrucciones instrucciones = recibir_informacion_pfqa(socketCliente);
-
-		//Imprimir instrucciones para ver que se hayan leido bien
-		/*int i=0;
-		while(i< instrucciones.cantidadInstrucciones){
-			t_instruccion *instruccion = list_get(instrucciones.listaInstrucciones, i);
-			log_info(logger, "%s", nombresInstrucciones[instruccion->tipo]);
-			i++;
-		}*/
+		t_datosCrearPCB *datos = malloc(sizeof(t_datosCrearPCB));
+		datos->instrucciones = recibir_informacion(socketCliente);
+		datos->socket = socketCliente;
 
 		if(!enviarMensaje(socketCliente, "Llegaron las instrucciones"))
 			log_error(logger, "Error al enviar el mensaje");
-
-		crear_pcb(socketCliente, instrucciones);
 
 		//Envio un paquete para que consola finalice
 		t_paquete* paquete = crear_paquete();
@@ -99,21 +90,22 @@ void crear_hilo_consola()
 		agregar_a_paquete(paquete, NULL, 0);
 		enviar_paquete(paquete, socketCliente);
 		log_info(logger, "Se terminó una consola");
-		
-		//Crear un t_datosCrearPCB para pasarle al hilo
 
-		//pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, NULL);
-		//pthread_join(hilo_atender_consola, NULL);
+		pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, (void*)datos);
+		pthread_detach(hilo_atender_consola);
 	}
 }
 
-void crear_pcb(int socketCliente, t_instrucciones instrucciones){
+void crear_pcb(void *datos){
+	t_datosCrearPCB *datosPCB = (t_datosCrearPCB *)datos;
 	t_pcb *pcb = malloc(sizeof(t_pcb));
 
+	pthread_mutex_lock(&PID);
 	pcb->pid                  = ++PID_PCB;
-	pcb->socket               = socketCliente;
+	pthread_mutex_unlock(&PID);
+	pcb->socket               = datosPCB->socket;
 	pcb->program_counter      = 0;
-	pcb->instrucciones        = &instrucciones;
+	pcb->instrucciones        = &datosPCB->instrucciones;
 	pcb->tablaDeSegmentos     = list_create();
 	//pcb-> registrosCPU;
 	pcb->estimacionProxRafaga = time(NULL);
@@ -121,13 +113,37 @@ void crear_pcb(int socketCliente, t_instrucciones instrucciones){
 	pcb->taap                 = list_create();
 
 	//Agrego la pcb creada a la lista de procesos NEW
-	list_add(LISTA_NEW, pcb);
+	//list_add(LISTA_NEW, pcb);
+	pasar_a_new(pcb);
 
-	log_debug(logger, "Estado Actual: NEW , proceso id: %d", pcb->pid);
 	log_info(logger, "Creación de Proceso: se crea el proceso %d en NEW", pcb->pid); 
 	log_info(logger, "Cant de elementos de new: %d", list_size(LISTA_NEW));
-	log_error(logger, "socket: %d", pcb->socket);
+
+	//sem_post(&cantPCB);
 }
+
+void pasar_a_new(t_pcb *pcb){
+	pthread_mutex_lock(&listaNew);
+	list_add(LISTA_NEW, pcb);
+	pthread_mutex_unlock(&listaNew);
+	log_debug(logger, "Paso a NEW el proceso %d", pcb->pid);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int enviarMensaje(int socket, char *msj){
 	size_t size_stream;
@@ -225,7 +241,7 @@ void cargarRecursos()
 // 	pthread_mutex_unlock(&mutex_lista_blocked);
 // }
 
-t_instrucciones recibir_informacion_pfqa(int cliente_fd){
+/*t_instrucciones recibir_informacion(int cliente_fd){
 	int size;
 	void *buffer = recibir_buffer(&size, cliente_fd);
 	t_instrucciones instrucciones;
@@ -267,4 +283,4 @@ t_instrucciones recibir_informacion_pfqa(int cliente_fd){
 
 	free(buffer);
 	return instrucciones;
-}
+}*/
