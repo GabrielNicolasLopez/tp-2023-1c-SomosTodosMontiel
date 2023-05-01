@@ -38,6 +38,8 @@ int main(int argc, char** argv){
 	eliminar_paquete(paqueteInstrucciones);
 	//Liberamos la memoria de las instrucciones
 	//limpiarInformacion(instrucciones);
+	liberar_instrucciones(instrucciones);
+
 
 	log_info(logger, "INSTRUCCIONES ENVIADAS, ESPERANDO...");
 	
@@ -555,4 +557,10 @@ t_consola_config leerConfiguracion(t_log* logger){
 	//log_info(logger, "Me conecté al PUERTO: %s", configuracionConsola.puerto);
 
 	return configuracionConsola;
+}
+
+void liberar_instrucciones(t_instrucciones *intrucciones)
+{
+	list_destroy_and_destroy_elements(intrucciones->listaInstrucciones, free);
+	free(intrucciones);
 }

@@ -95,10 +95,17 @@ void agregar_pcb();
 void pasar_a_new(t_pcb *pcb);
 void pasar_a_ready(t_pcb *pcb);
 
+void iniciar_listas_y_semaforos();
+void liberar_listas_y_semaforos();
 
 int PID_PCB = -1;
+
+//Estados
 t_list *LISTA_NEW;
 t_list *LISTA_READY;
+t_list *LISTA_EXEC;
+t_list *LISTA_BLOCKED;
+t_list *LISTA_EXIT;
 
 //MUTEX's
 pthread_mutex_t PID;

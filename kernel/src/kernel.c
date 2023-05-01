@@ -12,9 +12,13 @@ int main(void)
 	configuracionKernel = leerConfiguracion();
 	sem_init(&multiprogramacion, 0, configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);
 
+	// Inicializo las listas y semaforos
+	iniciar_listas_y_semaforos();
+
 	// cargarRecursos();
 
 	crear_hilos_kernel();
+	liberar_listas_y_semaforos();
 	log_error(logger, "termine de ejecutar");
 }
 
@@ -199,10 +203,6 @@ void crear_hilo_consola(){
 	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA, logger);
 	log_info(logger, "Kernel listo para recibir clientes consola");
 
-	//Estas creaciones deben estar en OTRO LADO, esto es temporal
-	LISTA_NEW = list_create();
-	LISTA_READY = list_create();
-
 	while (1){
 		pthread_t hilo_atender_consola;
 		int socketCliente = esperar_cliente(server_fd, logger);
@@ -268,11 +268,16 @@ void pasar_a_ready(t_pcb *pcb){
 	log_debug(logger, "Paso a READY el proceso %d", pcb->pid);
 }
 
+void iniciar_listas_y_semaforos(){
+	LISTA_NEW = list_create();
+	LISTA_READY = list_create();
+	LISTA_EXEC = list_create();
+	LISTA_BLOCKED = list_create();
+	LISTA_EXIT  = list_create();
+}
 
-
-
-
-
+//Supongo que se tiene que liberar en algun momento
+void liberar_listas_y_semaforos(){}
 
 
 

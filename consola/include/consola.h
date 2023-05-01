@@ -32,4 +32,5 @@ t_registro devolverRegistro(char *);
 t_paquete *crear_paquete_instrucciones(t_instrucciones *instrucciones);
 char *recibirMensaje(int socket);
 void *recibirStream(int socket, size_t stream_size);
+void liberar_instrucciones(t_instrucciones *intrucciones);
 #endif
