@@ -131,7 +131,8 @@ typedef struct
 
 typedef struct
 {
-	uint32_t pid;
+	int socket;
+    uint32_t pid;
 	uint32_t program_counter;
 	t_instrucciones *instrucciones;
 	t_list *tablaDeSegmentos;
