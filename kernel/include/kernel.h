@@ -42,15 +42,14 @@ typedef struct
 typedef struct
 {
     uint32_t pid;
-    uint32_t socket;
-	uint32_t program_counter;
 	t_instrucciones *instrucciones;
+	uint32_t program_counter;
 	t_registrosCPU *registrosCPU;
 	t_list *tablaDeSegmentos;
-	//t_registrosCPU *registrosCPU;
-	time_t estimacionProxRafaga;
-	time_t llegadaReady;
+	float estimacionProxRafaga;
+	struct timespec llegadaReady;
 	t_list *taap; //Tabla de Archivos Abiertos del Proceso
+    uint32_t socket;
 } t_pcb;
 
 typedef struct
@@ -109,14 +108,17 @@ t_list *LISTA_EXIT;
 
 //MUTEX's
 pthread_mutex_t PID;
+
+//Mutex de listas
 pthread_mutex_t listaNew;
 pthread_mutex_t listaReady;
-pthread_mutex_t cantPCBReady;
+pthread_mutex_t listaExec;
 
 
 //Semaforos
-sem_t cantPCB;
+sem_t CantPCBNew;
+sem_t cantPCBReady;
 sem_t multiprogramacion;
-
+sem_t PCBEjecutando;
 
 #endif
