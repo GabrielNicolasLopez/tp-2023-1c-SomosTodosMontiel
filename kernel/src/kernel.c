@@ -114,11 +114,14 @@ int obtener_espera(t_pcb* pcb){
 	return (end.tv_sec * 1000 + end.tv_nsec / 1000000)-(pcb->llegadaReady.tv_sec * 1000 + pcb->llegadaReady.tv_nsec / 1000000);
 }
 
-int obtener_estimacion(pcb){
-	
+int obtener_estimacion(t_pcb* pcb){
+	return pcb->estimacion_anterior * configuracionKernel->HRRN_ALFA + pcb->real_anterior * (1-configuracionKernel->HRRN_ALFA);
 }
 
 int calcular_HRRN(t_pcb* pcb){
+	// espera + estimacionCPU
+	//------------------------
+	//    estimacionCPU
 	return ((obtener_espera(pcb))+(obtener_estimacion(pcb)))/(obtener_estimacion(pcb));
 }
 
@@ -134,13 +137,10 @@ t_pcb *algoritmo_hrrn(t_list *LISTA_READY){
 	t_pcb *pcb;
 	if (list_size(LISTA_READY) == 1) //Si solo hay uno, lo saco por fifo (el 1ro de la lista)
         pcb = (t_pcb *)list_remove(LISTA_READY, 0);
-    else if (list_size(LISTA_READY) > 1) { //Si hay mas tengo que obtener el que tenga el mayor HRRN.
+    else if (list_size(LISTA_READY) > 1) //Si hay mas tengo que obtener el que tenga el mayor HRRN.
 		pcb = list_get_maximum(LISTA_READY, (void*)mayorHRRN);
-        estado_remover_pcb_de_cola(estado, pcbElecto);
-    }
 	return pcb;
 }
-
 
 void cargarListaReadyIdPCB(t_list *LISTA_NEW){
 	for (int i = 0; i < list_size(LISTA_READY); i++){
@@ -295,8 +295,8 @@ void crear_pcb(void *datos){
 	pcb->instrucciones        = &datosPCB->instrucciones;
 	pcb->tablaDeSegmentos     = list_create();
 	//pcb-> registrosCPU;
-	pcb->estimacionProxRafaga = time(NULL);
-	pcb->llegadaReady         = time(NULL);
+	pcb->estimacionProxRafaga = 10000;
+    //pcb->llegadaReady       = time(NULL);
 	pcb->taap                 = list_create();
 
 	//Agrego la pcb creada a la lista de procesos NEW
