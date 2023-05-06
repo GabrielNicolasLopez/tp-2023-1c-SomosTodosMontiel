@@ -26,7 +26,7 @@ void crear_hilos_kernel()
 {
 	pthread_t hiloConsola, hiloCPU, hiloFilesystem, hiloMemoria, planifCortoPlazo, planiLargoPlazo;
 
-	sem_init(&cantPCB, 0, 0);
+	sem_init(&CantPCBNew, 0, 0);
 	
 
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
@@ -47,61 +47,120 @@ void crear_hilos_kernel()
 }
 
 
-// void planiLargoPlazo(){
-// 	while (1){
-// 		//Espera a que haya alguna PCB disponible para pasarla a READY
-// 		sem_wait(&cantPCB);
-// 		agregar_pcb();
-// 	}
-// }
+ void planiLargoPlazo(){
+ 	while (1){
+ 		//Espera a que haya alguna PCB disponible para pasarla a READY
+ 		sem_wait(&CantPCBNew);
+ 		agregar_pcb();
+ 	}
+}
 
-// void planifCortoPlazo(){
-// 	while (1){
-// 		sem_wait(&cantPCBReady);
-// 		log_info(logger, "Llego pcb a plani corto plazo");
-// 		t_tipo_algoritmo algoritmo = obtenerAlgoritmo();
+void planifCortoPlazo(){
+	while (1){
+		sem_wait(&cantPCBReady);
+		log_info(logger, "Llego pcb a plani corto plazo");
+		t_tipo_algoritmo algoritmo = obtenerAlgoritmo();
 
-// 		switch (algoritmo){
-// 		case FIFO:
-// 			log_debug(logger, "Implementando algoritmo FIFO");
-// 			log_debug(logger, " Cola Ready FIFO:");
-// 			cargarListaReadyIdPCB(LISTA_READY);
-// 			implementar_fifo();
+		switch (algoritmo){
+		case FIFO:
+			log_debug(logger, "Implementando algoritmo FIFO");
+			log_debug(logger, " Cola Ready FIFO:");
+			cargarListaReadyIdPCB(LISTA_READY);
+			implementar_fifo();
 
-// 			break;
-// 		case HRRN:
-// 			log_debug(logger, "Implementando algoritmo RR");
-// 			log_debug(logger, " Cola Ready RR:");
-// 			cargarListaReadyIdPCB(LISTA_READY);
-// 			implementar_hrrn();
+			break;
+		case HRRN:
+			log_debug(logger, "Implementando algoritmo RR");
+			log_debug(logger, " Cola Ready RR:");
+			cargarListaReadyIdPCB(LISTA_READY);
+			implementar_hrrn();
 
-// 			break;
-// 		default:
-// 			break;
-// 		}
-// 	}
-// }
+			break;
+		default:
+			break;
+		}
+	}
+}
 
 void implementar_fifo(){
+	t_pcb *pcb = algoritmo_fifo(LISTA_READY); //Obtiene el 1er elemento de la lista de ready
+	log_info(logger, "Agregando UN pcb a lista exec");
+	pasar_a_exec(pcb);
+	log_info(logger, "Cant de elementos de exec: %d\n", list_size(LISTA_EXEC));
+	// Cambio de estado
+	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: READY , Estado Actual: EXEC", pcb->id);
+	sem_post(&PCBEjecutando);
+}
 
+t_pcb *algoritmo_fifo(t_list *LISTA_READY){
+	t_pcb *pcb = (t_pcb *)list_remove(LISTA_READY, 0);
+	return pcb;
 }
 
 void implementar_hrrn(){
+	t_pcb *pcb = algoritmo_hrrn(LISTA_READY); //Ordena la lista y obtiene el elemento que corresponde
+	log_info(logger, "Agregando UN pcb a lista exec");
+	pasar_a_exec(pcb);
+	log_info(logger, "Cant de elementos de exec: %d\n", list_size(LISTA_EXEC));
+	// Cambio de estado
+	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: READY , Estado Actual: EXEC", pcb->id);
+	sem_post(&PCBEjecutando);
+}
+
+int obtener_espera(t_pcb* pcb){
+	struct timespec end;
+    clock_gettime(CLOCK_REALTIME, &end);
+	//                   momento actual               -                  momento de entrada a ready
+	return (end.tv_sec * 1000 + end.tv_nsec / 1000000)-(pcb->llegadaReady.tv_sec * 1000 + pcb->llegadaReady.tv_nsec / 1000000);
+}
+
+int obtener_estimacion(pcb){
 	
 }
 
-// t_tipo_algoritmo obtenerAlgoritmo(){
-// 	char *algoritmoConfig = configuracionKernel->ALGORITMO_PLANIFICACION;
-// 	t_tipo_algoritmo algoritmo;
+int calcular_HRRN(t_pcb* pcb){
+	return ((obtener_espera(pcb))+(obtener_estimacion(pcb)))/(obtener_estimacion(pcb));
+}
 
-// 	if(!strcmp(algoritmo, "FIFO"))
-// 		algoritmo = FIFO;
-// 	else if(!strcmp(algoritmo, "RR"))
-// 		algoritmo = HRRN;
-// 	else
-// 		log_error(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
-// 	return algoritmo;
-// }
+t_pcb* mayorHRRN(t_pcb* unaPCB, t_pcb* otraPCB){
+	double unHRRN   = calcular_HRRN(unaPCB);
+    double otroHRRN = calcular_HRRN(otraPCB);
+    return unHRRN <= otroHRRN
+               ? otraPCB //Devuelvo la PCB con el HRRN mayor si se cumple la condicion 
+               : unaPCB;
+}
+
+t_pcb *algoritmo_hrrn(t_list *LISTA_READY){
+	t_pcb *pcb;
+	if (list_size(LISTA_READY) == 1) //Si solo hay uno, lo saco por fifo (el 1ro de la lista)
+        pcb = (t_pcb *)list_remove(LISTA_READY, 0);
+    else if (list_size(LISTA_READY) > 1) { //Si hay mas tengo que obtener el que tenga el mayor HRRN.
+		pcb = list_get_maximum(LISTA_READY, (void*)mayorHRRN);
+        estado_remover_pcb_de_cola(estado, pcbElecto);
+    }
+	return pcb;
+}
+
+
+void cargarListaReadyIdPCB(t_list *LISTA_NEW){
+	for (int i = 0; i < list_size(LISTA_READY); i++){
+		t_pcb *pcb = list_get(LISTA_READY, i);
+		log_info(logger, "Cola ready %s: [%d]", configuracionKernel->ALGORITMO_PLANIFICACION, pcb->pid);
+	}
+}
+
+t_tipo_algoritmo obtenerAlgoritmo(){
+	char *algoritmoConfig = configuracionKernel->ALGORITMO_PLANIFICACION;
+	t_tipo_algoritmo algoritmo;
+
+	if(!strcmp(algoritmo, "FIFO"))
+		algoritmo = FIFO;
+	else if(!strcmp(algoritmo, "RR"))
+		algoritmo = HRRN;
+	else
+		log_error(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
+	return algoritmo;
+}
 
 void agregar_pcb(){
 	sem_wait(&multiprogramacion);
@@ -167,18 +226,14 @@ void crear_hilo_memoria(){
 	// Me conecto a memoria
 	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_MEMORIA, configuracionKernel->PUERTO_MEMORIA, logger);
 	log_info(logger, "Hola, me conecté a memoria");
-	while (1)
-	{
-	}
+	while (1){}
 }
 
 void crear_hilo_filesystem(){
 	// Me conecto a filesystem
 	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_FILESYSTEM, configuracionKernel->PUERTO_FILESYSTEM, logger);
 	log_info(logger, "Hola, me conecté a filesystem");
-	while (1)
-	{
-	}
+	while (1){}
 }
 
 void crear_hilo_cpu(){
@@ -251,7 +306,7 @@ void crear_pcb(void *datos){
 	log_info(logger, "Creación de Proceso: se crea el proceso %d en NEW", pcb->pid); 
 	log_info(logger, "Cant de elementos de new: %d", list_size(LISTA_NEW));
 
-	sem_post(&cantPCB);
+	sem_post(&CantPCBNew);
 }
 
 void pasar_a_new(t_pcb *pcb){
@@ -264,8 +319,18 @@ void pasar_a_new(t_pcb *pcb){
 void pasar_a_ready(t_pcb *pcb){
 	pthread_mutex_lock(&listaReady);
 	list_add(LISTA_READY, pcb);
+	struct timespec start;
+    clock_gettime(CLOCK_REALTIME, &start);
+	pcb->llegadaReady = start;
 	pthread_mutex_unlock(&listaReady);
 	log_debug(logger, "Paso a READY el proceso %d", pcb->pid);
+}
+
+void pasar_a_exec(t_pcb *pcb){
+	pthread_mutex_lock(&listaExec);
+	list_add(LISTA_EXEC, pcb);
+	pthread_mutex_unlock(&listaExec);
+	log_debug(logger, "Paso a EXEC el proceso %d", pcb->pid);
 }
 
 void iniciar_listas_y_semaforos(){
