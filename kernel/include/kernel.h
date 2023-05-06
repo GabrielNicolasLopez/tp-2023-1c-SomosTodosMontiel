@@ -41,6 +41,7 @@ typedef struct
 
 typedef struct
 {
+	//Consiga
     uint32_t pid;
 	t_instrucciones *instrucciones;
 	uint32_t program_counter;
@@ -49,7 +50,11 @@ typedef struct
 	float estimacionProxRafaga;
 	struct timespec llegadaReady;
 	t_list *taap; //Tabla de Archivos Abiertos del Proceso
+	//Agregados de la consigna
+	t_contextoEjecucion contexto;
     uint32_t socket;
+	float estimacion_anterior;
+	float real_anterior;
 } t_pcb;
 
 typedef struct
