@@ -19,7 +19,7 @@ typedef struct
     char* PUERTO_FILESYSTEM;
 	char* PUERTO_CPU;
 	char* ALGORITMO_PLANIFICACION;
-	char* ESTIMACION_INICIAL;
+	int ESTIMACION_INICIAL;
 	int HRRN_ALFA;
 	int GRADO_MAX_MULTIPROGRAMACION;
 	char** RECURSOS;
@@ -94,13 +94,22 @@ t_paquete *crear_paquete_contexto_ejecucion(t_pcb *pcb);
 void implementar_fifo();
 void implementar_hrrn();
 void agregar_pcb();
-//t_tipo_algoritmo obtenerAlgoritmo();
+t_tipo_algoritmo obtenerAlgoritmo();
+t_pcb *algoritmo_hrrn(t_list*);
+t_pcb *mayorHRRN(t_pcb*,t_pcb*);
+t_pcb *algoritmo_fifo(t_list*);
+void cargarListaReadyIdPCB(t_list *LISTA_NEW);
 
 void pasar_a_new(t_pcb *pcb);
 void pasar_a_ready(t_pcb *pcb);
+void pasar_a_exec(t_pcb *pcb);
+void pasar_a_exit(t_pcb *pcb);
 
 void iniciar_listas_y_semaforos();
 void liberar_listas_y_semaforos();
+
+void planiLargoPlazo();
+void planiCortoPlazo();
 
 int PID_PCB = -1;
 
@@ -118,12 +127,15 @@ pthread_mutex_t PID;
 pthread_mutex_t listaNew;
 pthread_mutex_t listaReady;
 pthread_mutex_t listaExec;
+pthread_mutex_t listaExit;
 
 
 //Semaforos
 sem_t CantPCBNew;
 sem_t cantPCBReady;
 sem_t multiprogramacion;
-sem_t PCBEjecutando;
+sem_t CPUVacia;
+sem_t pasar_pcb_a_CPU;
+
 
 #endif
