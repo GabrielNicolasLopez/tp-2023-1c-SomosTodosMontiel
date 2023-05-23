@@ -19,8 +19,8 @@ typedef struct
     char* PUERTO_FILESYSTEM;
 	char* PUERTO_CPU;
 	char* ALGORITMO_PLANIFICACION;
-	int ESTIMACION_INICIAL;
-	int HRRN_ALFA;
+	double ESTIMACION_INICIAL;
+	double HRRN_ALFA;
 	int GRADO_MAX_MULTIPROGRAMACION;
 	char** RECURSOS;
 	char** INSTANCIAS_RECURSOS;
@@ -53,8 +53,8 @@ typedef struct
 	//Agregados de la consigna
 	t_contextoEjecucion contexto;
     uint32_t socket;
-	float estimacion_anterior;
-	float real_anterior;
+	double estimacion_anterior;
+	double real_anterior;
 } t_pcb;
 
 typedef struct
