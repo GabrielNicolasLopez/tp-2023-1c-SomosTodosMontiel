@@ -10,8 +10,6 @@ int main(void)
 
 	// Leo la configuracion de kernel
 	configuracionKernel = leerConfiguracion();
-	sem_init(&multiprogramacion, 0, configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);
-
 	// Inicializo las listas y semaforos
 	iniciar_listas_y_semaforos();
 
@@ -22,32 +20,33 @@ int main(void)
 	log_error(logger, "termine de ejecutar");
 }
 
-void crear_hilos_kernel()
-{
-	pthread_t hiloConsola, hiloCPU, hiloFilesystem, hiloMemoria, planifCortoPlazo, planiLargoPlazo;
-
-	sem_init(&CantPCBNew, 0, 0);
-	
+void crear_hilos_kernel(){
+	pthread_t hiloConsola, hiloCPU, hiloPlaniCortoPlazo, hiloPlaniLargoPlazo;
+	//, hiloFilesystem, hiloMemoria, , ;
 
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
 	pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
-	//pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
-	//pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
-	pthread_create(&planiLargoPlazo, NULL, (void *)planiLargoPlazo, NULL);
-	pthread_create(&planifCortoPlazo, NULL, (void *)planifCortoPlazo, NULL);
 
-	pthread_detach(planifCortoPlazo);
-	pthread_detach(planiLargoPlazo);
-	//pthread_detach(hiloConsola);
-	pthread_detach(hiloCPU);
-	//pthread_detach(hiloFilesystem);
-	//pthread_detach(hiloMemoria);
+
+	pthread_create(&hiloPlaniCortoPlazo, NULL, (void *)planiCortoPlazo, NULL);
+	pthread_create(&hiloPlaniLargoPlazo, NULL, (void *)planiLargoPlazo, NULL);
+
+	
+	pthread_detach(hiloPlaniCortoPlazo);
+	pthread_detach(hiloPlaniLargoPlazo);
 
 	pthread_join(hiloConsola, NULL);
+	
+	//pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
+	//pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
+
+	//pthread_detach(hiloCPU);
+	//pthread_detach(hiloFilesystem);
+	//pthread_detach(hiloMemoria);
 }
 
 
- void planiLargoPlazo(){
+void planiLargoPlazo(){
  	while (1){
  		//Espera a que haya alguna PCB disponible para pasarla a READY
  		sem_wait(&CantPCBNew);
@@ -55,28 +54,31 @@ void crear_hilos_kernel()
  	}
 }
 
-void planifCortoPlazo(){
+void planiCortoPlazo(){
 	while (1){
 		sem_wait(&cantPCBReady);
-		log_info(logger, "Llego pcb a plani corto plazo");
-		t_tipo_algoritmo algoritmo = obtenerAlgoritmo();
+		sem_wait(&CPUVacia);
+		//log_info(logger, "Llego pcb a plani corto plazo");
+		t_tipo_algoritmo algoritmo;
+		algoritmo = obtenerAlgoritmo();
 
 		switch (algoritmo){
 		case FIFO:
 			log_debug(logger, "Implementando algoritmo FIFO");
-			log_debug(logger, " Cola Ready FIFO:");
-			cargarListaReadyIdPCB(LISTA_READY);
+			//log_debug(logger, " Cola Ready FIFO:");
+			//cargarListaReadyIdPCB(LISTA_READY);
 			implementar_fifo();
 
 			break;
 		case HRRN:
-			log_debug(logger, "Implementando algoritmo RR");
-			log_debug(logger, " Cola Ready RR:");
-			cargarListaReadyIdPCB(LISTA_READY);
-			implementar_hrrn();
+			log_debug(logger, "Implementando algoritmo HRRN");
+			//log_debug(logger, " Cola Ready RR:");
+			//cargarListaReadyIdPCB(LISTA_READY);
+			//implementar_hrrn();
 
 			break;
 		default:
+			log_error(logger, "ERROR AL ELEGIR EL ALGORITMO EN EL PLANIFICADOR DE CORTO PLAZO");
 			break;
 		}
 	}
@@ -84,12 +86,11 @@ void planifCortoPlazo(){
 
 void implementar_fifo(){
 	t_pcb *pcb = algoritmo_fifo(LISTA_READY); //Obtiene el 1er elemento de la lista de ready
-	log_info(logger, "Agregando UN pcb a lista exec");
+	//log_info(logger, "Agregando UN pcb a lista exec");
 	pasar_a_exec(pcb);
-	log_info(logger, "Cant de elementos de exec: %d\n", list_size(LISTA_EXEC));
 	// Cambio de estado
-	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: READY , Estado Actual: EXEC", pcb->id);
-	sem_post(&PCBEjecutando);
+	//log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: READY , Estado Actual: EXEC", pcb->pid);
+	sem_post(&pasar_pcb_a_CPU);
 }
 
 t_pcb *algoritmo_fifo(t_list *LISTA_READY){
@@ -99,12 +100,11 @@ t_pcb *algoritmo_fifo(t_list *LISTA_READY){
 
 void implementar_hrrn(){
 	t_pcb *pcb = algoritmo_hrrn(LISTA_READY); //Ordena la lista y obtiene el elemento que corresponde
-	log_info(logger, "Agregando UN pcb a lista exec");
+	//log_info(logger, "Agregando UN pcb a lista exec");
 	pasar_a_exec(pcb);
-	log_info(logger, "Cant de elementos de exec: %d\n", list_size(LISTA_EXEC));
 	// Cambio de estado
-	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: READY , Estado Actual: EXEC", pcb->id);
-	sem_post(&PCBEjecutando);
+	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: READY , Estado Actual: EXEC", pcb->pid);
+	sem_post(&pasar_pcb_a_CPU);
 }
 
 int obtener_espera(t_pcb* pcb){
@@ -115,13 +115,19 @@ int obtener_espera(t_pcb* pcb){
 }
 
 int obtener_estimacion(t_pcb* pcb){
-	return pcb->estimacion_anterior * configuracionKernel->HRRN_ALFA + pcb->real_anterior * (1-configuracionKernel->HRRN_ALFA);
+	log_error(logger, "estimacion_anterior: %d",pcb->estimacion_anterior);
+	log_error(logger, "HRRN_ALFA: %d",configuracionKernel->HRRN_ALFA);
+	log_error(logger, "real_anterior: %d",pcb->real_anterior);
+	log_error(logger, "1 - HRRN_ALFA: %d",1-configuracionKernel->HRRN_ALFA);
+	return (pcb->estimacion_anterior) * (configuracionKernel->HRRN_ALFA) + (pcb->real_anterior) * (1-configuracionKernel->HRRN_ALFA);
 }
 
 int calcular_HRRN(t_pcb* pcb){
 	// espera + estimacionCPU
 	//------------------------
 	//    estimacionCPU
+	log_error(logger, "%d. Espera: %d", pcb->pid, obtener_espera(pcb));
+	log_error(logger, "%d. Estimacion: %d", pcb->pid, obtener_estimacion(pcb));
 	return ((obtener_espera(pcb))+(obtener_estimacion(pcb)))/(obtener_estimacion(pcb));
 }
 
@@ -153,9 +159,9 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 	char *algoritmoConfig = configuracionKernel->ALGORITMO_PLANIFICACION;
 	t_tipo_algoritmo algoritmo;
 
-	if(!strcmp(algoritmo, "FIFO"))
+	if(!strcmp(algoritmoConfig, "FIFO"))
 		algoritmo = FIFO;
-	else if(!strcmp(algoritmo, "RR"))
+	else if(!strcmp(algoritmoConfig, "HRRN"))
 		algoritmo = HRRN;
 	else
 		log_error(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
@@ -163,10 +169,12 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 }
 
 void agregar_pcb(){
+	int v_mp;
+	sem_getvalue(&multiprogramacion, &v_mp);
+	log_debug(logger, "MP=%d", v_mp);
 	sem_wait(&multiprogramacion);
-
-	log_info(logger, "Agregando un pcb a lista ready...");
-
+	sem_getvalue(&multiprogramacion, &v_mp);
+	log_debug(logger, "MP=%d", v_mp);
 	//Bloqueo la lista de NEW para sacar una pcb
 	pthread_mutex_lock(&listaNew);
 	//Saco el 1er elemento de la lista de new (ESO NO TIENE NADA QUE VER CON FIFO. SIEMPRE SE USA FIFO PARA SACAR PCBS DE NEW)
@@ -214,8 +222,8 @@ void agregar_pcb(){
 	//log_debug(logger, "Estado Anterior: NEW , proceso id: %d", pcb->pid);
 	//log_debug(logger, "Estado Actual: READY , proceso id: %d", pcb->pid);
 	// Cambio de estado
-	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: NEW, Estado Actual: READY", pcb->pid);
-	log_info(logger, "Cant de elementos de ready: %d\n", list_size(LISTA_READY));
+	//log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: NEW, Estado Actual: READY", pcb->pid);
+	//log_info(logger, "Cant de elementos de ready: %d\n", list_size(LISTA_READY));
 
 	//Aumento el semaforo de cantidad de PCBs en ready 
 	sem_post(&cantPCBReady);
@@ -238,19 +246,43 @@ void crear_hilo_filesystem(){
 
 void crear_hilo_cpu(){
 	// Me conecto a cpu
-	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
-	log_info(logger, "Hola, me conecté a cpu");
+	//int conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
+	//log_info(logger, "Hola, me conecté a cpu");
+	int v_mp;
 	while (1)
 	{
-		t_paquete *paqueteContextoEjecucion = crear_paquete_contexto_ejecucion(list_get(LISTA_NEW, 0));
+		//t_paquete *paqueteContextoEjecucion = crear_paquete_contexto_ejecucion(list_get(LISTA_NEW, 0));
 
 		//log_info(logger, "CONSOLA-KERNEL");
 		//enviar_mensaje("HOLA SOY LA CONSOLA", conexionKernel);
 		
 		//Enviamos el paquete
-		enviar_paquete(paqueteContextoEjecucion, conexion_con_cpu);
+		//enviar_paquete(paqueteContextoEjecucion, conexion_con_cpu);
 		//Borramos el paquete
-		eliminar_paquete(paqueteContextoEjecucion);
+		//eliminar_paquete(paqueteContextoEjecucion);
+
+		sem_wait(&pasar_pcb_a_CPU);
+
+		pthread_mutex_lock(&listaExec);
+		t_pcb* pcb = list_remove(LISTA_EXEC, 0);
+		pthread_mutex_unlock(&listaExec);
+
+		log_info(logger, "Proceso PID: %d EMPIEZA A EJECUTAR", pcb->pid);
+		sleep(5);
+		log_info(logger, "Proceso PID: %d TERMINAR DE EJECUTAR", pcb->pid);
+
+		//Envio un paquete para que consola finalice
+		t_paquete* paquete = crear_paquete();
+		paquete->codigo_operacion = TERMINAR_CONSOLA;
+		agregar_a_paquete(paquete, NULL, 0);
+		enviar_paquete(paquete, pcb->socket);
+		log_error(logger, "FINALIZO EL PROCESO: %d", pcb->pid);
+		pasar_a_exit(pcb);
+		
+		sem_post(&CPUVacia);
+		sem_post(&multiprogramacion);
+		sem_getvalue(&multiprogramacion, &v_mp);
+		log_debug(logger, "MP=%d", v_mp);;
 	}
 }
 
@@ -270,13 +302,6 @@ void crear_hilo_consola(){
 
 		if(!enviarMensaje(socketCliente, "Llegaron las instrucciones"))
 			log_error(logger, "Error al enviar el mensaje");
-
-		//Envio un paquete para que consola finalice
-		t_paquete* paquete = crear_paquete();
-		paquete->codigo_operacion = TERMINAR_CONSOLA;
-		agregar_a_paquete(paquete, NULL, 0);
-		enviar_paquete(paquete, socketCliente);
-		log_info(logger, "Se terminó una consola");
 
 		pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, (void*)datos);
 		pthread_detach(hilo_atender_consola);
@@ -299,12 +324,10 @@ void crear_pcb(void *datos){
     //pcb->llegadaReady       = time(NULL);
 	pcb->taap                 = list_create();
 
-	//Agrego la pcb creada a la lista de procesos NEW
-	//list_add(LISTA_NEW, pcb);
 	pasar_a_new(pcb);
 
-	log_info(logger, "Creación de Proceso: se crea el proceso %d en NEW", pcb->pid); 
-	log_info(logger, "Cant de elementos de new: %d", list_size(LISTA_NEW));
+	//log_info(logger, "Creación de Proceso: se crea el proceso %d en NEW", pcb->pid); 
+	//log_info(logger, "Cant de elementos de new: %d", list_size(LISTA_NEW));
 
 	sem_post(&CantPCBNew);
 }
@@ -333,24 +356,28 @@ void pasar_a_exec(t_pcb *pcb){
 	log_debug(logger, "Paso a EXEC el proceso %d", pcb->pid);
 }
 
+void pasar_a_exit(t_pcb* pcb){
+	pthread_mutex_lock(&listaExit);
+	list_add(LISTA_EXIT, pcb);
+	pthread_mutex_unlock(&listaExit);
+	log_debug(logger, "Paso a EXIT el proceso %d", pcb->pid);
+}
+
 void iniciar_listas_y_semaforos(){
 	LISTA_NEW = list_create();
 	LISTA_READY = list_create();
 	LISTA_EXEC = list_create();
 	LISTA_BLOCKED = list_create();
 	LISTA_EXIT  = list_create();
+
+	sem_init(&CantPCBNew, 0, 0);
+	sem_init(&CPUVacia, 0, 1);
+	sem_init(&pasar_pcb_a_CPU, 0, 0);
+	sem_init(&multiprogramacion, 0, configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);	
 }
 
-//Supongo que se tiene que liberar en algun momento
+//Supongo que se tiene que liberar en algun momento. Gabi: buena suposición
 void liberar_listas_y_semaforos(){}
-
-
-
-
-
-
-
-
 
 int enviarMensaje(int socket, char *msj){
 	size_t size_stream;
@@ -393,22 +420,23 @@ t_kernel_config *leerConfiguracion(){
 	t_kernel_config *configuracionKernel = malloc(sizeof(t_kernel_config));
 
 	// Leo los datos del config para que kernel funcione como servidor (no tiene IP para funcionar como servido)
-	configuracionKernel->PUERTO_ESCUCHA = config_get_string_value(config, "PUERTO_ESCUCHA");
-	configuracionKernel->ALGORITMO_PLANIFICACION = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
-	configuracionKernel->ESTIMACION_INICIAL = config_get_string_value(config, "ESTIMACION_INICIAL");
-	configuracionKernel->HRRN_ALFA = config_get_int_value(config, "HRRN_ALFA");
+	configuracionKernel->PUERTO_ESCUCHA              = config_get_string_value(config, "PUERTO_ESCUCHA");
+	configuracionKernel->ALGORITMO_PLANIFICACION     = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
+	configuracionKernel->ESTIMACION_INICIAL          = config_get_int_value(config, "ESTIMACION_INICIAL");
+	configuracionKernel->HRRN_ALFA                   = config_get_int_value(config, "HRRN_ALFA");
 	configuracionKernel->GRADO_MAX_MULTIPROGRAMACION = config_get_int_value(config, "GRADO_MAX_MULTIPROGRAMACION");
-	configuracionKernel->RECURSOS = config_get_array_value(config, "RECURSOS");
-	configuracionKernel->INSTANCIAS_RECURSOS = config_get_array_value(config, "INSTANCIAS_RECURSOS");
+
+	configuracionKernel->RECURSOS                    = config_get_array_value(config, "RECURSOS");
+	configuracionKernel->INSTANCIAS_RECURSOS         = config_get_array_value(config, "INSTANCIAS_RECURSOS");
 
 	// Leo los datos del config para que kernel se conecte al resto de modulo
-	configuracionKernel->IP_MEMORIA = config_get_string_value(config, "IP_MEMORIA");
-	configuracionKernel->IP_FILESYSTEM = config_get_string_value(config, "IP_FILESYSTEM");
-	configuracionKernel->IP_CPU = config_get_string_value(config, "IP_CPU");
+	configuracionKernel->IP_MEMORIA                  = config_get_string_value(config, "IP_MEMORIA");
+	configuracionKernel->IP_FILESYSTEM               = config_get_string_value(config, "IP_FILESYSTEM");
+	configuracionKernel->IP_CPU                      = config_get_string_value(config, "IP_CPU");
 
-	configuracionKernel->PUERTO_MEMORIA = config_get_string_value(config, "PUERTO_MEMORIA");
-	configuracionKernel->PUERTO_FILESYSTEM = config_get_string_value(config, "PUERTO_FILESYSTEM");
-	configuracionKernel->PUERTO_CPU = config_get_string_value(config, "PUERTO_CPU");
+	configuracionKernel->PUERTO_MEMORIA              = config_get_string_value(config, "PUERTO_MEMORIA");
+	configuracionKernel->PUERTO_FILESYSTEM           = config_get_string_value(config, "PUERTO_FILESYSTEM");
+	configuracionKernel->PUERTO_CPU                  = config_get_string_value(config, "PUERTO_CPU");
 
 	return configuracionKernel;
 }
@@ -492,12 +520,12 @@ void cargarRecursos()
 	return instrucciones;
 }*/
 
-t_paquete *crear_paquete_contexto_ejecucion(t_pcb *pcb){	
+/*t_paquete *crear_paquete_contexto_ejecucion(t_pcb *pcb){	
 	log_info(logger,"Empiezo a serializar contexto de ejecucion");
 	t_buffer *buffer = malloc(sizeof(t_buffer));
 	//log_error(logger, "buffer: %d", sizeof(buffer));
-	/*buffer->size = sizeof(uint32_t)*2 //Cantidad de instrucciones
-				   + calcularSizeListaInstrucciones(instrucciones); // Peso de las instrucciones*/
+	//buffer->size = sizeof(uint32_t)*2 //Cantidad de instrucciones
+	//			   + calcularSizeListaInstrucciones(instrucciones); // Peso de las instrucciones
 
 	buffer->size = 
 	sizeof(uint32_t) +	//pid
@@ -578,7 +606,7 @@ t_paquete *crear_paquete_contexto_ejecucion(t_pcb *pcb){
 	paquete->codigo_operacion = NEW;
 	paquete->buffer = buffer;
 	return paquete;
-}
+}*/
 
 int calcularSizeListaInstrucciones(t_instrucciones *instrucciones){
 	int total = 0;
