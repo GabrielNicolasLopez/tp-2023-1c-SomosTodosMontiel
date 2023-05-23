@@ -74,7 +74,7 @@ void planiCortoPlazo(){
 			log_debug(logger, "Implementando algoritmo HRRN");
 			//log_debug(logger, " Cola Ready RR:");
 			//cargarListaReadyIdPCB(LISTA_READY);
-			//implementar_hrrn();
+			implementar_hrrn();
 
 			break;
 		default:
@@ -114,21 +114,15 @@ int obtener_espera(t_pcb* pcb){
 	return (end.tv_sec * 1000 + end.tv_nsec / 1000000)-(pcb->llegadaReady.tv_sec * 1000 + pcb->llegadaReady.tv_nsec / 1000000);
 }
 
-int obtener_estimacion(t_pcb* pcb){
-	log_error(logger, "estimacion_anterior: %d",pcb->estimacion_anterior);
-	log_error(logger, "HRRN_ALFA: %d",configuracionKernel->HRRN_ALFA);
-	log_error(logger, "real_anterior: %d",pcb->real_anterior);
-	log_error(logger, "1 - HRRN_ALFA: %d",1-configuracionKernel->HRRN_ALFA);
+double obtener_estimacion(t_pcb* pcb){
 	return (pcb->estimacion_anterior) * (configuracionKernel->HRRN_ALFA) + (pcb->real_anterior) * (1-configuracionKernel->HRRN_ALFA);
 }
 
-int calcular_HRRN(t_pcb* pcb){
+double calcular_HRRN(t_pcb* pcb){
 	// espera + estimacionCPU
 	//------------------------
 	//    estimacionCPU
-	log_error(logger, "%d. Espera: %d", pcb->pid, obtener_espera(pcb));
-	log_error(logger, "%d. Estimacion: %d", pcb->pid, obtener_estimacion(pcb));
-	return ((obtener_espera(pcb))+(obtener_estimacion(pcb)))/(obtener_estimacion(pcb));
+	return (obtener_espera(pcb)+obtener_estimacion(pcb))/(obtener_estimacion(pcb));
 }
 
 t_pcb* mayorHRRN(t_pcb* unaPCB, t_pcb* otraPCB){
@@ -143,8 +137,10 @@ t_pcb *algoritmo_hrrn(t_list *LISTA_READY){
 	t_pcb *pcb;
 	if (list_size(LISTA_READY) == 1) //Si solo hay uno, lo saco por fifo (el 1ro de la lista)
         pcb = (t_pcb *)list_remove(LISTA_READY, 0);
-    else if (list_size(LISTA_READY) > 1) //Si hay mas tengo que obtener el que tenga el mayor HRRN.
+    else if (list_size(LISTA_READY) > 1){ //Si hay mas tengo que obtener el que tenga el mayor HRRN.
 		pcb = list_get_maximum(LISTA_READY, (void*)mayorHRRN);
+		list_remove_element(LISTA_READY, pcb);
+	}
 	return pcb;
 }
 
@@ -320,7 +316,8 @@ void crear_pcb(void *datos){
 	pcb->instrucciones        = &datosPCB->instrucciones;
 	pcb->tablaDeSegmentos     = list_create();
 	//pcb-> registrosCPU;
-	pcb->estimacionProxRafaga = 10000;
+	pcb->estimacion_anterior  = 10000;
+	pcb->real_anterior        = 0;
     //pcb->llegadaReady       = time(NULL);
 	pcb->taap                 = list_create();
 
@@ -423,7 +420,7 @@ t_kernel_config *leerConfiguracion(){
 	configuracionKernel->PUERTO_ESCUCHA              = config_get_string_value(config, "PUERTO_ESCUCHA");
 	configuracionKernel->ALGORITMO_PLANIFICACION     = config_get_string_value(config, "ALGORITMO_PLANIFICACION");
 	configuracionKernel->ESTIMACION_INICIAL          = config_get_int_value(config, "ESTIMACION_INICIAL");
-	configuracionKernel->HRRN_ALFA                   = config_get_int_value(config, "HRRN_ALFA");
+	configuracionKernel->HRRN_ALFA                   = config_get_double_value(config, "HRRN_ALFA");
 	configuracionKernel->GRADO_MAX_MULTIPROGRAMACION = config_get_int_value(config, "GRADO_MAX_MULTIPROGRAMACION");
 
 	configuracionKernel->RECURSOS                    = config_get_array_value(config, "RECURSOS");
