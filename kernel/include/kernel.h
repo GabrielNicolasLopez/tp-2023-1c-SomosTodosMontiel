@@ -111,6 +111,9 @@ void liberar_listas_y_semaforos();
 void planiLargoPlazo();
 void planiCortoPlazo();
 
+double obtener_estimacion(t_pcb* pcb);
+double calcular_HRRN(t_pcb* pcb);
+
 int PID_PCB = -1;
 
 //Estados
@@ -132,7 +135,7 @@ pthread_mutex_t listaExit;
 
 //Semaforos
 sem_t CantPCBNew;
-sem_t cantPCBReady;
+sem_t pcb_en_ready;
 sem_t multiprogramacion;
 sem_t CPUVacia;
 sem_t pasar_pcb_a_CPU;
