@@ -17,6 +17,12 @@
 int socketKernel, socketCPU, socketFilesystem;
 char* IP_MEMORIA = "127.0.0.1";
 
+t_list* lista_de_segmentos ;// aca van los segmentos generales 
+
+t_segmento* segmento_0 ;//segemeto global va en todas las listas de segmentos
+
+list_add(lista_de_segmentos,segmento_0);
+
 
 //Archivo de Configuaracion
 typedef struct
@@ -40,21 +46,21 @@ typedef struct
     //Aca tengo que ve como continuar 
 }registro_EU;
 
-typedef struct 
-{
- t_list* segmentos;
-    //Por ahora tiene eso por la teoria 
-
-}tablas_segmentos;
 
 typedef struct 
-{
-    int tam;
-    int base;
-    //Por teoria esta compuesto asi 
+{   t_list* segmentos;
+    int id_proces;
+}t_segmentos_por_proceso;
+
+typedef struct 
+{   
     int id_segmento;
+    int base;
+    int tamanio;
+    //int libre;
+}t_segmento;
 
-}segmento;
+
 
 typedef struct 
 {

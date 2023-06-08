@@ -32,7 +32,8 @@
 			"config.h": "c",
 			"log.h": "c",
 			"semaphore.h": "c",
-			"pthread.h": "c"
+			"pthread.h": "c",
+			"stdbool.h": "c"
 		}
 	}
 }

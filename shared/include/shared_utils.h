@@ -73,6 +73,9 @@ typedef enum
     // 0 parámetros
     YIELD,
     EXIT,
+
+    //aca nose si falta la instruccion de compacatar, Ale memoria.
+
 } t_tipoInstruccion;
 
 typedef struct

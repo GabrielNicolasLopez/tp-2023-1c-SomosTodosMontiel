@@ -46,7 +46,7 @@ typedef struct
 	t_instrucciones *instrucciones;
 	uint32_t program_counter;
 	t_registrosCPU *registrosCPU;
-	t_list *tablaDeSegmentos;
+	t_list *tablaDeSegmentos; 
 	float estimacionProxRafaga;
 	struct timespec llegadaReady;
 	t_list *taap; //Tabla de Archivos Abiertos del Proceso
