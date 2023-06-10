@@ -32,7 +32,15 @@
 			"config.h": "c",
 			"log.h": "c",
 			"semaphore.h": "c",
-			"pthread.h": "c"
+			"pthread.h": "c",
+			"planificacion.h": "c",
+			"limits": "c",
+			"kernel_cpu.h": "c",
+			"buffer.h": "c",
+			"stream.h": "c",
+			"errno.h": "c",
+			"consola_serializer.h": "c",
+			"stdlib.h": "c"
 		}
 	}
 }

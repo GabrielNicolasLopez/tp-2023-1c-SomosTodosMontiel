@@ -1,0 +1,29 @@
+#include "kernel.h"
+
+t_config *config;
+t_kernel_config *configuracionKernel;
+t_list* lista_de_recursos;
+t_list *tgaa; //Tabla General Archivos Abiertos
+int PID_PCB = -1;
+
+t_list *LISTA_NEW;
+t_list *LISTA_READY;
+t_list *LISTA_EXEC;
+t_list *LISTA_BLOCKED;
+t_list *LISTA_EXIT;
+
+pthread_mutex_t PID;
+pthread_mutex_t listaNew;
+pthread_mutex_t listaReady;
+pthread_mutex_t listaExec;
+pthread_mutex_t listaBlocked;
+pthread_mutex_t listaExit;
+
+sem_t CantPCBNew;
+sem_t cantPCBReady;
+sem_t multiprogramacion;
+sem_t CPUVacia;
+sem_t pasar_pcb_a_CPU;
+
+
+bool se_reenvia_el_contexto = false;

@@ -1,5 +1,27 @@
 #include "shared_utils.h"
 
+char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
+char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT", "IO", "WAIT", "SIGNAL", "F_OPEN", "F_CLOSE", "DELETE_SEGMENT", "YIELD", "EXIT"};
+
+char *nombresRegistros[] = 
+{
+	// 4 bytes
+	"AX",
+    "BX",
+    "CX",
+    "DX",
+    // 8 bytes
+    "EAX",
+    "EBX",
+    "ECX",
+    "EDX",
+    // 16 bytes
+    "RAX",
+    "RBX",
+    "RCX",
+    "RDX"
+};
+
 char *mi_funcion_compartida()
 {
 	return "Hice uso de la shared!";
@@ -42,9 +64,9 @@ int crear_conexion(char *ip, char *puerto, t_log *logger)
 
 	// Ahora que tenemos el socket, vamos a conectarlo
 	// connect():
-	if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-	{
-		log_error(logger, "Error al conectarse!");
+	if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1){
+		//log_error(logger, "Error al conectarse!");
+		return socket_cliente = -1;
 	}
 
 	freeaddrinfo(server_info);
@@ -191,7 +213,7 @@ int esperar_cliente(int socket_servidor, t_log *logger)
 	// Una vez que el cliente aceptado, accept retorna un nuevo socket(file descriptor) que representa la conexion BIDIRECCIONAL entre el servidor y el cliente
 	// La comunicacion entre el cliente y el servidor se hace entre el socket que realizo connect(lado del cliente) hacia el servidor, y el socket que fue devuelto por el accept
 
-	log_info(logger, "Se conecto un cliente!");
+	log_info(logger, "Se conecto un cliente! socket: %d", socket_cliente);
 
 	return socket_cliente;
 }
@@ -208,11 +230,11 @@ int recibir_operacion(int socket_cliente)
 	}
 }
 
-void *recibir_buffer(int *size, int socket_cliente)
+void *recibir_buffer(uint32_t *size, int socket_cliente)
 {
 	void *buffer;
 
-	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
+	recv(socket_cliente, size, sizeof(uint32_t), MSG_WAITALL);
 	buffer = malloc(*size);
 	recv(socket_cliente, buffer, *size, MSG_WAITALL);
 
@@ -260,50 +282,38 @@ int size_char_array(char **array)
 	return i;
 }
 
-t_instrucciones recibir_informacion(int cliente_fd){
-	int size;
-	void *buffer = recibir_buffer(&size, cliente_fd);
-	log_info(logger, "size: %d", size);
-	t_instrucciones instrucciones;
-	int offset = 0;
-	memcpy(&(instrucciones.cantidadInstrucciones), buffer + offset, sizeof(uint32_t));
-	//printf("la cantidad de instrucciones es: %d", instrucciones.cantidadInstrucciones);
-	offset += sizeof(uint32_t);
-	instrucciones.listaInstrucciones = list_create();
-	t_instruccion *instruccion;
+int enviarMensaje(int socket, char *msj){
+	size_t size_stream;
+	void *stream = serializarMensaje(msj, &size_stream);
+	return enviarStream(socket, stream, size_stream);
+}
 
-	int k = 0;
+void *serializarMensaje(char *msj, size_t *size_stream){
 
-	while (k < instrucciones.cantidadInstrucciones){
-		instruccion = malloc(sizeof(t_instruccion));
-		// El tipo de instruccion
-		memcpy(&instruccion->tipo, buffer + offset, sizeof(t_tipoInstruccion));
-		offset += sizeof(t_tipoInstruccion);
-		// Los registros
-		memcpy(&instruccion->registros[0], buffer + offset, sizeof(t_registro));
-		offset += sizeof(t_registro);
-		memcpy(&instruccion->registros[1], buffer + offset, sizeof(t_registro));
-		offset += sizeof(t_registro);
-		// Los int
-		memcpy(&instruccion->paramIntA, buffer + offset, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		memcpy(&instruccion->paramIntB, buffer + offset, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-		// Los 3 char*
-		memcpy(&instruccion->recurso, buffer + offset, sizeof(instruccion->recurso));
-		offset += sizeof(instruccion->recurso);
-		memcpy(&instruccion->cadenaRegistro, buffer + offset, sizeof(instruccion->cadenaRegistro));
-		offset += sizeof(instruccion->cadenaRegistro);
-		memcpy(&instruccion->nombreArchivo, buffer + offset, sizeof(instruccion->nombreArchivo));
-		offset += sizeof(instruccion->nombreArchivo);
+	*size_stream = strlen(msj) + 1;
 
-		list_add(instrucciones.listaInstrucciones, instruccion);
-		k++;
+	void *stream = malloc(sizeof(*size_stream) + *size_stream);
+
+	memcpy(stream, size_stream, sizeof(*size_stream));
+	memcpy(stream + sizeof(*size_stream), msj, *size_stream);
+
+	*size_stream += sizeof(*size_stream);
+
+	return stream;
+}
+
+int enviarStream(int socket, void *stream, size_t stream_size){
+
+	if (send(socket, stream, stream_size, 0) == -1)
+	{
+		free(stream);
+		return 0;
 	}
 
-	free(buffer);
-	return instrucciones;
+	free(stream);
+	return 1;
 }
+
 
 // Serializar
 /*
@@ -563,3 +573,4 @@ void imprimirInstruccionesYSegmentos(t_informacion informacion)
 	}
 }
 */
+

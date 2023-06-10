@@ -42,7 +42,7 @@ void iniciar_servidor_hacia_kernel(){
 void iniciar_servidor_hacia_cpu(){
     //Inicio el servidor para CPU
     int server_fd = iniciar_servidor(IP_MEMORIA, configuracionMemoria->PUERTO_ESCUCHA_CPU, logger);
-	log_info(logger, "MEMORIA listo para recibir al CPU");
+	log_info(logger, "MEMORIA listo para recibir al CPU en puerto: %s", configuracionMemoria -> PUERTO_ESCUCHA_CPU);
 	socketCPU = esperar_cliente(server_fd, logger);
 
     while(1){}

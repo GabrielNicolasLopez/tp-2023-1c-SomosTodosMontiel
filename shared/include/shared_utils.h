@@ -17,9 +17,15 @@
 #include <pthread.h>
 #include <time.h>
 
-char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
-char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT",
-                                      "IO", "WAIT", "SIGNAL", "F_OPEN", "F_CLOSE", "DELETE_SEGMENT", "YIELD", "EXIT"};
+extern char *nombresCodigoOperaciones[];
+extern char *nombresInstrucciones[];
+extern char *nombresRegistros[];
+
+typedef enum {
+    hola,
+    hola1,
+    envio_instrucciones
+} t_header;
 
 typedef enum
 {
@@ -30,6 +36,10 @@ typedef enum
 
 typedef enum {
 	TERMINAR_CONSOLA,
+    SIN_MEMORIA,
+    //YIELD,
+    //SIGNAL,
+    //WAIT
 } t_tipoMensaje;
 
 typedef enum
@@ -78,47 +88,45 @@ typedef enum
 typedef struct
 {
     t_tipoInstruccion tipo;
-    t_registro registros[2];       // Puede que con 1 solo es suficiente
+    t_registro registro;       
     uint32_t paramIntA, paramIntB; // En caso de que se deban guardar dos int
-    // uint32_t longitudRecurso;   //Longitud de la palabra - Es necesario?
-    char *recurso;                 // Disco, etc
-    char *cadenaRegistro;          // Texto guardado en el registro
-    char *nombreArchivo;
-} __attribute__((packed)) t_instruccion; //esto tiene que ir?
+    uint32_t longitud_cadena;
+    char *cadena;     
+}t_instruccion;
 
 typedef struct
 {
 	t_list *listaInstrucciones;
 	uint32_t cantidadInstrucciones;
-} __attribute__((packed)) t_instrucciones;
+}t_instrucciones;
 
 typedef struct
 {
-	unsigned char ax[4];
-	unsigned char bx[4];
-	unsigned char cx[4];
-	unsigned char dx[4];
-}t_registroC;
+	char ax[4];
+	char bx[4];
+	char cx[4];
+	char dx[4];
+}__attribute__((packed)) t_registroC;
 
 typedef struct
 {
-	unsigned char eax[8];
-	unsigned char ebx[8];
-	unsigned char ecx[8];
-	unsigned char edx[8];
-}t_registroE;
+	char eax[8];
+	char ebx[8];
+	char ecx[8];
+	char edx[8];
+}__attribute__((packed)) t_registroE;
 
 typedef struct
 {
-	unsigned char rax[16];
-	unsigned char rbx[16];
-	unsigned char rcx[16];
-	unsigned char rdx[16];
-}t_registroR;
+	char rax[16];
+	char rbx[16];
+	char rcx[16];
+	char rdx[16];
+}__attribute__((packed)) t_registroR;
 
 typedef struct
 {
-	t_registro *registro;
+	t_registroC *registroC;
 	t_registroE *registroE;
 	t_registroR *registroR;
 }t_registrosCPU;
@@ -131,15 +139,23 @@ typedef struct
 
 typedef struct
 {
-	int socket;
+	uint32_t socket;
     uint32_t pid;
 	uint32_t program_counter;
+    uint32_t tamanio_tabla;
 	t_instrucciones *instrucciones;
 	t_list *tablaDeSegmentos;
 	t_registrosCPU *registrosCPU;
-}__attribute__((packed)) t_contextoEjecucion;
+} t_contextoEjecucion;
 
-
+typedef struct
+{
+    t_tipoInstruccion tipo;
+    uint32_t cant_int;
+    uint32_t longitud_cadena;
+    char *cadena;
+    t_contextoEjecucion *contextoEjecucion;
+} t_motivoDevolucion;
 
 typedef struct
 {
@@ -155,14 +171,14 @@ typedef struct
 
 extern t_log* logger;
 
-void* recibir_buffer(int*, int);
+void* recibir_buffer(uint32_t*, int);
 
 //int iniciar_servidor(void);
 int iniciar_servidor(char *IP, char *PUERTO, t_log* logger);
-int esperar_cliente(int, t_log*);
-t_list* recibir_paquete(int);
-void recibir_mensaje(int);
-int recibir_operacion(int);
+int esperar_cliente(int socket_cliente, t_log* logger);
+t_list* recibir_paquete(int socket_cliente);
+void recibir_mensaje(int socket_cliente);
+int recibir_operacion(int socket_cliente);
 int crear_conexion(char *ip, char *puerto, t_log* logger);
 void enviar_mensaje(char *mensaje, int socket_cliente);
 t_paquete *crear_paquete(void);
@@ -180,7 +196,24 @@ void cargar_buffer_a_paquete(t_buffer *buffer, int conexion);
 //t_paqueteActual *recibirPaquete(int socket);
 //t_pcb *deserializoPCB(t_buffer *buffer);
 //int calcularSizeInfo(t_informacion* );
-t_instrucciones recibir_informacion(int cliente_fd);
+//t_instrucciones recibir_instruciones_consola(int cliente_fd);
 char* mi_funcion_compartida();
+int enviarMensaje(int socket, char *msj);
+void *serializarMensaje(char *msj, size_t *size_stream);
+int enviarStream(int socket, void *stream, size_t stream_size);
+t_motivoDevolucion* deserializar_contexto_y_motivo(t_buffer* buffer);
+
+
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ FUNCIONES CPU - KERNEL - (consola) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+
+// LIBERAR UNA INSTRUCCIONS
+void instruccion_destroy(t_instruccion* instruccion);
+// LIBERAR CONTEXTO DE EJECUCION
+void contexto_de_ejecucion_destroy(t_contextoEjecucion* c_e);
+// CALCULAR TAMAÑOS PARA BUFFERS
+int calcularSizeListaInstrucciones(t_instrucciones *instrucciones);
+
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ FUNCIONES CPU - KERNEL - (consola) ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
 
 #endif
