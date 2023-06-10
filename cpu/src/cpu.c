@@ -234,7 +234,7 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 
 t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
-	log_debug(logger, "Recibiendo ce de kernel");
+	log_debug(logger, "Esperando ce de kernel");
 
     t_buffer* ce_recibido = buffer_create();
 	t_contextoEjecucion* contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
@@ -403,6 +403,8 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	cantidad_de_instrucciones++;
 	//Asignamos la cantidad de instrucciones
 	contextoEjecucion->instrucciones->cantidadInstrucciones = cantidad_de_instrucciones;
+
+	log_debug(logger, "cant inst recibidas: %d", contextoEjecucion->instrucciones->cantidadInstrucciones);
 
     buffer_destroy(ce_recibido);
 

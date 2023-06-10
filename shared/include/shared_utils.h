@@ -21,12 +21,6 @@ extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];
 extern char *nombresRegistros[];
 
-typedef enum {
-    hola,
-    hola1,
-    envio_instrucciones
-} t_header;
-
 typedef enum
 {
 	MENSAJE,

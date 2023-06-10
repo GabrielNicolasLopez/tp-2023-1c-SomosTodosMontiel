@@ -19,7 +19,9 @@ void crear_hilo_cpu(){
 
 	while (1){
 		if(!se_reenvia_el_contexto){
-			log_debug(logger, "Esperando la llegada de una nueva PCB.");
+			//log_debug(logger, "Esperando la llegada de una nueva PCB.");
+			//sem_getvalue(&pasar_pcb_a_CPU, &v_mp);
+			//log_debug(logger, "pasar PCB a CPU=%d", v_mp);
 			//Espero a que un proceso este en la cola de ejecucion
 			sem_wait(&pasar_pcb_a_CPU);
 
@@ -40,14 +42,15 @@ void crear_hilo_cpu(){
 		switch (motivoDevolucion -> tipo){
 			case EXIT:
 				se_reenvia_el_contexto = false;
-				terminar_consola(motivoDevolucion);
+				terminar_consola();
+				sem_post(&CPUVacia);
 				break;
 			case WAIT:
 				//Si no existe el recurso
 				if(!existeRecurso(motivoDevolucion -> cadena)){
 					log_info(logger, "PID %d ha sido finalizado por el dibu porque no existe el recurso: %s.\n", motivoDevolucion -> contextoEjecucion -> pid, motivoDevolucion -> cadena);
 					se_reenvia_el_contexto = false;
-					terminar_consola(motivoDevolucion); //Explicar el error por el cual se termina
+					terminar_consola(); //Explicar el error por el cual se termina
 					break;
 				}
 				//Si existe el recurso (el nombre de recurso viene dentro de cadena)
@@ -73,7 +76,7 @@ void crear_hilo_cpu(){
 				if(!existeRecurso(motivoDevolucion -> cadena)){
 					log_info(logger, "PID %d ha sido finalizado por el dibu porque no existe el recurso: %s.\n", motivoDevolucion -> contextoEjecucion -> pid, motivoDevolucion -> cadena);
 					se_reenvia_el_contexto = false;
-					terminar_consola(motivoDevolucion); //Explicar el error por el cual se termina
+					terminar_consola(); //Explicar el error por el cual se termina
 					sem_post(&CPUVacia);
 					break;
 				}
@@ -85,7 +88,10 @@ void crear_hilo_cpu(){
 				break;
 
 			case YIELD: 
-				pasar_a_ready(pcb_ejecutando());
+				log_debug(logger, "PCB tenia instruccion YIELD.");
+				actualizar_pcb(motivoDevolucion->contextoEjecucion);
+				pasar_a_ready(pcb_ejecutando_remove());
+				sem_post(&CPUVacia);
 				break;
 				
 			case IO: 
@@ -102,14 +108,12 @@ void crear_hilo_cpu(){
 				log_error(logger, "ERROR EN LA RESPUESTA DE CPU");
 				break;
 		}
-
-		// Revisar/Sacar
-		/*
-		sem_post(&CPUVacia);
-		sem_post(&multiprogramacion);
-		sem_getvalue(&multiprogramacion, &v_mp);
-		log_debug(logger, "MP=%d", v_mp);*/
 	}
+}
+
+void actualizar_pcb(t_contextoEjecucion *contextoEjecucion){
+	t_pcb* pcb = pcb_ejecutando();
+	pcb->contexto = contextoEjecucion;
 }
 
 void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cpu){
@@ -455,22 +459,23 @@ void sleep_IO(t_motivoDevolucion *motivoDevolucion){
 	pasar_a_ready(pcb_ejecutando());
 }
 
-void terminar_consola(t_motivoDevolucion* motivoDevolucion){
+void terminar_consola(){
+	//Obtengo la pcb a finalizar
+	t_pcb* pcb = pcb_ejecutando_remove();
+	log_error(logger, "entro a finalizar el socket: %d",  pcb->contexto->socket);
 	//Envio un paquete para que consola finalice
 	t_paquete* paquete = crear_paquete();
 	//Obtener el socket mediante pcb_ejecutando()
 	paquete->codigo_operacion = TERMINAR_CONSOLA;
 	agregar_a_paquete(paquete, NULL, 0);
-	enviar_paquete(paquete, motivoDevolucion -> contextoEjecucion -> socket);
-	log_error(logger, "FINALIZO EL PROCESO: %d", motivoDevolucion -> contextoEjecucion -> pid);
-	t_pcb* pcb = pcb_ejecutando();
+	enviar_paquete(paquete, pcb->contexto->socket);
+	log_error(logger, "FINALIZÓ EL PROCESO: %d",  pcb->contexto->pid);
 	pasar_a_exit(pcb);
 	//Aumentamos el grado de multiprogramacion para que entre un nuevo proceso
 	sem_post(&multiprogramacion);
 }
 
 t_pcb* pcb_ejecutando(){
-	//t_pcb* pcb = malloc(sizeof(t_pcb));
 	log_debug(logger, "Obteniendo pcb ejecutando");
 	pthread_mutex_lock(&listaExec);
 	t_pcb* pcb = list_get(LISTA_EXEC, 0);

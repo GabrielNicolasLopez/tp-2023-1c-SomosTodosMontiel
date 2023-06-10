@@ -23,6 +23,7 @@ void pasar_a_exec(t_pcb *pcb){
 	list_add(LISTA_EXEC, pcb);
 	pthread_mutex_unlock(&listaExec);
 	log_debug(logger, "Paso a EXEC el proceso %d", pcb->contexto->pid);
+	log_debug(logger, "Paso a EXEC el socket %d", pcb->contexto->socket);
 }
 
 void pasar_a_blocked(t_pcb* pcb){

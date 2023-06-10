@@ -2,7 +2,7 @@
 
 void implementar_fifo(){
 	t_pcb *pcb = algoritmo_fifo(LISTA_READY); //Obtiene el 1er elemento de la lista de ready
-	//log_info(logger, "Agregando UN pcb a lista exec");
+	log_debug(logger, "pasando a exec el socket %d", pcb->contexto->socket);
 	pasar_a_exec(pcb);
 	// Cambio de estado
 	//log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: READY , Estado Actual: EXEC", pcb->pid);

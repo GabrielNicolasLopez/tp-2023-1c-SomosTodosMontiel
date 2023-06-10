@@ -9,16 +9,18 @@ void planiLargoPlazo(){
 }
 
 void agregar_pcb(){
-	int v_mp;
-	sem_getvalue(&multiprogramacion, &v_mp);
-	log_debug(logger, "MP=%d", v_mp);
+	//int v_mp;
+	//sem_getvalue(&multiprogramacion, &v_mp);
+	//log_debug(logger, "MP=%d", v_mp);
 	sem_wait(&multiprogramacion);
-	sem_getvalue(&multiprogramacion, &v_mp);
-	log_debug(logger, "MP=%d", v_mp);
+	//sem_getvalue(&multiprogramacion, &v_mp);
+	//log_debug(logger, "MP=%d", v_mp);
 	//Bloqueo la lista de NEW para sacar una pcb
 	pthread_mutex_lock(&listaNew);
 	//Saco el 1er elemento de la lista de new (ESO NO TIENE NADA QUE VER CON FIFO. SIEMPRE SE USA FIFO PARA SACAR PCBS DE NEW)
-	t_pcb *pcb = list_remove(LISTA_NEW, 0); 
+	//t_pcb *pcb = list_remove(LISTA_NEW, 0); 
+	t_pcb* pcb = list_get(LISTA_NEW, 0); //Primero obtengo una copia de la pcb
+	list_remove(LISTA_NEW, 0); //Elimino la pcb de la lista
 	//Desbloqueo la lista para que la puedan usar los otros hilos
 	pthread_mutex_unlock(&listaNew); 
 
@@ -29,8 +31,13 @@ void agregar_pcb(){
 }
 
 void planiCortoPlazo(){
+	//int cantPCB, CPUVaciaa;
 	while (1){
+		//sem_getvalue(&cantPCBReady, &cantPCB);
+		//log_debug(logger, "cantPCBReady=%d", cantPCB);
 		sem_wait(&cantPCBReady);
+		//sem_getvalue(&CPUVacia, &CPUVaciaa);
+		//log_debug(logger, "CPUVaciaa=%d", CPUVaciaa);
 		sem_wait(&CPUVacia);
 		//log_info(logger, "Llego pcb a plani corto plazo");
 		t_tipo_algoritmo algoritmo;

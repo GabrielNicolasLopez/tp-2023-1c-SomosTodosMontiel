@@ -105,8 +105,8 @@ void planiLargoPlazo();
 void planiCortoPlazo();
 int calcularSizeListaInstrucciones(t_instrucciones *instrucciones);
 t_pcb* pcb_ejecutando();
-t_pcb *pcb_ejecutando_remove();
-void terminar_consola(t_motivoDevolucion*);
+t_pcb* pcb_ejecutando_remove();
+void terminar_consola();
 t_motivoDevolucion* recibir_contexto_y_motivo(int socket_cliente);
 void pasar_a_blocked_de_recurso(t_pcb* pcb, char* nombre_recurso);
 void sleep_IO(t_motivoDevolucion *motivoDevolucion);
@@ -119,6 +119,8 @@ void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_
 
 void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_con_cpu);
 void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cpu);
+
+void actualizar_pcb(t_contextoEjecucion *contextoEjecucion);
 
 
 extern t_config *config;

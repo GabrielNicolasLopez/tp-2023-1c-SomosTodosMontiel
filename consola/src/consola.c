@@ -44,7 +44,7 @@ int main(int argc, char** argv){
 	//Enviamos el paquete
 	//enviar_paquete(paqueteInstrucciones, conexionKernel);
 	enviar_instrucciones_a_kernel(instructionsBuffer, instrucciones, conexionKernel);
-	log_error(logger, "Tamaño de las instrucciones enviadas a kernel %d", instructionsBuffer->size);
+
 	//Borramos el paquete
 	//eliminar_paquete(paqueteInstrucciones);
 	//Liberamos la memoria de las instrucciones
@@ -75,8 +75,7 @@ int main(int argc, char** argv){
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel){
 
     stream_send_buffer(conexionKernel, instructionsBuffer);
-	log_debug(logger, "instrucciones enviadas en debug");
-	log_info(logger, "instrucciones enviadas eninfor");
+	log_error(logger, "Tamaño de las instrucciones enviadas a kernel %d", instructionsBuffer->size);
     buffer_destroy(instructionsBuffer);
 }	
 
@@ -326,6 +325,22 @@ t_registro devolverRegistro(char *registro){
 		return CX;
 	else if (strcmp(registro, "DX") == 0 || strcmp(registro, "DX\n") == 0)
 		return DX;
+	else if (strcmp(registro, "EAX") == 0 || strcmp(registro, "EAX\n") == 0)
+		return EAX;
+	else if (strcmp(registro, "EBX") == 0 || strcmp(registro, "EBX\n") == 0)
+		return EBX;
+	else if (strcmp(registro, "ECX") == 0 || strcmp(registro, "ECX\n") == 0)
+		return ECX;
+	else if (strcmp(registro, "EDX") == 0 || strcmp(registro, "EDX\n") == 0)
+		return EDX;
+	else if (strcmp(registro, "RAX") == 0 || strcmp(registro, "RAX\n") == 0)
+		return RAX;
+	else if (strcmp(registro, "RBX") == 0 || strcmp(registro, "RBX\n") == 0)
+		return RBX;
+	else if (strcmp(registro, "RCX") == 0 || strcmp(registro, "RCX\n") == 0)
+		return RCX;
+	else if (strcmp(registro, "RDX") == 0 || strcmp(registro, "RDX\n") == 0)
+		return RDX;	
 	return -1;
 }
 
