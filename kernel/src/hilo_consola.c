@@ -196,6 +196,7 @@ void crear_pcb(void *datos){
 	pcb->contexto->instrucciones->listaInstrucciones = list_duplicate(datosPCB->instrucciones->listaInstrucciones);
 	
 	pcb->contexto->tablaDeSegmentos = list_create();
+	agregar_segmento_a_pcb(); //agregar el segmento 0 recibido de memoria
 	//pcb-> registrosCPU;
 	pcb->estimacion_anterior       = 10000;
 	pcb->real_anterior             = 0;

@@ -96,12 +96,54 @@ void crear_hilo_cpu(){
 				
 			case IO: 
 				pthread_t hilo_sleep;
-				pasar_a_blocked(pcb_ejecutando_remove());
+				//Cambiar por pcb_ejecutando()
+				pasar_a_blocked(pcb_ejecutando());
 				sem_post(&CPUVacia);
-
-				pthread_create(&hilo_sleep, NULL,(void *)sleep_IO, (void*) motivoDevolucion);
+				//															-| se tiene que enviar la pcb completa, no el motivo
+				pthread_create(&hilo_sleep, NULL,(void *)sleep_IO, (void*) pcb_ejecutando());
 				//Detacheamos el hilo que es quien se encarga de mandar a ready al pcb
 				pthread_detach(hilo_sleep);
+
+				break;
+			case CREATE_SEGMENT:
+				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
+				//Creo un t_segment y asigno id y tamaño
+
+				create_segment(CREATE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id, tamaño
+
+				//Esperar y recibir
+				respuesta = recibir_respuesta_create_segment(); //OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
+
+				switch (respuesta){
+				case OK:
+					//leer un uint_32 desde el paquete
+					//Completo y asigno el segmento a la pcb
+					break;
+				case OUT_OF_MEMORY:
+					se_reenvia_el_contexto = false;
+					terminar_consola();
+					sem_post(&CPUVacia);
+					break;
+				case COMPACTACION:
+					if(se puede compactar)
+						avisar_a_memoria();
+					
+					//esperar a terminar
+					recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
+					actualizar_las_tablas_de_las_pcb();
+					create_segment(CREATE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id, tamaño
+					//Devolver el contexto de ejecucion a CPU
+					break;
+				}
+
+				break;
+			case DELETE_SEGMENT:
+				
+				create_segment(DELETE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
+				respuesta = recibir_respuesta_delete_segment(); 
+				recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
+
+				//Devolver el contexto de ejecucion a CPU
 
 				break;
 			default:
@@ -453,10 +495,11 @@ void update_program_counter(t_pcb *pcb, t_motivoDevolucion *motivoDevolucion){
 	pcb->contexto->program_counter= motivoDevolucion->contextoEjecucion->program_counter;
 };
 
-void sleep_IO(t_motivoDevolucion *motivoDevolucion){
+void sleep_IO(t_motivoDevolucion *motivoDevolucion, t_pcb *pcb){
 	int tiempo = motivoDevolucion->cant_int;
 	sleep(tiempo);
-	pasar_a_ready(pcb_ejecutando());
+	list_remove(LISTA_BLOCKED, pcb);
+	pasar_a_ready(pcb);
 }
 
 void terminar_consola(){
