@@ -93,6 +93,10 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	//Cantidad entero = numero entero
 	buffer_pack(cym_a_enviar, &motivo.cant_int, sizeof(uint32_t));
 	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+
+	//Cantidad entero = numero entero
+	buffer_pack(cym_a_enviar, &motivo.cant_intB, sizeof(uint32_t));
+	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	
 	//Longitud de la cadena
 	buffer_pack(cym_a_enviar, &motivo.longitud_cadena, sizeof(uint32_t));

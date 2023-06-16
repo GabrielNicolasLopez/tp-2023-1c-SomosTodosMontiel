@@ -17,26 +17,42 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case F_READ:	// F_READ (Nombre Archivo, Dirección Lógica, Cantidad de Bytes):
 						// Esta instrucción solicita al Kernel que se lea del archivo indicado, la cantidad de bytes pasada
 						// por parámetro y se escriba en la dirección física de Memoria la información leída.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u", 
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %u", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
-				//falta la dirección lógica
 				instruccion->cadena,
-				instruccion->paramIntA);
+				instruccion->paramIntA,
+				instruccion->paramIntB);
 
+			contexto_ejecucion -> program_counter++;
+			motivo.tipo = F_READ;
+			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
+			strncpy(motivo.cadena, instruccion->cadena, motivo.longitud_cadena);
+			motivo.cant_int = instruccion->paramIntA;
+			motivo.cant_intB = instruccion->paramIntB;
+			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+			*enviamos_CE_al_kernel = true;
 
 			break;
 		case F_WRITE:	// F_WRITE (Nombre Archivo, Dirección Lógica, Cantidad de bytes): 
 						// Esta instrucción solicita al
 						// Kernel que se escriba en el archivo indicado, la cantidad de bytes pasada por parámetro cuya
 						// información es obtenida a partir de la dirección física de Memoria.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u", 
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %u", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
-				//falta la dirección lógica
-				instruccion->cadena, 
-				instruccion->paramIntA);
+				instruccion->cadena,
+				instruccion->paramIntA,
+				instruccion->paramIntB);
 
+			contexto_ejecucion -> program_counter++;
+			motivo.tipo = F_WRITE;
+			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
+			strncpy(motivo.cadena, instruccion->cadena, motivo.longitud_cadena);
+			motivo.cant_int = instruccion->paramIntA;
+			motivo.cant_intB = instruccion->paramIntB;
+			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+			*enviamos_CE_al_kernel = true;
 
 			break;
 		
@@ -111,15 +127,55 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case F_TRUNCATE: // F_TRUNCATE (Nombre Archivo, Tamaño): 
 						 // Esta instrucción solicita al Kernel que se modifique el tamaño del archivo al indicado por parámetro.
 			
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %u", 
+				contexto_ejecucion->pid, 
+				nombresInstrucciones[instruccion->tipo],
+				instruccion->cadena,
+				instruccion->paramIntA,
+				instruccion->paramIntB);
+
+			contexto_ejecucion -> program_counter++;
+			motivo.tipo = F_TRUNCATE;
+			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
+			strncpy(motivo.cadena, instruccion->cadena, motivo.longitud_cadena);
+			motivo.cant_int = instruccion->paramIntA;
+			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+			*enviamos_CE_al_kernel = true;
+
 			break;
 		case F_SEEK:	// F_SEEK (Nombre Archivo, Posición): 
 						// Esta instrucción solicita al kernel actualizar el puntero del archivo a la posición pasada por parámetro.
 			
-			break;
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u",
+				contexto_ejecucion->pid,
+				nombresInstrucciones[instruccion->tipo],
+				instruccion->cadena,
+				instruccion->paramIntA);
+			
+			contexto_ejecucion -> program_counter++;
+			motivo.tipo = F_SEEK;
+			motivo.cant_int = instruccion->paramIntA;
+			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
+			strncpy(motivo.cadena, instruccion->cadena, motivo.longitud_cadena);
+			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+			*enviamos_CE_al_kernel = true;
+            break;
 		case CREATE_SEGMENT: // CREATE_SEGMENT (Id del Segmento, Tamaño): 
 							 // Esta instrucción solicita al kernel la creación del segmento con el Id y tamaño indicado por parámetro.
 
-			break;
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %u - %u",
+				contexto_ejecucion->pid,
+				nombresInstrucciones[instruccion->tipo],
+				instruccion->paramIntA,
+				instruccion->paramIntB);
+			
+			contexto_ejecucion -> program_counter++;
+			motivo.tipo = CREATE_SEGMENT;
+			motivo.cant_int = instruccion->paramIntA;
+			motivo.cant_intB = instruccion->paramIntB;
+			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+			*enviamos_CE_al_kernel = true;
+            break;
 
 		// 1 PARAMETROS
 		case IO:	// I/O (Tiempo): Esta instrucción representa una syscall de I/O bloqueante. Se deberá devolver
@@ -166,13 +222,45 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
             break;
 		case F_OPEN: 	// F_OPEN (Nombre Archivo): Esta instrucción solicita al kernel que abra o cree el archivo
 					 	// pasado por parámetro.
-			break;
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s",
+				contexto_ejecucion->pid,
+				nombresInstrucciones[instruccion->tipo],
+				instruccion->cadena);
+			
+			contexto_ejecucion -> program_counter++;
+			motivo.tipo = F_OPEN;
+			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
+			strncpy(motivo.cadena, instruccion->cadena, motivo.longitud_cadena);
+			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+			*enviamos_CE_al_kernel = true;
+            break;
 		case F_CLOSE:	// F_CLOSE (Nombre Archivo): Esta instrucción solicita al kernel que cierre el archivo pasado
 						// por parámetro.
-			break;
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s",
+				contexto_ejecucion->pid,
+				nombresInstrucciones[instruccion->tipo],
+				instruccion->cadena);
+			
+			contexto_ejecucion -> program_counter++;
+			motivo.tipo = F_CLOSE;
+			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
+			strncpy(motivo.cadena, instruccion->cadena, motivo.longitud_cadena);
+			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+			*enviamos_CE_al_kernel = true;
+            break;
 		case DELETE_SEGMENT:	// DELETE_SEGMENT (Id del Segmento): Esta instrucción solicita al kernel que se elimine el
 								// segmento cuyo Id se pasa por parámetro.
-			break;
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %u",
+				contexto_ejecucion->pid,
+				nombresInstrucciones[instruccion->tipo],
+				instruccion->paramIntA);
+			
+			contexto_ejecucion -> program_counter++;
+			motivo.tipo = DELETE_SEGMENT;
+			motivo.cant_int = instruccion->paramIntA;
+			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+			*enviamos_CE_al_kernel = true;
+            break;
 
 		// 0 PARAMETROS
 		case YIELD:
