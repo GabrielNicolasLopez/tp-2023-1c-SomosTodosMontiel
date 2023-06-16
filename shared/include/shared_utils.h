@@ -21,6 +21,14 @@ extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];
 extern char *nombresRegistros[];
 
+typedef struct 
+{
+    int id_segmento;
+    int base;
+    int tamanio;
+    //int libre;
+}t_segmento;
+
 typedef enum
 {
 	MENSAJE,
@@ -146,6 +154,7 @@ typedef struct
 {
     t_tipoInstruccion tipo;
     uint32_t cant_int;
+    uint32_t cant_intB;
     uint32_t longitud_cadena;
     char *cadena;
     t_contextoEjecucion *contextoEjecucion;
