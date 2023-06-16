@@ -2,5 +2,5 @@
 FILE=filesystem
 make $FILE
 if test -f "./$FILE"; then
-    valgrind --tool=helgrind ./$FILE
-fi
+    valgrind --tool=helgrind ./$FILE ./cfg/filesystem.cfg
+fi 

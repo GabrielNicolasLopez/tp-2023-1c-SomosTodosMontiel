@@ -11,7 +11,9 @@
             "request": "launch",
             "preLaunchTask": "Make",
             "program": "${workspaceFolder}/filesystem",
-            "args": [],
+            "args": [
+                "./cfg/filesystem.cfg"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

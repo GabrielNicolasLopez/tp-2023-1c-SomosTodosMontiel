@@ -1,63 +1,73 @@
 #include "filesystem.h"
 
-int main(int argc, char ** argv){
-    
-    //Creo logger para info
-	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_INFO);
+t_filesystem_config* configuracionFS;
 
+int main(int argc, char ** argv){
+    if (argc != 2) {
+        fprintf(stderr, "Se esperaba: %s [CONFIG_PATH] - Abortando...", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+	char *CONFIG_PATH = argv[1];
+
+	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_DEBUG);
+    if (logger == NULL) {
+        fprintf(stderr, "Error al abrir el logger, abortando...");
+        exit(EXIT_FAILURE);
+    }
     log_info(logger, "INICIANDO FILESYSTEM...");
 
-    configuracionFilesystem = leerConfiguracion();
+    // CONFIG
+    t_config *config = config_create(CONFIG_PATH);
+    configuracionFS = leerConfiguracion(config);
 
-    //Me conecto a memoria
-    int conexion_con_memoria = crear_conexion(configuracionFilesystem->IP_MEMORIA, configuracionFilesystem->PUERTO_MEMORIA, logger);
-    log_info(logger, "FL se conectó a memoria");
+    // CREACION DE HILOS
+    crear_hilos_filesystem();
+
+
+    // ANTES DE FINALIZAR EL PROCESO LIBERAR MEMORIA:
+	config_destroy(config);
+	free(configuracionFS);
+}
+
+
+// CREACION DE HILOS
+void crear_hilos_filesystem()
+{
+	pthread_t hiloMemoria, hiloKernel;
+	
+    pthread_create(&hiloMemoria, NULL, &crear_hilo_memoria, NULL);
+    pthread_create(&hiloKernel, NULL, &crear_hilo_kernel, NULL);
+
+
+
+    int* hiloMemoria_return;
+    pthread_join(hiloMemoria, (void**) &hiloMemoria_return);
+    if (*hiloMemoria_return) {
+        log_error(logger, "Error en HILO_MEMORIA");
+    }
     
-    crear_hilos_filesystem();  
-    log_info(logger, "3");
+    int* hiloKernel_return;
+    pthread_join(hiloKernel, (void**) &hiloKernel_return);
+    if (!*hiloKernel_return) {
+        log_error(logger, "Error en HILO_KERNEL");
+    }
+    
+    
 }
 
-void crear_hilos_filesystem(){
-	pthread_t hiloKernel;
+// CONFIGURACION
+t_filesystem_config *leerConfiguracion(t_config* config)
+{
+    t_filesystem_config* configuracion = malloc(sizeof(t_filesystem_config));
 
-	pthread_create(&hiloKernel, NULL, (void *)crear_hilo_kernel, NULL);
+	configuracion->IP_MEMORIA = config_get_string_value(config, "IP_MEMORIA");
+	configuracion->PUERTO_MEMORIA = config_get_string_value(config, "PUERTO_MEMORIA");
+    configuracion->PUERTO_ESCUCHA = config_get_string_value(config, "PUERTO_ESCUCHA");
+    configuracion->PATH_SUPERBLOQUE = config_get_string_value(config, "PATH_SUPERBLOQUE");
+    configuracion->PATH_BITMAP = config_get_string_value(config, "PATH_BITMAP");
+    configuracion->PATH_BLOQUES = config_get_string_value(config, "PATH_BLOQUES");
+    configuracion->PATH_FCB = config_get_string_value(config, "PATH_FCB");
+    configuracion->RETARDO_ACCESO_BLOQUE = config_get_int_value(config, "RETARDO_ACCESO_BLOQUE");
 
-	pthread_join(hiloKernel, NULL);
-}
-
-void crear_hilo_kernel(){
-    //Abro el server para kernel
-    int server_fd = iniciar_servidor("127.0.0.1", configuracionFilesystem->PUERTO_ESCUCHA, logger);
-    log_info(logger, "Filesystem listo para recibir a Kernel");
-    int cliente_fd = esperar_cliente(server_fd, logger);
-    while(1){}
-}
-
-/*void crear_hilo_memoria(){
-    //Me conecto a memoria
-    int conexion_con_memoria = crear_conexion(configuracionFilesystem->IP_MEMORIA, configuracionFilesystem->PUERTO_MEMORIA, logger);
-    log_info(logger, "Me conecté a memoria");
-}*/
-
-
-
-t_filesystem_config *leerConfiguracion(){
-
-    log_info(logger, "Hola FL 1");
-
-	//Creo el config para leer IP y PUERTO
-	t_config *config = config_create(CONFIG_PATH);
-
-    log_info(logger, "Hola FL 2");
-
-	//Creo el archivo config
-	t_filesystem_config* configuracionFilesystem = malloc(sizeof(t_filesystem_config));
-
-	//Leo los datos del config (como servidor)
-    configuracionFilesystem->PUERTO_ESCUCHA = config_get_string_value(config, "PUERTO_ESCUCHA");
-    //Leo los datos del config (como cliente)
-	configuracionFilesystem->IP_MEMORIA = config_get_string_value(config, "IP_MEMORIA");
-	configuracionFilesystem->PUERTO_MEMORIA = config_get_string_value(config, "PUERTO_MEMORIA");
-
-	return configuracionFilesystem;
+	return configuracion;
 }
