@@ -23,10 +23,6 @@ typedef struct
     char *puerto;
 } t_consola_config;
 
-
-//const char *nombresRegistros[] = {"AX", "BX", "CX", "DX"};
-
-
 t_consola_config leerConfiguracion(t_log *logger);
 void verificacionDeConfiguracion(int argc, t_log *logger);
 FILE *abrirArchivo(char *filename, t_log *logger);
@@ -38,4 +34,6 @@ void *recibirStream(int socket, size_t stream_size);
 void liberar_instrucciones(t_instrucciones *intrucciones);
 t_instrucciones get_instrucciones(t_instrucciones* instrucciones);
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel);
+t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel);
+
 #endif

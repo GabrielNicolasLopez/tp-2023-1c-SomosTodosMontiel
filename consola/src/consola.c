@@ -57,19 +57,58 @@ int main(int argc, char** argv){
 	char *mensaje = recibirMensaje(conexionKernel);
 	log_info(logger, "Kernel dice: %s", mensaje);
 
-	//Intentar cambiar el while(1) por semáforos
-	while(1){
-		//log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
-		t_paquete *paquete = (t_paquete *)recibir_paquete(conexionKernel);
-		switch (paquete->codigo_operacion){
-		case TERMINAR_CONSOLA:
-			log_info(logger , "FINALIZANDO LA CONSOLA");
-			liberar_conexion(conexionKernel);
-			//Destruyo el logger
-    		log_destroy(logger);
-			return EXIT_SUCCESS;
+	// while(1){
+	// 	log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
+	// 	t_paquete *paquete = (t_paquete *)recibir_paquete(conexionKernel);
+	// 	switch (paquete->codigo_operacion){
+	// 	case TERMINAR_CONSOLA:
+	// 		log_info(logger , "FINALIZANDO LA CONSOLA");
+	// 		liberar_conexion(conexionKernel);
+	// 		//Destruyo el logger
+    // 		log_destroy(logger);
+	// 		return EXIT_SUCCESS;
+	// 	}
+	// }
+
+	log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
+	
+	t_razonFinConsola razon = recibir_fin_desde_kernel(conexionKernel);
+
+	switch(razon){
+		case FIN:
+			log_error(logger,"Finalizando consola: instruccion EXIT");
+		break;
+		case OUT_OF_MEMORY:
+			log_error(logger,"Finalizando consola: Out of memory");
+		break;
+		case RECURSO:
+			log_error(logger,"Finalizando consola: Wait/Signal de un recurso no válido");
+		break;
 		}
-	}
+	
+	//Libero la conexion
+	liberar_conexion(conexionKernel);
+	//Destruyo el logger
+	log_destroy(logger);
+	return EXIT_SUCCESS;
+}
+
+t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel){
+	t_buffer* razon_recibida = buffer_create();
+	t_razonFinConsola* razon_p = malloc(sizeof(t_razonFinConsola));
+	t_razonFinConsola razon;
+
+	stream_recv_buffer(conexionKernel, razon_recibida);
+
+	buffer_unpack(razon_recibida, razon_p, sizeof(t_razonFinConsola));
+
+	buffer_destroy(razon_recibida);
+
+	razon = *razon_p;
+
+	free(razon_p);
+
+	return razon;
 }
 
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel){
@@ -356,7 +395,7 @@ void verificacionDeConfiguracion(int argc, t_log* logger){
 	log_info(logger, "Cantidad de parametros: %d", argc);
 	if (argc != 3){ //.c, config, pseudocodigo
 		log_error(logger, "CANTIDAD DE PARAMETROS INCORRECTA");
-		//exit(1);
+		exit(1);
 	}
 	else
 		log_info(logger, "CONSOLA INICIALIZADA CORRECTAMENTE");
