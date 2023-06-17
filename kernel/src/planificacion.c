@@ -24,10 +24,8 @@ void agregar_pcb(){
 	//Desbloqueo la lista para que la puedan usar los otros hilos
 	pthread_mutex_unlock(&listaNew); 
 
+	log_debug(logger, "PID: <%d> - Estado Anterior: <NEW> - Estado Actual: <READY>", pcb->contexto->pid);
 	pasar_a_ready(pcb);
-	//Aumento el semaforo de cantidad de PCBs en ready 
-	//sem_post(&cantPCBReady);
-	//log_info(logger, "Envie a memoria los recursos para asignar");
 }
 
 void planiCortoPlazo(){
@@ -36,30 +34,32 @@ void planiCortoPlazo(){
 		//sem_getvalue(&cantPCBReady, &cantPCB);
 		//log_debug(logger, "cantPCBReady=%d", cantPCB);
 		sem_wait(&cantPCBReady);
+		//log_debug(logger, "pasamos el wait de cantready");
 		//sem_getvalue(&CPUVacia, &CPUVaciaa);
 		//log_debug(logger, "CPUVaciaa=%d", CPUVaciaa);
 		sem_wait(&CPUVacia);
+		//log_debug(logger, "pasamos el wait de cpuvacia");
 		//log_info(logger, "Llego pcb a plani corto plazo");
 		t_tipo_algoritmo algoritmo;
 		algoritmo = obtenerAlgoritmo();
 
 		switch (algoritmo){
 		case FIFO:
-			log_debug(logger, "Implementando algoritmo FIFO");
+			log_info(logger, "Implementando algoritmo FIFO");
 			//log_debug(logger, " Cola Ready FIFO:");
 			//cargarListaReadyIdPCB(LISTA_READY);
 			implementar_fifo();
 
 			break;
 		case HRRN:
-			log_debug(logger, "Implementando algoritmo HRRN");
+			log_info(logger, "Implementando algoritmo HRRN");
 			//log_debug(logger, " Cola Ready RR:");
 			//cargarListaReadyIdPCB(LISTA_READY);
 			implementar_hrrn();
 
 			break;
 		default:
-			log_error(logger, "ERROR AL ELEGIR EL ALGORITMO EN EL PLANIFICADOR DE CORTO PLAZO");
+			log_info(logger, "ERROR AL ELEGIR EL ALGORITMO EN EL PLANIFICADOR DE CORTO PLAZO");
 			break;
 		}
 	}

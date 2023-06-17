@@ -1,13 +1,9 @@
 #include "kernel.h"
 
 void implementar_hrrn(){
-	t_pcb *pcb = algoritmo_hrrn(LISTA_READY); //Ordena la lista y obtiene el elemento que corresponde
-	//log_info(logger, "Agregando UN pcb a lista exec");
-	log_error(logger, "cantidad de pcbs en ready luego de hrrn: %d", list_size(LISTA_READY));
-	log_debug(logger, "pasando a exec el socket %d", pcb->contexto->socket);
+	t_pcb *pcb = algoritmo_hrrn(LISTA_READY); //Obtiene el elemento que corresponde
 	pasar_a_exec(pcb);
-	// Cambio de estado
-	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: READY , Estado Actual: EXEC", pcb->contexto->pid);
+	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: <READY> , Estado Actual: <EXEC>", pcb->contexto->pid);
 	sem_post(&pasar_pcb_a_CPU);
 }
 
@@ -39,13 +35,9 @@ t_pcb* mayorHRRN(t_pcb* unaPCB, t_pcb* otraPCB){
 
 t_pcb *algoritmo_hrrn(t_list *LISTA_READY){
 	t_pcb *pcb;
-	log_error(logger, "cantidad de pcbs en ready hrrn: %d", list_size(LISTA_READY));
 	if (list_size(LISTA_READY) == 1) //Si solo hay uno, lo saco por fifo (el 1ro de la lista)
         pcb = (t_pcb *)list_remove(LISTA_READY, 0);
-    else if (list_size(LISTA_READY) > 1){ //Si hay mas tengo que obtener el que tenga el mayor HRRN.
+    else if (list_size(LISTA_READY) > 1) //Si hay mas tengo que obtener el que tenga el mayor HRRN.
 		pcb = list_get_maximum(LISTA_READY, (void*)mayorHRRN);
-		if(!list_remove_element(LISTA_READY, pcb))
-			log_error(logger, "no se pudo eliminar la pcb por hrrn");
-	}
 	return pcb;
 }

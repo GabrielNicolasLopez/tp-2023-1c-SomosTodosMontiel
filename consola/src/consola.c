@@ -57,19 +57,6 @@ int main(int argc, char** argv){
 	char *mensaje = recibirMensaje(conexionKernel);
 	log_info(logger, "Kernel dice: %s", mensaje);
 
-	// while(1){
-	// 	log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
-	// 	t_paquete *paquete = (t_paquete *)recibir_paquete(conexionKernel);
-	// 	switch (paquete->codigo_operacion){
-	// 	case TERMINAR_CONSOLA:
-	// 		log_info(logger , "FINALIZANDO LA CONSOLA");
-	// 		liberar_conexion(conexionKernel);
-	// 		//Destruyo el logger
-    // 		log_destroy(logger);
-	// 		return EXIT_SUCCESS;
-	// 	}
-	// }
-
 	log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
 	
 	t_razonFinConsola razon = recibir_fin_desde_kernel(conexionKernel);
@@ -117,11 +104,6 @@ void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones
 	log_error(logger, "Tamaño de las instrucciones enviadas a kernel %d", instructionsBuffer->size);
     buffer_destroy(instructionsBuffer);
 }	
-
-
-// t_instrucciones get_instrucciones(t_instrucciones* instrucciones){
-// 	return instrucciones;
-// }
 
 char *recibirMensaje(int socket){
 	size_t *tamanio_mensaje;
@@ -259,7 +241,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 		}
 		else if (strcmp(palabras[0], "F_READ") == 0){
 			t_tipoInstruccion instruccion = F_READ;
-			memcpy(&cadena_pack, palabras[1],sizeof(uint32_t));
+			strcpy(&cadena_pack, palabras[1]);
 			uint32_t paramIntA = atoi(palabras[2]); //Direccion logica
 			uint32_t paramIntB = atoi(palabras[3]); //Cantidad de bytes
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
@@ -273,7 +255,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 		}
 		else if (strcmp(palabras[0], "F_WRITE") == 0){
 			t_tipoInstruccion instruccion = F_WRITE;
-			memcpy(&cadena_pack, palabras[1],sizeof(uint32_t));
+			strcpy(&cadena_pack, palabras[1]);
 			uint32_t paramIntA = atoi(palabras[2]); //Direccion logica
 			uint32_t paramIntB = atoi(palabras[3]); //Cantidad de bytes
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
@@ -287,7 +269,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 		}
 		else if (strcmp(palabras[0], "F_TRUNCATE") == 0){
 			t_tipoInstruccion instruccion = F_TRUNCATE;
-			memcpy(&cadena_pack, palabras[1],sizeof(uint32_t));
+			strcpy(&cadena_pack, palabras[1]);
 			uint32_t paramIntA = atoi(palabras[2]); //Tamaño del archivo
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
@@ -310,7 +292,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 		}
 		else if (strcmp(palabras[0], "SIGNAL") == 0){
 			t_tipoInstruccion instruccion = SIGNAL;
-			memcpy(&cadena_pack, palabras[1],sizeof(uint32_t));
+			strcpy(&cadena_pack, palabras[1]);
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));

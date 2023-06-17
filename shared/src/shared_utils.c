@@ -1,8 +1,9 @@
 #include "shared_utils.h"
 
+char *razonFinConsola[] = {"FIN", "OUT_OF_MEMORY", "RECURSO"};
 char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
 char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT", "IO", "WAIT", "SIGNAL", "F_OPEN", "F_CLOSE", "DELETE_SEGMENT", "YIELD", "EXIT"};
-
+    
 char *nombresRegistros[] = 
 {
 	// 4 bytes
@@ -241,15 +242,15 @@ void *recibir_buffer(uint32_t *size, int socket_cliente)
 	return buffer;
 }
 
-void recibir_mensaje(int socket_cliente)
+/*tvoid recibir_mensaje(int socket_cliente)
 {
-	int size;
+	uint32_t size;
 	char *buffer = recibir_buffer(&size, socket_cliente);
 	log_info(logger, "Me llego el mensaje %s", buffer);
 	free(buffer);
 }
 
-t_list *recibir_paquete(int socket_cliente)
+_list *recibir_paquete(int socket_cliente)
 {
 	int size;
 	int desplazamiento = 0;
@@ -269,7 +270,7 @@ t_list *recibir_paquete(int socket_cliente)
 	}
 	free(buffer);
 	return valores;
-}
+}*/
 
 int size_char_array(char **array)
 {

@@ -25,7 +25,7 @@ void crear_hilo_consola(){
 
 t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 
-	log_debug(logger, "Recibiendo instrucciones desde consola...");
+	log_info(logger, "Recibiendo instrucciones desde consola...");
 	
 	int cantidad_de_instrucciones = 0;
 	t_tipoInstruccion instruccion;
@@ -37,7 +37,7 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
     t_buffer* bufferInstrucciones = buffer_create();
 
     stream_recv_buffer(cliente_fd, bufferInstrucciones);
-	log_error(logger, "Tamaño de las instrucciones recibidas %d", bufferInstrucciones->size);
+	//log_error(logger, "Tamaño de las instrucciones recibidas %d", bufferInstrucciones->size);
 
 	//Empiezo a desempaquetar
 	buffer_unpack(bufferInstrucciones, &instruccion, sizeof(t_tipoInstruccion));
@@ -67,7 +67,7 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 		if(instruccion == WAIT){
 			//Longitud cadena
 			buffer_unpack(bufferInstrucciones, &instruccionRecibida->longitud_cadena, sizeof(uint32_t));
-			log_error(logger, "long wait: %d", instruccionRecibida->longitud_cadena);
+			//log_error(logger, "long wait: %d", instruccionRecibida->longitud_cadena);
 			instruccionRecibida->cadena = malloc(instruccionRecibida->longitud_cadena);
 			//Cadena
 			buffer_unpack(bufferInstrucciones, instruccionRecibida->cadena, instruccionRecibida->longitud_cadena);
@@ -196,7 +196,7 @@ void crear_pcb(void *datos){
 	pcb->contexto->instrucciones->listaInstrucciones = list_duplicate(datosPCB->instrucciones->listaInstrucciones);
 	
 	pcb->contexto->tablaDeSegmentos = list_create();
-	agregar_segmento_a_pcb(); //agregar el segmento 0 recibido de memoria
+	//agregar_segmento_a_pcb(); //agregar el segmento 0 recibido de memoria
 	//pcb-> registrosCPU;
 	pcb->estimacion_anterior       = 10000;
 	pcb->real_anterior             = 0;

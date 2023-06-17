@@ -160,7 +160,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = SIGNAL;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strncpy(motivo.cadena, instruccion->cadena, motivo.longitud_cadena);
+			strcpy(&motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
             break;

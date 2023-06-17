@@ -303,7 +303,6 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 		if(instruccion == WAIT){
 			//Longitud cadena
 			buffer_unpack(ce_recibido, &instruccionRecibida->longitud_cadena, sizeof(uint32_t));
-			log_error(logger, "long wait: %d", instruccionRecibida->longitud_cadena);
 			instruccionRecibida->cadena = malloc(instruccionRecibida->longitud_cadena);
 			//Cadena
 			buffer_unpack(ce_recibido, instruccionRecibida->cadena, instruccionRecibida->longitud_cadena);

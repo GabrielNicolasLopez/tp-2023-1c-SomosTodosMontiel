@@ -51,6 +51,12 @@ typedef struct
 
 typedef struct
 {
+	t_pcb *pcb;
+	t_motivoDevolucion *motivo;
+} t_datosIO;
+
+typedef struct
+{
 	char* inicioArchivo;
 }t_entradaTAAP;
 
@@ -109,7 +115,6 @@ t_pcb* pcb_ejecutando_remove();
 void terminar_consola();
 t_motivoDevolucion* recibir_contexto_y_motivo(int socket_cliente);
 void pasar_a_blocked_de_recurso(t_pcb* pcb, char* nombre_recurso);
-void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void devolverRecurso(char* nombre_recurso);
 void update_program_counter(t_pcb *pcb, t_motivoDevolucion *motivoDevolucion);
 void devolverContextoEjecucion(t_pcb *pcb, int conexion_con_cpu);
@@ -122,6 +127,8 @@ void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion);
 
+//void sleep_IO(t_motivoDevolucion *motivoDevolucion);
+void sleep_IO(t_datosIO*);
 
 extern t_config *config;
 extern t_kernel_config *configuracionKernel;

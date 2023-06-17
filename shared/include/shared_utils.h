@@ -17,6 +17,7 @@
 #include <pthread.h>
 #include <time.h>
 
+extern char *razonFinConsola[];
 extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];
 extern char *nombresRegistros[];
@@ -187,8 +188,8 @@ void* recibir_buffer(uint32_t*, int);
 //int iniciar_servidor(void);
 int iniciar_servidor(char *IP, char *PUERTO, t_log* logger);
 int esperar_cliente(int socket_cliente, t_log* logger);
-t_list* recibir_paquete(int socket_cliente);
-void recibir_mensaje(int socket_cliente);
+//t_list* recibir_paquete(int socket_cliente);
+//void recibir_mensaje(int socket_cliente);
 int recibir_operacion(int socket_cliente);
 int crear_conexion(char *ip, char *puerto, t_log* logger);
 void enviar_mensaje(char *mensaje, int socket_cliente);
