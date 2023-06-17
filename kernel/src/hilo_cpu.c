@@ -58,7 +58,6 @@ void crear_hilo_cpu()
 			// Si no existe el recurso
 			if (!existeRecurso(motivoDevolucion->cadena))
 			{
-				log_info(logger, "PID %d ha sido finalizado por el dibu porque no existe el recurso: %s.\n", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena);
 				se_reenvia_el_contexto = false;
 				razon = RECURSO;
 				terminar_consola(razon); // Explicar el error por el cual se termina
@@ -82,7 +81,7 @@ void crear_hilo_cpu()
 			else if (recursos_disponibles(motivoDevolucion->cadena) <= 0)
 			{
 				// Le pasamos la pcb y el nombre del recurso para que lo bloquee
-				pasar_a_blocked_de_recurso(pcb_ejecutando(), motivoDevolucion->cadena);
+				pasar_a_blocked_de_recurso(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				se_reenvia_el_contexto = false;
 				sem_post(&CPUVacia);
 			}
@@ -119,7 +118,7 @@ void crear_hilo_cpu()
 			pthread_t hilo_sleep;
 			log_debug(logger, "PID: <%d> - Ejecuta IO: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 			//Envio la PCB a la lista de bloqueados
-			t_pcb* pcb_a_blocked = pcb_ejecutando();
+			t_pcb* pcb_a_blocked = pcb_ejecutando_remove();
 			log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
 			log_debug(logger, "PID: <%d> - Bloqueado por: <IO>", pcb_a_blocked->contexto->pid);
 			pasar_a_blocked(pcb_a_blocked);
