@@ -51,8 +51,4 @@ Module.symvers
 Mkfile.old
 dkms.conf
 *.log
-kernel
-cpu
-consola
-memoria
-filesystem
+kernel/kernel

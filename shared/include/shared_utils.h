@@ -87,6 +87,14 @@ typedef enum
     EXIT,
 } t_tipoInstruccion;
 
+typedef enum
+{
+    FIN,
+    OUT_OF_MEMORY,
+    RECURSO
+} t_razonFinConsola;
+
+
 typedef struct
 {
     t_tipoInstruccion tipo;
