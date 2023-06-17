@@ -89,7 +89,7 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd);
 t_paquete *crear_paquete_contexto_ejecucion(t_pcb *pcb);
 void implementar_fifo();
 void implementar_hrrn();
-void agregar_pcb();
+void agregar_pcb_a_ready();
 t_tipo_algoritmo obtenerAlgoritmo();
 t_pcb *algoritmo_hrrn(t_list*);
 t_pcb *mayorHRRN(t_pcb*,t_pcb*);
