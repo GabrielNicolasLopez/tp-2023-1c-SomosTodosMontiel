@@ -173,6 +173,7 @@ typedef enum {
     HEADER_error_out_of_memory,
     HEADER_error_recurso,
     HEADER_lista_instrucciones,
+    HEADER_contexto_ejecucion,
     HEADER_instruccion,
     HEADER_segmentation_fault
 } t_header;

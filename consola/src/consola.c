@@ -25,6 +25,7 @@ int main(int argc, char** argv){
 	log_debug(logger, "CONSOLA SE CONECTÓ A KERNEL.");
 
     stream_send_empty_buffer(conexionKernel, HANDSHAKE_consola);
+	log_debug(logger, "CONSOLA ENVIO HANDSHAKE A KERNEL.");
     uint8_t kernelResponse = stream_recv_header(conexionKernel);
 
     if (kernelResponse != HANDSHAKE_ok_continue) {
@@ -32,6 +33,8 @@ int main(int argc, char** argv){
         consola_destroy(consola_config, logger);
         exit(1);
     }
+
+	log_debug(logger, "CONSOLA HIZO HANDSHAKE CON KERNEL.");
 
 	//Abro el archivo de instrucciones para sacar las instrucciones
 	FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);

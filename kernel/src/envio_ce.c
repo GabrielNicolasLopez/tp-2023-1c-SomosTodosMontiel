@@ -129,7 +129,7 @@ void enviar_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cp
 	// Tabla de segmentos
 	// pack de tabla de segmentos coming soon
 
-	stream_send_buffer(conexion_con_cpu, ce_a_enviar);
+	stream_send_buffer(conexion_con_cpu, HEADER_contexto_ejecucion, ce_a_enviar);
 	//log_error(logger, "Tamaño del CE enviado a CPU %d", ce_a_enviar->size);
 
 	buffer_destroy(ce_a_enviar);

@@ -3,23 +3,26 @@
 void crear_hilo_consola(){
 	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA, logger);
 	log_info(logger, "Kernel listo para recibir clientes consola");
-
+	uint8_t handshake;
 	while (1){
 		pthread_t hilo_atender_consola;
 		int socketCliente = esperar_cliente(server_fd, logger);
+		handshake = stream_recv_header(socketCliente);
+		if (handshake == HANDSHAKE_consola) {
+			log_info(logger, "Se envia handshake ok continue a consola");
+			stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
+			
+			t_datosCrearPCB *datos = malloc(sizeof(t_datosCrearPCB));
+			t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
+			datos->instrucciones = instrucciones;
+			datos->instrucciones = recibir_instruciones_desde_consola(socketCliente);
+			datos->socket = socketCliente;
+			pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, (void*)datos);
+			pthread_detach(hilo_atender_consola);
 
-		t_datosCrearPCB *datos = malloc(sizeof(t_datosCrearPCB));
-		t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
-		datos->instrucciones = instrucciones;
-		
-		datos->instrucciones = recibir_instruciones_desde_consola(socketCliente);
-		datos->socket = socketCliente;
-		
-		if(!enviarMensaje(socketCliente, "Llegaron las instrucciones"))
-			log_error(logger, "Error al enviar el mensaje");
-
-		pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, (void*)datos);
-		pthread_detach(hilo_atender_consola);
+		} else {
+			stream_send_empty_buffer(socketCliente, HANDSHAKE_error);
+		}
 	}
 }
 

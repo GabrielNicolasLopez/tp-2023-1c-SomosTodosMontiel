@@ -44,10 +44,10 @@ void crear_hilos_cpu()
 {
 	pthread_t thread_kernel, thread_memoria;
 
-	pthread_create(&thread_memoria, NULL, (void *)crear_hilo_memoria, NULL);
+	//pthread_create(&thread_memoria, NULL, (void *)crear_hilo_memoria, NULL);
 	pthread_create(&thread_kernel, NULL, (void *)crear_hilo_kernel, NULL);
 
-	pthread_join(thread_memoria, NULL);	
+	//pthread_join(thread_memoria, NULL);	
 	pthread_join(thread_kernel, NULL);
 }
 // *** HILO KERNEL ***
@@ -56,17 +56,27 @@ void crear_hilo_kernel(){
 	log_error(logger, "CPU listo para recibir clientes del Kernel");
     int cliente_fd_kernel = esperar_cliente(server_fd_kernel, logger); // esperamos un proceso para ejecutar
 
-	t_contextoEjecucion* contexto_ejecucion = malloc(sizeof(t_contextoEjecucion));
-	bool enviamos_CE_al_kernel;
-    while(1){
-		contexto_ejecucion = recibir_ce_de_kernel(cliente_fd_kernel);
-		enviamos_CE_al_kernel = false;
-		while(contexto_ejecucion && !enviamos_CE_al_kernel)
-		{
-			ciclo_instruccion(contexto_ejecucion, cliente_fd_kernel, &enviamos_CE_al_kernel);
+	uint8_t handshake = stream_recv_header(cliente_fd_kernel);
+	if (handshake == HANDSHAKE_kernel) {
+		log_info(logger, "Se envia handshake ok continue a consola");
+		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);
+		t_contextoEjecucion* contexto_ejecucion = malloc(sizeof(t_contextoEjecucion));
+		bool enviamos_CE_al_kernel;
+		
+		while(1){
+			contexto_ejecucion = recibir_ce_de_kernel(cliente_fd_kernel);
+			enviamos_CE_al_kernel = false;
+			while(contexto_ejecucion && !enviamos_CE_al_kernel)
+			{
+				ciclo_instruccion(contexto_ejecucion, cliente_fd_kernel, &enviamos_CE_al_kernel);
+			}
+			//contexto_de_ejecucion_destroy(contexto_ejecucion);
 		}
-		//contexto_de_ejecucion_destroy(contexto_ejecucion);
+
+	} else {
+		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_error);
 	}
+
 }
 
 // *** HILO MEMORIA ***
