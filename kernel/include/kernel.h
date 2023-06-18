@@ -11,6 +11,9 @@
 #define LOG_PATH "./cfg/kernelPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Kernel"
 
+int conexion_con_memoria;
+int conexion_con_cpu;
+
 typedef struct
 {
     //datos para kernel como cliente
@@ -152,6 +155,9 @@ extern pthread_mutex_t listaReady;
 extern pthread_mutex_t listaExec;
 extern pthread_mutex_t listaBlocked;
 extern pthread_mutex_t listaExit;
+
+extern pthread_mutex_t esPosibleCompactar;
+
 
 
 //Semaforos

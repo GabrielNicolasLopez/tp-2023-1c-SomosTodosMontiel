@@ -24,9 +24,9 @@ extern char *nombresRegistros[];
 
 typedef struct 
 {
-    int id_segmento;
-    int base;
-    int tamanio;
+    uint32_t id_segmento;
+    uint32_t base;
+    uint32_t tamanio;
     //int libre;
 }t_segmento;
 
@@ -36,14 +36,6 @@ typedef enum
 	PAQUETE,
 	NEW
 }op_code;
-
-typedef enum {
-	TERMINAR_CONSOLA,
-    SIN_MEMORIA,
-    //YIELD,
-    //SIGNAL,
-    //WAIT
-} t_tipoMensaje;
 
 typedef enum
 {
@@ -92,8 +84,16 @@ typedef enum
 {
     FIN,
     OUT_OF_MEMORY,
-    RECURSO
+    E_SIGNAL,
+    E_WAIT
 } t_razonFinConsola;
+
+typedef enum
+{
+    OK,
+    SIN_MEMORIA,
+    NECESITO_COMPACTAR
+} t_respuestaMemoria;
 
 
 typedef struct

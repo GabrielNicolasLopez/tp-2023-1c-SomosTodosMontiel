@@ -68,3 +68,25 @@ void devolverRecurso(char *nombre_recurso)
 	recurso->instancias_recursos += 1;
 	pthread_mutex_unlock(&recurso->mutex_lista_blocked);
 }
+
+void actualizar_procesos_bloqueados(char nombre_recurso){
+
+	int posicion;
+	for (int i = 0; i < string_array_size(configuracionKernel->RECURSOS); i++)
+	{
+		if (strcmp(configuracionKernel->RECURSOS[i], nombre_recurso) == 0)
+			posicion = i;
+	}
+
+	t_recurso *recurso = list_get(lista_de_recursos, posicion);
+
+	if(list_size(recurso->lista_block) > 0){ 
+		//Si existe algun proceso bloqueado esperando un recurso que se acaba de devolver
+		//Asignamos el recurso
+		asignarRecurso(nombre_recurso);
+		//Lo desbloqueamos
+		t_pcb* pcb_blocked_a_ready = pcb_list_remove(recurso->lista_block, 0);
+		//Y lo mandamos a la cola de ready
+		pasar_a_ready(pcb_blocked_a_ready);
+	}
+}

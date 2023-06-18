@@ -19,6 +19,10 @@ pthread_mutex_t listaExec;
 pthread_mutex_t listaBlocked;
 pthread_mutex_t listaExit;
 
+pthread_mutex_t esPosibleCompactar;
+
+
+
 sem_t CantPCBNew;
 sem_t cantPCBReady;
 sem_t multiprogramacion;

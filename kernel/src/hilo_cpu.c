@@ -5,7 +5,7 @@ void crear_hilo_cpu()
 	t_razonFinConsola razon;
 
 	// Me conecto a cpu
-	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
+	conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
 	if (conexion_con_cpu == -1) //Si no se puede conectar
 	{
 		log_error(logger, "KERNEL NO SE CONECTÓ CON CPU. FINALIZANDO KERNEL...");
@@ -67,25 +67,32 @@ void crear_hilo_cpu()
 				//Liberamos la CPU
 				sem_post(&CPUVacia);
 				break;
+
 			case F_OPEN:
 				break;
+
 			case F_CLOSE:
 				break;
+
 			case F_SEEK:
 				break;
+
 			case F_READ:
 				break;
+
 			case F_WRITE:
 				break;
+
 			case F_TRUNCATE:
 				break;
+
 			case WAIT:
 				// Si no existe el recurso
 				if (!existeRecurso(motivoDevolucion->cadena))
 				{
 					//No se reenvia porque se finaliza la PCB
 					se_reenvia_el_contexto = false;
-					razon = RECURSO;
+					razon = E_WAIT;
 					//Finalizamos la consola con el error
 					terminar_consola(razon);
 					//Liberamos la CPU
@@ -122,7 +129,7 @@ void crear_hilo_cpu()
 				{
 					//No se reenvia porque finalizamos la PCB
 					se_reenvia_el_contexto = false;
-					razon = RECURSO;
+					razon = E_SIGNAL;
 					terminar_consola(razon);
 					//Liberamos la PCB
 					sem_post(&CPUVacia);
@@ -130,21 +137,33 @@ void crear_hilo_cpu()
 				}
 				// Si existe el recurso
 				devolverRecurso(motivoDevolucion->cadena);
-				//liberar alguna pcb si necesitaba algun recurso que se devolvió
 				log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
+				//liberar alguna pcb si necesitaba algun recurso que se devolvió
+				revisar_recursos_bloqueados(motivoDevolucion->cadena);
 				//Reenviamos el contexto			
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
-			/*case CREATE_SEGMENT:
+			case CREATE_SEGMENT:
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
 				//Creo un t_segment y asigno id y tamaño
+				t_segmento *nuevo_segmento = malloc(sizeof(t_segmento));
+				//Cada segmento tiene ID, BASE Y TAMAÑO
+				//ID
+				nuevo_segmento->id_segmento = motivoDevolucion->cant_int;
 
-				create_segment(CREATE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id, tamaño
-
+				//BASE
+				//Creo el paquete y lo envío a memoria con: instruccion, id, tamaño
+				crear_segmento(CREATE_SEGMENT, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
+				
 				//Esperar y recibir
-				respuesta = recibir_respuesta_create_segment(); //OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
+				recibir_respuesta_create_segment(nuevo_segmento->base); //OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
+
+				//TAMAÑO
+				nuevo_segmento->tamanio     = motivoDevolucion->cant_intB;
+
+
 
 				switch (respuesta){
 				case OK:
@@ -163,16 +182,16 @@ void crear_hilo_cpu()
 					//esperar a terminar
 					recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
 					actualizar_las_tablas_de_las_pcb();
-					create_segment(CREATE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id, tamaño
+					crear_segmento(CREATE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id, tamaño
 					//Devolver el contexto de ejecucion a CPU
 					break;
 				}
 
-				break;*/
+				break;
 
 			/*case DELETE_SEGMENT:
 
-				create_segment(DELETE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
+				eliminar_segmento(DELETE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
 				respuesta = recibir_respuesta_delete_segment();
 				recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
 
@@ -204,6 +223,67 @@ void crear_hilo_cpu()
 				break;
 			}
 	}
+}
+
+void recibir_respuesta_create_segment(uint32_t *base_segmento){
+
+	t_buffer* respuesta_crear_segmento = buffer_create();
+	t_respuestaMemoria respuesta_memoria;
+
+	stream_recv_buffer(conexion_con_memoria, respuesta_crear_segmento);
+
+	//ID del segmento a crear
+	buffer_unpack(respuesta_crear_segmento, &respuesta_memoria, sizeof(t_respuestaMemoria));
+
+	switch (respuesta_memoria){
+		case OK: //Si puede crear el segmento, tengo que recibir la base del segmento asignado
+			buffer_unpack(respuesta_crear_segmento, base_segmento, sizeof(uint32_t));
+			break;
+		case OUT_OF_MEMORY:
+			//Si no hay memoria no se reenviar la PCB. Se la finaliza y libera la CPU ya que no hay memoria.
+			se_reenvia_el_contexto = false;
+			terminar_consola(OUT_OF_MEMORY);
+			sem_post(&CPUVacia);
+			break;
+		case NECESITO_COMPACTAR:
+			//Espero a que sea posible compactar
+			sem_wait(&esPosibleCompactar);
+				avisar_a_memoria();
+
+	buffer_destroy(respuesta_crear_segmento);
+}
+
+void crear_segmento(t_tipoInstruccion instruccion, uint32_t id, uint32_t tamanio){
+	
+	t_buffer* crear_segmento = buffer_create();
+
+	//ID del segmento a crear
+	buffer_pack(crear_segmento, &instruccion, sizeof(t_tipoInstruccion));
+
+	//ID del segmento a crear
+	buffer_pack(crear_segmento, &id, sizeof(uint32_t));
+
+	//Tamaño del segmento a crear
+	buffer_pack(crear_segmento, &tamanio, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_con_memoria, crear_segmento);
+
+	buffer_destroy(crear_segmento);
+}
+
+void eliminar_segmento(t_instruccion instruccion, uint32_t id){
+	
+	t_buffer* crear_segmento = buffer_create();
+
+	//ID del segmento a crear
+	buffer_pack(crear_segmento, &instruccion, sizeof(t_instruccion));
+
+	//ID del segmento a crear
+	buffer_pack(crear_segmento, &id, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_con_memoria, crear_segmento);
+
+	buffer_destroy(crear_segmento);
 }
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion)

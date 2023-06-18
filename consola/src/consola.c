@@ -68,10 +68,13 @@ int main(int argc, char** argv){
 		case OUT_OF_MEMORY:
 			log_error(logger,"Finalizando consola: Out of memory");
 		break;
-		case RECURSO:
-			log_error(logger,"Finalizando consola: Wait/Signal de un recurso no válido");
+		case E_WAIT:
+			log_error(logger,"Finalizando consola: Wait de un recurso no válido");
 		break;
-		}
+		case E_SIGNAL:
+			log_error(logger,"Finalizando consola: Signal de un recurso no válido");
+		break;
+	}
 	
 	//Libero la conexion
 	liberar_conexion(conexionKernel);
