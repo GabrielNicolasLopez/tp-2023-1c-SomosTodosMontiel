@@ -14,6 +14,25 @@ int main(int argc, char** argv){
 	//Leo la configuracion y la muestro
 	t_consola_config consola_config = leerConfiguracion(logger);
 
+	//Consola se conecta a kernel
+	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
+
+	if(conexionKernel == -1){
+		log_error(logger, "CONSOLA NO SE CONECTÓ A KERNEL. FINALIZANDO CONSOLA...");
+		exit(1);
+	}
+
+	log_debug(logger, "CONSOLA SE CONECTÓ A KERNEL.");
+
+    stream_send_empty_buffer(conexionKernel, HANDSHAKE_consola);
+    uint8_t kernelResponse = stream_recv_header(conexionKernel);
+
+    if (kernelResponse != HANDSHAKE_ok_continue) {
+        log_error(logger, "Error al intentar establecer Handshake inicial con módulo Kernel");
+        consola_destroy(consola_config, logger);
+        exit(1);
+    }
+
 	//Abro el archivo de instrucciones para sacar las instrucciones
 	FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);
 
@@ -24,29 +43,10 @@ int main(int argc, char** argv){
 	
 	//Agrego las instrucciones del archivo a instructionsBuffer
 	agregarInstruccionesDesdeArchivo(instructionsBuffer, instrucciones, archivoInstrucciones);
-
-	//Creo el paquete con las instrucciones
-	//t_paquete *paqueteInstrucciones = crear_paquete_instrucciones(instrucciones);
-	
-	//Consola se conecta a kernel
-	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
-
-	if(conexionKernel == -1){
-		log_error(logger, "CONSOLA NO SE CONECTÓ A KERNEL. FINALIZANDO CONSOLA...");
-		exit(1);
-	}
-	
-	log_debug(logger, "CONSOLA SE CONECTÓ A KERNEL.");
-
-	//log_info(logger, "CONSOLA-KERNEL");
-	//enviar_mensaje("HOLA SOY LA CONSOLA", conexionKernel);
 	
 	//Enviamos el paquete
-	//enviar_paquete(paqueteInstrucciones, conexionKernel);
 	enviar_instrucciones_a_kernel(instructionsBuffer, instrucciones, conexionKernel);
 
-	//Borramos el paquete
-	//eliminar_paquete(paqueteInstrucciones);
 	//Liberamos la memoria de las instrucciones
 	//limpiarInformacion(instrucciones);
 	liberar_instrucciones(instrucciones);
@@ -59,48 +59,31 @@ int main(int argc, char** argv){
 
 	log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
 	
-	t_razonFinConsola razon = recibir_fin_desde_kernel(conexionKernel);
+    kernelResponse = stream_recv_header(conexionKernel);
 
-	switch(razon){
-		case FIN:
+	switch(kernelResponse){
+		case HEADER_fin:
 			log_error(logger,"Finalizando consola: instruccion EXIT");
 		break;
-		case OUT_OF_MEMORY:
+		case HEADER_error_out_of_memory:
 			log_error(logger,"Finalizando consola: Out of memory");
 		break;
-		case RECURSO:
+		case HEADER_error_recurso:
 			log_error(logger,"Finalizando consola: Wait/Signal de un recurso no válido");
 		break;
 		}
 	
 	//Libero la conexion
 	liberar_conexion(conexionKernel);
-	//Destruyo el logger
-	log_destroy(logger);
+	//Destruyo el config y logger de consola
+	consola_destroy(consola_config, logger);
+
 	return EXIT_SUCCESS;
-}
-
-t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel){
-	t_buffer* razon_recibida = buffer_create();
-	t_razonFinConsola* razon_p = malloc(sizeof(t_razonFinConsola));
-	t_razonFinConsola razon;
-
-	stream_recv_buffer(conexionKernel, razon_recibida);
-
-	buffer_unpack(razon_recibida, razon_p, sizeof(t_razonFinConsola));
-
-	buffer_destroy(razon_recibida);
-
-	razon = *razon_p;
-
-	free(razon_p);
-
-	return razon;
 }
 
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel){
 
-    stream_send_buffer(conexionKernel, instructionsBuffer);
+    stream_send_buffer(conexionKernel, HEADER_lista_instrucciones,instructionsBuffer);
 	log_error(logger, "Tamaño de las instrucciones enviadas a kernel %d", instructionsBuffer->size);
     buffer_destroy(instructionsBuffer);
 }	
@@ -406,4 +389,16 @@ void liberar_instrucciones(t_instrucciones *intrucciones)
 {
 	list_destroy_and_destroy_elements(intrucciones->listaInstrucciones, free);
 	free(intrucciones);
+}
+
+void consola_destroy(t_consola_config consolaConfig, t_log *logger) 
+{
+    configuracionConsola_destroy(consolaConfig);
+    log_destroy(logger);
+}
+
+void configuracionConsola_destroy(t_consola_config consolaConfig) 
+{
+    free(consolaConfig.ip);
+    free(consolaConfig.puerto);
 }

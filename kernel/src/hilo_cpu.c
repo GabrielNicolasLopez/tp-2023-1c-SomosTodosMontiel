@@ -2,15 +2,26 @@
 
 void crear_hilo_cpu()
 {
-	t_razonFinConsola razon;
+	t_header razon;
 
 	// Me conecto a cpu
 	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
 	if (conexion_con_cpu == -1) //Si no se puede conectar
 	{
 		log_error(logger, "KERNEL NO SE CONECTÓ CON CPU. FINALIZANDO KERNEL...");
+		kernel_destroy(configuracionKernel, logger);
 		exit(1);
 	}
+
+	stream_send_empty_buffer(conexion_con_cpu, HANDSHAKE_kernel);
+    uint8_t cpuResponse = stream_recv_header(conexion_con_cpu);
+
+    if (cpuResponse != HANDSHAKE_ok_continue)
+	{
+        log_error(logger, "Error al hacer handshake con módulo Cpu");
+        kernel_destroy(configuracionKernel, logger);
+        exit(-1);
+    }
 
 	log_debug(logger, "KERNEL SE CONECTO CON CPU...");
 
@@ -40,6 +51,9 @@ void crear_hilo_cpu()
 		}
 
 		log_info(logger, "Esperando cym desde CPU...");
+
+		//no se utiliza para nada, se podria recibir por ahi el error de segmentation fault
+    	cpuResponse = stream_recv_header(conexion_con_cpu);
 		recibir_cym_desde_cpu(motivoDevolucion, conexion_con_cpu);
 		//Al llegar, tenemos que actualizar la PCB con la información que modificó CPU
 		actualizar_pcb(motivoDevolucion->contextoEjecucion);
@@ -85,7 +99,7 @@ void crear_hilo_cpu()
 				{
 					//No se reenvia porque se finaliza la PCB
 					se_reenvia_el_contexto = false;
-					razon = RECURSO;
+					razon = HEADER_error_recurso;
 					//Finalizamos la consola con el error
 					terminar_consola(razon);
 					//Liberamos la CPU
@@ -122,7 +136,7 @@ void crear_hilo_cpu()
 				{
 					//No se reenvia porque finalizamos la PCB
 					se_reenvia_el_contexto = false;
-					razon = RECURSO;
+					razon = HEADER_error_recurso;
 					terminar_consola(razon);
 					//Liberamos la PCB
 					sem_post(&CPUVacia);
@@ -194,7 +208,7 @@ void crear_hilo_cpu()
 			
 			case EXIT:
 				se_reenvia_el_contexto = false;
-				razon = FIN;
+				razon = HEADER_fin;
 				terminar_consola(razon);
 				sem_post(&CPUVacia);
 				break;
@@ -226,14 +240,9 @@ void sleep_IO(t_datosIO *datosIO){
 	pasar_a_ready(datosIO->pcb);
 }
 
-void terminar_consola(t_razonFinConsola razon){
+void terminar_consola(t_header razon){
 	t_pcb *pcb = pcb_ejecutando_remove();
-
-	t_buffer *fin_consola = buffer_create();
-	buffer_pack(fin_consola, &razon, sizeof(t_razonFinConsola));
-	stream_send_buffer(pcb->contexto->socket, fin_consola);
-	buffer_destroy(fin_consola);
-
+	stream_send_empty_buffer(pcb->contexto->socket, razon);
 	log_error(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->contexto->pid, razonFinConsola[razon]);
 	
 	sem_post(&multiprogramacion);

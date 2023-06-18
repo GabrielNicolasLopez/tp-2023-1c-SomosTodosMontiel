@@ -18,12 +18,6 @@ int main(void){
 
 	//Creo los hilos para que controlen todo 
 	crear_hilos_kernel();
-
-	//Liberar recursos
-	liberar_listas_y_semaforos();
-
-	//Aviso de finalizacion de kernel
-	log_error(logger, "KERNEL TERMINO DE EJECUTAR...");
 }
 
 t_kernel_config *leerConfiguracion(){
@@ -91,7 +85,14 @@ void crear_hilos_kernel(){
 
 	//pthread_detach(hiloCPU);
 	//pthread_detach(hiloFilesystem);
-	//pthread_detach(hiloMemoria);
+	//pthread_detach(hiloMemoria);	
+
+	//Aviso de finalizacion de kernel
+	log_error(logger, "KERNEL TERMINO DE EJECUTAR...");
+
+	//Libero los recursos, el config y logger
+	kernel_destroy(configuracionKernel, logger);
+
 }
 
 void liberar_listas_y_semaforos(){}
@@ -117,4 +118,26 @@ void cargarRecursos(){
 
 		log_info(logger, "Se cargo: %10s\t x%d", recurso->nombre, recurso->instancias_recursos);
 	}
+}
+
+void kernel_destroy(t_kernel_config* configuracionKernel, t_log* logger) {
+	liberar_listas_y_semaforos();
+    kernel_config_destroy(configuracionKernel);
+    log_destroy(logger);
+}
+
+
+void kernel_config_destroy(t_kernel_config* configuracionKernel) {
+    free(configuracionKernel->IP_MEMORIA);
+    free(configuracionKernel->IP_FILESYSTEM);
+    free(configuracionKernel->IP_CPU);
+    free(configuracionKernel->PUERTO_MEMORIA);
+    free(configuracionKernel->PUERTO_FILESYSTEM);
+	free(configuracionKernel->PUERTO_CPU);
+	free(configuracionKernel->ALGORITMO_PLANIFICACION);
+	free(configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);
+	free(configuracionKernel->RECURSOS);
+	free(configuracionKernel->INSTANCIAS_RECURSOS);
+    free(configuracionKernel->PUERTO_ESCUCHA);
+	free(configuracionKernel);
 }

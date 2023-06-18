@@ -10,7 +10,6 @@
 #include "buffer.h"
 #include "stream.h"
 #include "tests.h"
-#include "consola_serializer.h"
 
 #define CONFIG_PATH "./cfg/consola.cfg"
 //#define LOG_PATH "./cfg/consola.log" LOG QUE PERSISTE EN EL REPO REMOTO
@@ -28,12 +27,12 @@ void verificacionDeConfiguracion(int argc, t_log *logger);
 FILE *abrirArchivo(char *filename, t_log *logger);
 void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instrucciones, FILE* archivoInstrucciones);
 t_registro devolverRegistro(char *);
-t_paquete *crear_paquete_instrucciones(t_instrucciones *instrucciones);
 char *recibirMensaje(int socket);
 void *recibirStream(int socket, size_t stream_size);
 void liberar_instrucciones(t_instrucciones *intrucciones);
 t_instrucciones get_instrucciones(t_instrucciones* instrucciones);
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel);
-t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel);
+void consola_destroy(t_consola_config consolaConfig, t_log *logger);
+void configuracionConsola_destroy(t_consola_config consolaConfig);
 
 #endif

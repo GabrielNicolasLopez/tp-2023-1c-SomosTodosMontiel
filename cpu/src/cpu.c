@@ -226,7 +226,7 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 		}
 	}
 
-	stream_send_buffer(cliente_fd_kernel, cym_a_enviar);
+	stream_send_buffer(cliente_fd_kernel, HEADER_instruccion, cym_a_enviar);
 	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
 
     buffer_destroy(cym_a_enviar);

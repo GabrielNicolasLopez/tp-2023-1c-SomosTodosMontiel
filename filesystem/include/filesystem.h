@@ -2,8 +2,6 @@
 #define FILESYSTEM_H_
     
     #include "shared_utils.h"
-    #include "hilo_kernel.h"
-    #include "hilo_memoria.h"
     #include "tests.h"
 
     //#define LOG_PATH "./cfg/filesystem.log" LOG QUE PERSISTE EN EL REPO REMOTO

@@ -80,13 +80,7 @@ void crear_hilo_cpu();
 void crear_hilo_consola();
 void crear_hilos_kernel();
 void cargarRecursos();
-//int enviarMensaje(int socket, char *msj);
-//void *serializarMensaje(char *msj, size_t *size_stream);
-//int enviarStream(int socket, void *stream, size_t stream_size);
-//t_instrucciones recibir_instruciones_consola(int cliente_fd);
 t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd);
-//uint32_t recibir_instruciones_desde_consola(int cliente_fd);
-t_paquete *crear_paquete_contexto_ejecucion(t_pcb *pcb);
 void implementar_fifo();
 void implementar_hrrn();
 void agregar_pcb_a_ready();
@@ -126,6 +120,9 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cpu);
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion);
+
+void kernel_destroy(t_kernel_config* configuracionKernel, t_log* logger);
+void kernel_config_destroy(t_kernel_config* configuracionKernel);
 
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);

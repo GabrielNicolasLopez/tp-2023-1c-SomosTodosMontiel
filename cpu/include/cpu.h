@@ -50,13 +50,7 @@
 
 
 	t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel);
-	void buffer_destroy(t_buffer* self);
-	void buffer_unpack(t_buffer* self, void* dest, int size);
-	void stream_recv_buffer(int fromSocket, t_buffer* destBuffer);
-	t_buffer* buffer_create(void);
-
-	static void __stream_send(int toSocket, void* streamToSend, uint32_t bufferSize);
-	static void* __stream_create(t_buffer* buffer);
+	void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *contextoEjecucion, int cliente_fd_kernel);
 
 
 #endif
