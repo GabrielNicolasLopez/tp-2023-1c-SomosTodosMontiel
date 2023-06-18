@@ -65,7 +65,7 @@ void liberar_conexion(int socket_cliente)
 t_log *logger;
 t_log *loggerMinimo;
 
-int iniciar_servidor(char *IP, char *PUERTO, t_log *logger)
+int iniciar_servidor(char *IP, char *PUERTO)
 {
 	int socket_servidor;
 

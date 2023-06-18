@@ -190,7 +190,7 @@ typedef enum {
 
 extern t_log* logger;
 
-int iniciar_servidor(char *IP, char *PUERTO, t_log* logger);
+int iniciar_servidor(char *IP, char *PUERTO);
 int esperar_cliente(int socket_cliente, t_log* logger);
 int crear_conexion(char *ip, char *puerto, t_log* logger);
 void liberar_conexion(int socket_cliente);

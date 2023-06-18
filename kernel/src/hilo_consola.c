@@ -8,7 +8,7 @@ void crear_hilo_consola(){
 		pthread_t hilo_atender_consola;
 		int socketCliente = esperar_cliente(server_fd, logger);
 		handshake = stream_recv_header(socketCliente);
-		if (handshake == HANDSHAKE_consola) {
+		if (handshake == HANDSHAKE_consola){
 			log_info(logger, "Se envia handshake ok continue a consola");
 			stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
 			
@@ -20,9 +20,8 @@ void crear_hilo_consola(){
 			pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, (void*)datos);
 			pthread_detach(hilo_atender_consola);
 
-		} else {
+		} else
 			stream_send_empty_buffer(socketCliente, HANDSHAKE_error);
-		}
 	}
 }
 
