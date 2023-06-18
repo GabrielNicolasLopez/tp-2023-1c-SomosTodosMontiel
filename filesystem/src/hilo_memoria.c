@@ -1,21 +1,28 @@
 #include "filesystem.h"
 
 // *** HILO MEMORIA ***
-void* crear_hilo_memoria()
-{
-    // CONEXION COMO CLIENTE CON MEMORIA
-    int conexion_con_memoria = crear_conexion(configuracionFS->IP_MEMORIA, configuracionFS->PUERTO_MEMORIA, logger);
-    if (conexion_con_memoria == -1) {
-        log_error(logger, "Error al iniciar conexion con la memoria, abortando...");
-    }
-    else {
-        log_info(logger, "Conexion \"FS - Memoria\" exitosa");
-        // HANDSHAKE
+void hilo_memoria(){        
+
+    // Conexión con Memoria
+    int conexionConMemoria = crear_conexion(configuracionFilesystem->IP_MEMORIA, configuracionFilesystem->PUERTO_MEMORIA);
+    if (conexionConMemoria == -1) {
+        log_error(logger, "Error al intentar conectar con módulo Memoria. Finalizando FS...");
+        filesystem_destroy(configuracionFilesystem);
+        exit(-1);
     }
 
+    stream_send_empty_buffer(conexionConMemoria, HANDSHAKE_filesystem);
+    uint8_t memoriaResponse = stream_recv_header(conexionConMemoria);
+    if (memoriaResponse != HANDSHAKE_ok_continue) {
+        log_error(logger, "Error al hacer handshake con módulo Memoria");
+        filesystem_destroy(configuracionFilesystem);
+        exit(-1);
+    }
+    log_info(logger, "FS se conectó con Memoria");
 
-    
-    int* int_return = malloc(sizeof(int));
-    *int_return = 0;
-    return int_return;
+    //Hacer las cosas con memoria
+    //TO-DO
+
+    while(1){}
+
 }

@@ -22,17 +22,17 @@ typedef struct
     char *puerto;
 } t_consola_config;
 
-t_consola_config leerConfiguracion(t_log *logger);
-void verificacionDeConfiguracion(int argc, t_log *logger);
-FILE *abrirArchivo(char *filename, t_log *logger);
+t_consola_config leerConfiguracion();
+void verificacionDeConfiguracion(int argc);
+FILE *abrirArchivo(char *filename);
 void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instrucciones, FILE* archivoInstrucciones);
-t_registro devolverRegistro(char *);
+t_registro devolverRegistro(char*);
 char *recibirMensaje(int socket);
 void *recibirStream(int socket, size_t stream_size);
 void liberar_instrucciones(t_instrucciones *intrucciones);
 t_instrucciones get_instrucciones(t_instrucciones* instrucciones);
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel);
-void consola_destroy(t_consola_config consolaConfig, t_log *logger);
+void consola_destroy(t_consola_config consolaConfig);
 void configuracionConsola_destroy(t_consola_config consolaConfig);
 
 #endif

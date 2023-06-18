@@ -17,10 +17,13 @@
 #include <pthread.h>
 #include <time.h>
 
+
 extern char *razonFinConsola[];
 extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];
 extern char *nombresRegistros[];
+
+extern t_log* logger;
 
 typedef struct 
 {
@@ -187,12 +190,9 @@ typedef enum {
     HANDSHAKE_error
 } t_handshake;
 
-
-extern t_log* logger;
-
 int iniciar_servidor(char *IP, char *PUERTO);
-int esperar_cliente(int socket_cliente, t_log* logger);
-int crear_conexion(char *ip, char *puerto, t_log* logger);
+int esperar_cliente(int socket_cliente);
+int crear_conexion(char *ip, char *puerto);
 void liberar_conexion(int socket_cliente);
 
 // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ FUNCIONES CPU - KERNEL - (consola) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼

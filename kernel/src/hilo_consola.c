@@ -1,16 +1,18 @@
 #include "kernel.h"
 
 void crear_hilo_consola(){
-	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA, logger);
+	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA);
 	log_info(logger, "Kernel listo para recibir clientes consola");
 	uint8_t handshake;
 	while (1){
 		pthread_t hilo_atender_consola;
-		int socketCliente = esperar_cliente(server_fd, logger);
+		int socketCliente = esperar_cliente(server_fd);
 		handshake = stream_recv_header(socketCliente);
 		if (handshake == HANDSHAKE_consola){
 			log_info(logger, "Se envia handshake ok continue a consola");
 			stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
+
+			log_debug(logger, "KERNEL SE CONECTO CON UNA CONSOLA");
 			
 			t_datosCrearPCB *datos = malloc(sizeof(t_datosCrearPCB));
 			t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));

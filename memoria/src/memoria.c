@@ -18,21 +18,24 @@ char* IP_MEMORIA = "127.0.0.1";
 int main(int argc, char** argv){
 
     //Creo logger para info
-	t_log * logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_INFO);
+	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_DEBUG);
 
     if (argc != NUMBER_OF_ARGS_REQUIRED) {
         log_error(logger, "Cantidad de argumentos inválida.\nArgumentos: <configPath>");
         log_destroy(logger);
         return -1;
     }
+
+	log_debug(logger, "INICIANDO MEMORIA...");
+
     t_memoria_config *configuracionMemoria = leerConfiguracion();
 
-	int socketEscucha = iniciar_servidor(IP_MEMORIA, configuracionMemoria->puerto_escucha);
+	int socketEscucha = iniciar_servidor("127.0.0.1", configuracionMemoria->puerto_escucha);
 
     recibir_conexiones(socketEscucha);
 
 	//Crear hilo para recibir mensajes y ejecutar instrucciones
-
+	while(1){}
 	//pthread_join()
 
 	//Finaliza 
@@ -47,21 +50,22 @@ t_memoria_config* leerConfiguracion(){
 	t_memoria_config* configuracionMemoria = malloc(sizeof(t_memoria_config));
 
 	//Estraer los datos 
-	configuracionMemoria->puerto_escucha       = strdup(config_get_string_value(configuracion, "PUERTO_ESCUCHA"));
+	configuracionMemoria->puerto_escucha       = config_get_string_value(configuracion, "PUERTO_ESCUCHA");
 	configuracionMemoria->tam_memoria          = config_get_int_value(configuracion, "TAM_MEMORIA");
-	configuracionMemoria->tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEMENTO_0");
+	configuracionMemoria->tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEGMENTO_0");
 	configuracionMemoria->cant_segmentos       = config_get_int_value(configuracion, "CANT_SEGMENTOS");
 	configuracionMemoria->retardo_memoria      = config_get_int_value(configuracion, "RETARDO_MEMORIA");
 	configuracionMemoria->retardo_compatacion  = config_get_int_value(configuracion, "RETARDO_COMPACTACION");
-	configuracionMemoria->algoritmo_asignacion = strdup(config_get_int_value(configuracion, "ALGORITMO_ASIGNACION"));
+	configuracionMemoria->algoritmo_asignacion = config_get_string_value(configuracion, "ALGORITMO_ASIGNACION");
 
-	config_destroy(configuracion);
+	//config_destroy(configuracion);
 
 	return configuracionMemoria;
 }
 
 void recibir_conexion(int socketEscucha) {
-	int socketCliente = esperar_cliente(socketEscucha, logger);
+	log_debug(logger, "Esperando cliente...");
+	int socketCliente = esperar_cliente(socketEscucha);
     uint8_t handshake = stream_recv_header(socketCliente);
     stream_recv_empty_buffer(socketCliente);
     if (handshake == HANDSHAKE_cpu) {
@@ -90,7 +94,7 @@ void recibir_conexiones(int socketEscucha){
 	}
 }
 
-void memoria_destroy(t_memoria_config* configuracionMemoria, t_log* logger) {
+/*void memoria_destroy(t_memoria_config* configuracionMemoria) {
     memoria_config_destroy(configuracionMemoria);
     log_destroy(logger);
 }
@@ -105,4 +109,4 @@ void memoria_config_destroy(t_memoria_config* configuracionMemoria) {
 	free(configuracionMemoria->retardo_compatacion);
     free(configuracionMemoria->algoritmo_asignacion);
 	free(configuracionMemoria);
-}
+}*/

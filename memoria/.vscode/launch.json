@@ -11,11 +11,11 @@
             "request": "launch",
             "preLaunchTask": "Make",
             "program": "${workspaceFolder}/memoria",
-            "args": [],
+            "args": ["./cfg/memoria.cfg"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
                 {

@@ -1,11 +1,12 @@
 #ifndef MEMORIA_H
 #define MEMORIA_H
-#include <stdio.h>
-#include <commons/log.h>
+
 #include <stdbool.h>
 #include "shared_utils.h"
 #include "tests.h"
 #include <commons/config.h>
+#include "buffer.h"
+#include "stream.h"
 
 
 //Variables globales con los sockets de cada módulo
@@ -24,7 +25,7 @@ extern t_list* lista_de_segmentos;// aca van los segmentos generales
 
 extern t_segmento* segmento_0;//segemeto global va en todas las listas de segmentos
 
-list_add(lista_de_segmentos,segmento_0);
+//list_add(lista_de_segmentos,segmento_0);
 
 //Archivo de Configuaracion
 typedef struct
@@ -60,7 +61,8 @@ t_memoria_config* leerConfiguracion();
 extern t_memoria_config* configuracionMemoria;
 
 void recibir_conexion(int server_fd);
-void memoria_destroy(t_memoria_config* configuracionMemoria, t_log* logger);
+void memoria_destroy(t_memoria_config* configuracionMemoria);
 void memoria_config_destroy(t_memoria_config* configuracionMemoria);
+void recibir_conexiones(int socketEscucha);
 
 #endif

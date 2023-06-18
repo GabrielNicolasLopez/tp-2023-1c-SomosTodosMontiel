@@ -24,8 +24,7 @@
 
 t_segmento* crear_segmento(int id, int base, int tam){
 
-    t_segmento* segmento;
-    malloc(sizeof(t_segmento)); 
+    t_segmento* segmento = malloc(sizeof(t_segmento)); 
 
     segmento ->id_segmento = id;
     segmento ->base = base;
@@ -36,10 +35,10 @@ t_segmento* crear_segmento(int id, int base, int tam){
 
 //Eliminación de Segmento
 
-void * eliminnar_segmento(t_segmento* segmento){
+/*void *eliminnar_segmento(t_segmento* segmento){
 
     free(segmento);
-}
+}*/
 
 //Compactación de Segmentos
 

@@ -40,7 +40,10 @@
 			"stream.h": "c",
 			"errno.h": "c",
 			"consola_serializer.h": "c",
-			"stdlib.h": "c"
+			"stdlib.h": "c",
+			"stdbool.h": "c",
+			"socket.h": "c",
+			"string.h": "c"
 		}
 	}
 }

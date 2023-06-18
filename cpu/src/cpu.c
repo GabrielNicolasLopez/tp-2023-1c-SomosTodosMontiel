@@ -2,6 +2,8 @@
 
 t_cpu_config* configuracion_cpu;
 
+int conexion_con_memoria;
+
 int main(int argc, char **argv){
 	if (argc < 2) 
     {
@@ -42,24 +44,29 @@ t_cpu_config* leer_configuracion(t_config* config){
 // CREA LOS HILOS QUE VA A USAR LA CPU
 void crear_hilos_cpu()
 {
-	pthread_t thread_kernel, thread_memoria;
+	pthread_t hiloKernel, hiloMemoria;
 
-	//pthread_create(&thread_memoria, NULL, (void *)crear_hilo_memoria, NULL);
-	pthread_create(&thread_kernel, NULL, (void *)crear_hilo_kernel, NULL);
+	pthread_create(&hiloMemoria, NULL, (void *) hilo_memoria, NULL);
+	pthread_create(&hiloKernel, NULL, (void *) hilo_kernel, NULL);
 
-	//pthread_join(thread_memoria, NULL);	
-	pthread_join(thread_kernel, NULL);
+	//pthread_join(hiloMemoria, NULL);	
+	pthread_join(hiloKernel, NULL);
 }
+
 // *** HILO KERNEL ***
-void crear_hilo_kernel(){
-	int server_fd_kernel = iniciar_servidor("127.0.0.1", configuracion_cpu -> puerto_escucha, logger);
+void hilo_kernel(){
+	int server_fd_kernel = iniciar_servidor("127.0.0.1", configuracion_cpu -> puerto_escucha);
 	log_error(logger, "CPU listo para recibir clientes del Kernel");
-    int cliente_fd_kernel = esperar_cliente(server_fd_kernel, logger); // esperamos un proceso para ejecutar
+    int cliente_fd_kernel = esperar_cliente(server_fd_kernel); // esperamos un proceso para ejecutar
 
 	uint8_t handshake = stream_recv_header(cliente_fd_kernel);
 	if (handshake == HANDSHAKE_kernel) {
 		log_info(logger, "Se envia handshake ok continue a consola");
 		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);
+
+		log_debug(logger, "CPU SE CONECTO CON KERNEL");
+
+
 		t_contextoEjecucion* contexto_ejecucion = malloc(sizeof(t_contextoEjecucion));
 		bool enviamos_CE_al_kernel;
 		
@@ -80,12 +87,32 @@ void crear_hilo_kernel(){
 }
 
 // *** HILO MEMORIA ***
-void crear_hilo_memoria(){
-    int conexion_memoria = crear_conexion(configuracion_cpu -> ip_memoria, configuracion_cpu -> puerto_memoria, logger);
-	log_info(logger, "CPU se conectó a memoria, conexion: %d", conexion_memoria);
-	while(1){
+void hilo_memoria(){
+    
+	// Me conecto a filesystem
+	int conexion_con_memoria = crear_conexion(configuracion_cpu->ip_memoria, configuracion_cpu->puerto_memoria);
 
+	if (conexion_con_memoria == -1) //Si no se puede conectar
+	{
+		log_error(logger, "KERNEL NO SE CONECTÓ CON FS. FINALIZANDO CPU...");
+		//kernel_destroy(configuracionKernel, logger);
+		//exit(-1);
 	}
+
+	stream_send_empty_buffer(conexion_con_memoria, HANDSHAKE_cpu);
+    uint8_t memoriaResponse = stream_recv_header(conexion_con_memoria);
+
+    if (memoriaResponse != HANDSHAKE_ok_continue)
+	{
+        log_error(logger, "Error al hacer handshake con módulo Memoria");
+        //kernel_destroy(configuracionKernel, logger);
+        //exit(-1);
+    }
+	
+	log_debug(logger, "CPU SE CONECTO CON Memoria");
+	
+	while (1){}
+	
 }
 
 void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *contextoEjecucion, int cliente_fd_kernel){

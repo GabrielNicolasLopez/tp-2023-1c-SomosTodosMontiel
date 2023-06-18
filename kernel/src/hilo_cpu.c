@@ -5,7 +5,7 @@ void crear_hilo_cpu()
 	t_header razon;
 
 	// Me conecto a cpu
-	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
+	int conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU);
 	if (conexion_con_cpu == -1) //Si no se puede conectar
 	{
 		log_error(logger, "KERNEL NO SE CONECTÓ CON CPU. FINALIZANDO KERNEL...");
@@ -22,8 +22,6 @@ void crear_hilo_cpu()
         //kernel_destroy(configuracionKernel, logger);
         //exit(-1);
     }
-
-	
 
 	log_debug(logger, "KERNEL SE CONECTO CON CPU...");
 

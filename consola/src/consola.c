@@ -9,13 +9,13 @@ int main(int argc, char** argv){
 	log_info(logger, "INICIANDO CONSOLA...");
 
 	//Verifico la correcta inicializacion de la consola
-	verificacionDeConfiguracion(argc, logger);
+	verificacionDeConfiguracion(argc);
 
 	//Leo la configuracion y la muestro
 	t_consola_config consola_config = leerConfiguracion(logger);
 
 	//Consola se conecta a kernel
-	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
+	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto);
 
 	if(conexionKernel == -1){
 		log_error(logger, "CONSOLA NO SE CONECTÓ A KERNEL. FINALIZANDO CONSOLA...");
@@ -351,7 +351,7 @@ t_registro devolverRegistro(char *registro){
 	return -1;
 }
 
-FILE *abrirArchivo(char *nombreArchivo, t_log* logger){
+FILE *abrirArchivo(char *nombreArchivo){
 	if (!nombreArchivo){ //Probar
 		log_error(logger, "NOMBRE DE ARCHIVO ERRONEO");
 		exit(1);
@@ -359,7 +359,7 @@ FILE *abrirArchivo(char *nombreArchivo, t_log* logger){
 	return fopen(nombreArchivo, "r");
 }
 
-void verificacionDeConfiguracion(int argc, t_log* logger){
+void verificacionDeConfiguracion(int argc){
 	log_info(logger, "Cantidad de parametros: %d", argc);
 	if (argc != 3){ //.c, config, pseudocodigo
 		log_error(logger, "CANTIDAD DE PARAMETROS INCORRECTA");
@@ -369,7 +369,7 @@ void verificacionDeConfiguracion(int argc, t_log* logger){
 		log_info(logger, "CONSOLA INICIALIZADA CORRECTAMENTE");
 }
 
-t_consola_config leerConfiguracion(t_log* logger){
+t_consola_config leerConfiguracion(){
 
 	//Creo el config para leer IP y PUERTO
 	t_config* config = config_create(CONFIG_PATH);

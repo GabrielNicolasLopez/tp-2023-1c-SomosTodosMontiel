@@ -3,7 +3,6 @@
 
 #include "shared_utils.h"
 #include "kernel_cpu.h"
-#include "buffer.h"
 #include "stream.h"
 
 #define CONFIG_PATH "./cfg/kernel.cfg"
@@ -121,7 +120,7 @@ void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion);
 
-void kernel_destroy(t_kernel_config* configuracionKernel, t_log* logger);
+void kernel_destroy(t_kernel_config* configuracionKernel);
 void kernel_config_destroy(t_kernel_config* configuracionKernel);
 
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
