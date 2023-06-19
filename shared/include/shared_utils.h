@@ -17,10 +17,13 @@
 #include <pthread.h>
 #include <time.h>
 
+
 extern char *razonFinConsola[];
 extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];
 extern char *nombresRegistros[];
+
+extern t_log* logger;
 
 typedef struct 
 {
@@ -87,13 +90,6 @@ typedef enum
     YIELD,
     EXIT,
 } t_tipoInstruccion;
-
-typedef enum
-{
-    FIN,
-    OUT_OF_MEMORY,
-    RECURSO
-} t_razonFinConsola;
 
 
 typedef struct
@@ -175,46 +171,29 @@ typedef struct
 	void *stream;  // Payload
 } t_buffer;
 
-typedef struct
-{
-	op_code codigo_operacion;
-	t_buffer *buffer;
-} t_paquete;
+typedef enum {
+    HEADER_fin,
+    HEADER_error_out_of_memory,
+    HEADER_error_recurso,
+    HEADER_lista_instrucciones,
+    HEADER_contexto_ejecucion,
+    HEADER_instruccion,
+    HEADER_segmentation_fault
+} t_header;
 
-extern t_log* logger;
+typedef enum {
+    HANDSHAKE_consola,
+    HANDSHAKE_cpu,
+    HANDSHAKE_filesystem,
+    HANDSHAKE_kernel,
+    HANDSHAKE_ok_continue,
+    HANDSHAKE_error
+} t_handshake;
 
-void* recibir_buffer(uint32_t*, int);
-
-//int iniciar_servidor(void);
-int iniciar_servidor(char *IP, char *PUERTO, t_log* logger);
-int esperar_cliente(int socket_cliente, t_log* logger);
-//t_list* recibir_paquete(int socket_cliente);
-//void recibir_mensaje(int socket_cliente);
-int recibir_operacion(int socket_cliente);
-int crear_conexion(char *ip, char *puerto, t_log* logger);
-void enviar_mensaje(char *mensaje, int socket_cliente);
-t_paquete *crear_paquete(void);
-t_paquete *crear_super_paquete(void);
-void agregar_a_paquete(t_paquete *paquete, void *valor, int tamanio);
-void enviar_paquete(t_paquete *paquete, int socket_cliente);
+int iniciar_servidor(char *IP, char *PUERTO);
+int esperar_cliente(int socket_cliente);
+int crear_conexion(char *ip, char *puerto);
 void liberar_conexion(int socket_cliente);
-void eliminar_paquete(t_paquete *paquete);
-//t_buffer *cargar_buffer_a_t_pcb(t_pcb t_pcb);
-void cargar_buffer_a_paquete(t_buffer *buffer, int conexion);
-//t_pcb *deserializar_pcb(t_buffer *buffer);
-//void deserializar_paquete(int conexion);
-//void serializarPCB(int socket, t_pcb *pcb, t_tipoMensaje tipoMensaje);
-//void crearPaquete(t_buffer *buffer, t_tipoMensaje op, int unSocket);
-//t_paqueteActual *recibirPaquete(int socket);
-//t_pcb *deserializoPCB(t_buffer *buffer);
-//int calcularSizeInfo(t_informacion* );
-//t_instrucciones recibir_instruciones_consola(int cliente_fd);
-char* mi_funcion_compartida();
-int enviarMensaje(int socket, char *msj);
-void *serializarMensaje(char *msj, size_t *size_stream);
-int enviarStream(int socket, void *stream, size_t stream_size);
-t_motivoDevolucion* deserializar_contexto_y_motivo(t_buffer* buffer);
-
 
 // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ FUNCIONES CPU - KERNEL - (consola) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 

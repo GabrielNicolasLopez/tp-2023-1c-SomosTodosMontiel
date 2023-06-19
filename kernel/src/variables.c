@@ -1,6 +1,6 @@
 #include "kernel.h"
 
-t_config *config;
+t_config *config_superbloqueconfig;
 t_kernel_config *configuracionKernel;
 t_list* lista_de_recursos;
 t_list *tgaa; //Tabla General Archivos Abiertos

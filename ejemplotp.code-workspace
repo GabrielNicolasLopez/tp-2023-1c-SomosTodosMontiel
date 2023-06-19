@@ -40,7 +40,9 @@
 			"stream.h": "c",
 			"errno.h": "c",
 			"consola_serializer.h": "c",
-			"stdlib.h": "c"
+			"stdlib.h": "c",
+			"syscall.h": "c",
+			"unistd.h": "c"
 		}
 	}
 }
