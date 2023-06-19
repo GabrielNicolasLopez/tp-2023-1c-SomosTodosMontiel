@@ -40,14 +40,27 @@ void iniciar_servidor_con_karnel()
             
             
             break;
-
-
         //falta los casos de cracion de estructuras basicas pero nose que mandan o como hacemos eso 
 
         default:
+
+        case COMPATACION:
+
+            log_info(logger, "Mi cod de op es: %d", paquete->codigo_operacion);
+
+            //recibo el segemto a eliminar y devuelvo la lista nueva con el segemto elimado     
+            
+            
+            break;
+        //falta los casos de cracion de estructuras basicas pero nose que mandan o como hacemos eso 
+
+        default:
+
             break;
         }
         free(paquete);
     }
     
 }
+
+void iniciar_servidor_con_file_system(){};

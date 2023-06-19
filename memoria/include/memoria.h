@@ -54,9 +54,9 @@ typedef struct
 
 typedef struct 
 {   
-    int id_segmento;
-    int base;
-    int tamanio;
+    uint32_t id_segmento;
+    uint32_t base;
+    uint32_t tamanio;
     //int libre;
 }t_segmento;
 

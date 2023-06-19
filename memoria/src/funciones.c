@@ -4,7 +4,7 @@
 //Crear segmentos 0
 
 
-   crear_segmento(0,0,150);
+
 
 
 
