@@ -2,5 +2,5 @@
 FILE=consola
 make $FILE
 if test -f "./$FILE"; then
-    valgrind --tool=memcheck --leak-check=yes --show-possibly-lost=no --show-reachable=no --num-callers=20 ./$FILE ./cfg/consola.cfg ./cfg/ERROR_1.pse
+    valgrind --tool=memcheck --leak-check=yes --show-possibly-lost=no --show-reachable=no --num-callers=20 ./$FILE ./cfg/consola.cfg ./cfg/PR_1.pse
 fi

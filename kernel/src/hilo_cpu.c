@@ -137,9 +137,9 @@ void crear_hilo_cpu()
 				}
 				// Si existe el recurso
 				devolverRecurso(motivoDevolucion->cadena);
-				log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
+				log_debug(logger, "PID: <%d> - Signal: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
 				//liberar alguna pcb si necesitaba algun recurso que se devolvió
-				//revisar_recursos_bloqueados(motivoDevolucion->cadena);
+				actualizar_procesos_bloqueados(motivoDevolucion->cadena);
 				//Reenviamos el contexto			
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);

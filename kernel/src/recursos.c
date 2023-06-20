@@ -69,7 +69,7 @@ void devolverRecurso(char *nombre_recurso)
 	pthread_mutex_unlock(&recurso->mutex_lista_blocked);
 }
 
-void actualizar_procesos_bloqueados(char nombre_recurso){
+void actualizar_procesos_bloqueados(char *nombre_recurso){
 
 	int posicion;
 	for (int i = 0; i < string_array_size(configuracionKernel->RECURSOS); i++)
@@ -87,6 +87,7 @@ void actualizar_procesos_bloqueados(char nombre_recurso){
 		//Lo desbloqueamos
 		t_pcb* pcb_blocked_a_ready = list_remove(recurso->lista_block, 0);
 		//Y lo mandamos a la cola de ready
+		log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_blocked_a_ready->contexto->pid);
 		pasar_a_ready(pcb_blocked_a_ready);
 	}
 }
