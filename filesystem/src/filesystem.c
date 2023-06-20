@@ -22,7 +22,9 @@ int main(int argc, char ** argv){
     t_config *config = config_create(CONFIG_PATH);
     configFS = leerConfiguracion(config);
 
-    // CONEXION COMO CLIENTE CON MEMORIA
+    iniciar_listas_y_sem();
+
+    /*// CONEXION COMO CLIENTE CON MEMORIA
     int conexionConMemoria = crear_conexion(configFS->IP_MEMORIA, configFS->PUERTO_MEMORIA);
     if (conexionConMemoria == -1) {
         log_error(logger, "Error al intentar conectar con módulo Memoria. Finalizando FS...");
@@ -40,7 +42,7 @@ int main(int argc, char ** argv){
         exit(-1);
     }
     log_info(logger, "FS se conectó con Memoria");
-
+    */
     // LEVANTO ARCHIVO DE SUPERBLOQUE
     t_config* config_superbloque = config_create(configFS->PATH_SUPERBLOQUE);
     configuracion_super_bloque = leerConfiguracion_superbloque(config_superbloque);
@@ -48,15 +50,25 @@ int main(int argc, char ** argv){
     // Compruebo si se encuentra existe un arvhivo de Bitmap, en caso de que no exista lo creo 
     // y en caso de que exista seguimos con la configuración de la carpeta FS.
     if(!existe_archivo(configFS->PATH_BITMAP)) {
-        log_debug(logger, "Bitmap inexistente, generando archivos...");
+        log_info(logger, "Bitmap inexistente, generando archivos...");
         crear_bitmap();
         crear_archivo_de_bloques();
         crear_archivo_de_FCB();
     }
-    // Levanto Bitmap
+    // LEVANTO BITMAP
+    log_info(logger, "Levantando BITMAP");
     char* p_bitmap;
-    t_bitarray* bitarray_bitmap;
-    levantar_bitmap(p_bitmap, bitarray_bitmap);
+    t_bitarray* bA_bitmap;
+    int fd_bitmap = open(configFS->PATH_BITMAP, O_RDWR);
+    
+    // Guardo los atributos de ese archivo en stats_fd_bitmap
+    struct stat stats_fd_bitmap;
+    fstat(fd_bitmap, &stats_fd_bitmap);
+
+    p_bitmap = mmap(NULL, stats_fd_bitmap.st_size, PROT_WRITE, MAP_SHARED, fd_bitmap, 0);
+    close(fd_bitmap);
+    bA_bitmap = bitarray_create_with_mode(p_bitmap, stats_fd_bitmap.st_size, LSB_FIRST);
+
     // recorrer el directorio de FCBs para crear las estructuras administrativas que le permita administrar los archivos
 
     // CREACION DE HILOS
@@ -67,7 +79,9 @@ int main(int argc, char ** argv){
     // Liberando config
     config_destroy(config);
 	free(configFS);
-    // Liberando...
+    // Liberando bitmap
+    bitarray_destroy(bA_bitmap);
+    munmap(p_bitmap, stats_fd_bitmap.st_size);
 
 }
 
@@ -80,11 +94,13 @@ void crear_hilos_filesystem()
     pthread_create(&hiloMemoria, NULL, &crear_hilo_memoria, NULL);
     pthread_create(&hiloKernel, NULL, &crear_hilo_kernel, NULL);
 
+    
     int* hiloMemoria_return;
     pthread_join(hiloMemoria, (void**) &hiloMemoria_return);
     if (*hiloMemoria_return) {
         log_error(logger, "Error en HILO_MEMORIA");
     }
+    free(hiloMemoria_return);
     log_debug(logger, "Retorno de HILO_MEMORIA correcto");
     
     int* hiloKernel_return;
@@ -92,6 +108,8 @@ void crear_hilos_filesystem()
     if (!*hiloKernel_return) {
         log_error(logger, "Error en HILO_KERNEL");
     }
+    free(hiloKernel_return);
+    log_debug(logger, "Retorno de HILO_KERNEL correcto");
     
     
 }
@@ -167,7 +185,7 @@ void crear_archivo_de_bloques()
     for (int i = 0; i < configuracion_super_bloque->BLOCK_COUNT * configuracion_super_bloque->BLOCK_SIZE; i++) {
         fputc(a_escribir, archivo);
     }
-    log_debug(logger, "Crando Bitmap de %i bytes", configuracion_super_bloque->BLOCK_COUNT * configuracion_super_bloque->BLOCK_SIZE);
+    log_debug(logger, "Crando Bloques de %i bytes", configuracion_super_bloque->BLOCK_COUNT * configuracion_super_bloque->BLOCK_SIZE);
 
     fclose(archivo);
 }
@@ -176,7 +194,7 @@ void crear_archivo_de_FCB()
 {
     // Creo el archivo
     FILE* archivo = fopen(configFS->PATH_FCB, "wb+");
-    log_debug(logger, "Crando Bitmap de %i bytes", 0);
+    log_debug(logger, "Crando directorio de FCBs de %i bytes", 0);
 
     fclose(archivo);
 }
@@ -189,18 +207,4 @@ bool existe_archivo(const char* ruta_archivo)
         return 1;
     }
     return 0;
-}
-
-levantar_bitmap(char* p_bitmap, t_bitarray* bitarray_bitmap)
-{
-    int fd_bitmap = open(configFS->PATH_BITMAP, O_RDWR);
-    
-    // Guardo los atributos de ese archivo en stats_fd_bitmap
-    struct stat stats_fd_bitmap;
-    fstat(fd_bitmap, &stats_fd_bitmap);
-
-    p_bitmap = mmap(NULL, stats_fd_bitmap.st_size, PROT_WRITE, MAP_SHARED, fd_bitmap, 0);
-    bitarray_bitmap = bitarray_create_with_mode(p_bitmap, stats_fd_bitmap.st_size, LSB_FIRST);
-
-    close(fd_bitmap);
 }

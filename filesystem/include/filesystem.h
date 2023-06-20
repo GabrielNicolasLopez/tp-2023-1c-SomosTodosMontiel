@@ -13,9 +13,12 @@
     
     #include "shared_utils.h"
     #include "stream.h"
+    #include "FS_kernel.h"
    
-    #include "hilo_kernel.h"
     #include "hilo_memoria.h"
+    #include "hilo_kernel.h"
+    #include "hilo_productor.h"
+    #include "hilo_consumidor.h"
     #include "tests.h"
 
     //#define LOG_PATH "./cfg/filesystem.log" LOG QUE PERSISTE EN EL REPO REMOTO
@@ -72,7 +75,7 @@
     void crear_archivo_de_FCB();
 
     // BITMAP
-    levantar_bitmap(char* p_bitmap, t_bitarray* bitarray_bitmap);
+    void levantar_bitmap();
 
     size_t tamanioFCB(t_FCB_config* fcb);
 
