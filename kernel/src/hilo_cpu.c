@@ -78,9 +78,13 @@ void crear_hilo_cpu()
 				break;
 
 			case F_READ:
+				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
+				sem_wait(&esPosibleCompactar);
 				break;
 
 			case F_WRITE:
+				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
+				sem_wait(&esPosibleCompactar);
 				break;
 
 			case F_TRUNCATE:
@@ -145,27 +149,28 @@ void crear_hilo_cpu()
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
-			/*case CREATE_SEGMENT:
+			case CREATE_SEGMENT:
+				
+				log_debug(logger, "PID: <%d> - Crear Segmento - Id: <%d> - Tamaño: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
 				//Creo un t_segment y asigno id y tamaño
 				t_segmento *nuevo_segmento = malloc(sizeof(t_segmento));
 				//Cada segmento tiene ID, BASE Y TAMAÑO
-				//ID
+				//ID - El ID del segmento viene dado por parámetro
 				nuevo_segmento->id_segmento = motivoDevolucion->cant_int;
-
-				//BASE
-				//Creo el paquete y lo envío a memoria con: instruccion, id, tamaño
+				//BASE - La base del segmento se la pregunto a memoria
+				//Creo el paquete y se lo envío a memoria con: instruccion, id, tamaño
 				crear_segmento(CREATE_SEGMENT, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				
-				//Esperar y recibir
-				recibir_respuesta_create_segment(nuevo_segmento->base); //OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
+				//Espero la respuesta de memoria y pueden pasar 3 cosas: OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
+				recibir_respuesta_create_segment(nuevo_segmento->base, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 
 				//TAMAÑO
 				nuevo_segmento->tamanio     = motivoDevolucion->cant_intB;
 
 
 
-				switch (respuesta){
+				/*switch (respuesta){
 				case OK:
 					//leer un uint_32 desde el paquete
 					//Completo y asigno el segmento a la pcb
@@ -185,11 +190,12 @@ void crear_hilo_cpu()
 					crear_segmento(CREATE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id, tamaño
 					//Devolver el contexto de ejecucion a CPU
 					break;
-				}
+				}*/
 
 				break;
 
-			case DELETE_SEGMENT:
+			/*case DELETE_SEGMENT:
+				log_debug(logger, "PID: <PID> - Eliminar Segmento - Id Segmento: <ID SEGMENTO>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 
 				eliminar_segmento(DELETE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
 				respuesta = recibir_respuesta_delete_segment();
@@ -225,19 +231,20 @@ void crear_hilo_cpu()
 	}
 }
 
-/*void recibir_respuesta_create_segment(uint32_t *base_segmento){
+void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
 
 	t_buffer* respuesta_crear_segmento = buffer_create();
-	t_respuestaMemoria respuesta_memoria;
+	t_mensajesMemoria respuesta_memoria;
+	int valor_esPosibleCompactar;
 
 	stream_recv_buffer(conexion_con_memoria, respuesta_crear_segmento);
 
-	//ID del segmento a crear
-	buffer_unpack(respuesta_crear_segmento, &respuesta_memoria, sizeof(t_respuestaMemoria));
+	//Respuesta de Memoria (OK, OUT_OF_MEMORY Ó NECESITO_COMPACTAR)
+	buffer_unpack(respuesta_crear_segmento, &respuesta_memoria, sizeof(t_mensajesMemoria));
 
 	switch (respuesta_memoria){
 		case OK: //Si puede crear el segmento, tengo que recibir la base del segmento asignado
-			buffer_unpack(respuesta_crear_segmento, base_segmento, sizeof(uint32_t));
+			buffer_unpack(respuesta_crear_segmento, &base_segmento, sizeof(uint32_t));
 			break;
 		case OUT_OF_MEMORY:
 			//Si no hay memoria no se reenviar la PCB. Se la finaliza y libera la CPU ya que no hay memoria.
@@ -247,10 +254,53 @@ void crear_hilo_cpu()
 			break;
 		case NECESITO_COMPACTAR:
 			//Espero a que sea posible compactar
-			sem_wait(&esPosibleCompactar);
-				avisar_a_memoria();
+			log_debug(logger, "Kernel está esperando para poder compactar");
+			//sem_wait(&esPosibleCompactar);
+			sem_getvalue(&esPosibleCompactar, &valor_esPosibleCompactar);
+			//Si valor==1 significa que se completaron todos los F_READ y F_WRITE.
+			//El valor inicial del semáforo es 1. Cuando se empieza una instruccion se resta 1.
+			if(valor_esPosibleCompactar == 1)
+				pedir_a_memoria_que_compacte();
+			log_debug(logger, "Compactación: <Se solicitó compactación / Esperando Fin de Operaciones de FS>");
+			esperar_respuesta_compactacion(CREATE_SEGMENT, id, tamanio);
+			log_debug(logger, "Se finalizó el proceso de compactación");
+			crear_segmento(CREATE_SEGMENT, id, tamanio);
+			recibir_respuesta_create_segment(base_segmento, NULL, NULL);
+		default:
+			log_error(logger, "Mensaje de memoria no valido en la creacion de un segmento");
+			break;
+	}
 
 	buffer_destroy(respuesta_crear_segmento);
+}
+
+void esperar_respuesta_compactacion(){
+	
+	t_buffer* respuesta_memoria = buffer_create();
+	t_mensajesMemoria respuesta_compactacion;
+	
+	stream_recv_buffer(conexion_con_memoria, respuesta_memoria);
+
+	//Respuesta de Memoria (OK, OUT_OF_MEMORY Ó NECESITO_COMPACTAR)
+	buffer_unpack(respuesta_memoria, &respuesta_compactacion, sizeof(t_mensajesMemoria));
+
+	if(respuesta_compactacion != FIN_COMPACTACION)
+		log_error(logger, "Memoria no compactó correctamente");
+
+	buffer_destroy(respuesta_memoria);
+}
+
+void pedir_a_memoria_que_compacte(){
+	
+	t_buffer* empezar_compactacion = buffer_create();
+	t_mensajesMemoria mensaje = EMPEZA_A_COMPACTAR;
+
+	//Peticion a memoria
+	buffer_pack(empezar_compactacion, &mensaje, sizeof(t_mensajesMemoria));
+
+	stream_send_buffer(conexion_con_memoria, empezar_compactacion);
+
+	buffer_destroy(empezar_compactacion);
 }
 
 void crear_segmento(t_tipoInstruccion instruccion, uint32_t id, uint32_t tamanio){
@@ -284,7 +334,7 @@ void eliminar_segmento(t_instruccion instruccion, uint32_t id){
 	stream_send_buffer(conexion_con_memoria, crear_segmento);
 
 	buffer_destroy(crear_segmento);
-}*/
+}
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion)
 {

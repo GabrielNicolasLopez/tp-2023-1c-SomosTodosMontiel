@@ -92,8 +92,10 @@ typedef enum
 {
     OK,
     SIN_MEMORIA,
-    NECESITO_COMPACTAR
-} t_respuestaMemoria;
+    NECESITO_COMPACTAR,
+    EMPEZA_A_COMPACTAR,
+    FIN_COMPACTACION
+} t_mensajesMemoria;
 
 
 typedef struct

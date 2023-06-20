@@ -130,6 +130,17 @@ void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion);
 
+void pedir_a_memoria_que_compacte();
+
+void actualizar_procesos_bloqueados(char *nombre_recurso);
+void crear_segmento(t_tipoInstruccion instruccion, uint32_t id, uint32_t tamanio);
+void recibir_respuesta_create_segment(uint32_t base_segmento);
+
+
+
+
+
+
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);
 
@@ -156,9 +167,6 @@ extern pthread_mutex_t listaExec;
 extern pthread_mutex_t listaBlocked;
 extern pthread_mutex_t listaExit;
 
-extern pthread_mutex_t esPosibleCompactar;
-
-
 
 //Semaforos
 extern sem_t CantPCBNew;
@@ -166,6 +174,7 @@ extern sem_t cantPCBReady;
 extern sem_t multiprogramacion;
 extern sem_t CPUVacia;
 extern sem_t pasar_pcb_a_CPU;
+extern sem_t esPosibleCompactar;
 
 
 extern char *nombresCodigoOperaciones[];

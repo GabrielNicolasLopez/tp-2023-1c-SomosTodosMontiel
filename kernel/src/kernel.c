@@ -29,7 +29,7 @@ int main(void){
 t_kernel_config *leerConfiguracion(){
 
 	// Creo el config para leer IP y PUERTO
-	t_config *config = config_create(CONFIG_PATH);
+	config = config_create(CONFIG_PATH);
 
 	// Creo el archivo config
 	t_kernel_config *configuracionKernel = malloc(sizeof(t_kernel_config));
@@ -67,8 +67,7 @@ void iniciar_listas_y_semaforos(){
 	sem_init(&CPUVacia, 0, 1);
 	sem_init(&pasar_pcb_a_CPU, 0, 0);
 	sem_init(&multiprogramacion, 0, configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);	
-	
-	pthread_mutex_init(&esPosibleCompactar, NULL);
+	sem_init(&esPosibleCompactar, 0, 1);
 	
 }
 
