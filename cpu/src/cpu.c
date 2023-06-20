@@ -1,5 +1,7 @@
 #include "cpu.h"
 
+int conexion_memoria, server_fd_kernel;
+
 t_cpu_config* configuracion_cpu;
 
 int main(int argc, char **argv){
@@ -52,7 +54,7 @@ void crear_hilos_cpu()
 }
 // *** HILO KERNEL ***
 void crear_hilo_kernel(){
-	int server_fd_kernel = iniciar_servidor("127.0.0.1", configuracion_cpu -> puerto_escucha, logger);
+	server_fd_kernel = iniciar_servidor("127.0.0.1", configuracion_cpu -> puerto_escucha, logger);
 	log_error(logger, "CPU listo para recibir clientes del Kernel");
     int cliente_fd_kernel = esperar_cliente(server_fd_kernel, logger); // esperamos un proceso para ejecutar
 
@@ -71,10 +73,17 @@ void crear_hilo_kernel(){
 
 // *** HILO MEMORIA ***
 void crear_hilo_memoria(){
-    int conexion_memoria = crear_conexion(configuracion_cpu -> ip_memoria, configuracion_cpu -> puerto_memoria, logger);
+    conexion_memoria = crear_conexion(configuracion_cpu -> ip_memoria, configuracion_cpu -> puerto_memoria, logger);
 	log_info(logger, "CPU se conectó a memoria, conexion: %d", conexion_memoria);
 	while(1){
+		// SE UTILIZA UNA VARIABLE GLOBAL QUE DETERMINA LA ACTIVIDAD A EJECUTAR CON MEMORIA.
 
+		// ESCRITURA:
+			// ENVIA MENSAJE CON MOTIVO DE MOV_OUT CON CADENA DETALLANDO VALOR DE REGISTRO PARTICULAR Y CADENA DETALLANDO DIRECCION LOGICA A SOBREESCRIBIR.
+			// UNA VEZ RECIBIDO 'OK' SE SALE DE ACTIVIDAD Y RETORNA CONTROL AL CICLO DE INSTRUCCIONES.
+		// LECTURA:
+			// ENVIA MENSAJE CON MOTIVO DE MOV_IN CON CADENA DETALLANDO DIRECCION LOGICA PARA LEER.
+			// UNA VEZ RECIBIDO EL VALOR, SE SALE DE ACTIVIDAD RETORNANDO CONTROL AL CICLO DE INSTRUCCIONES CON EL VALOR RECIBIDO.
 	}
 }
 

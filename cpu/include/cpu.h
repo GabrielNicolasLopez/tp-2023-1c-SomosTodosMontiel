@@ -10,6 +10,8 @@
 	#define LOG_PATH "./cfg/cpuPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 	#define MODULE_NAME "CPU"
 
+	extern int conexion_memoria, server_fd_kernel;
+
 	typedef struct
 	{
 		char* puerto_escucha;
@@ -17,6 +19,12 @@
 		char* puerto_memoria;
 		int retardo_instruccion;
 	}t_cpu_config;
+
+	typedef struct {
+		t_tipoInstruccion motivo;
+		char* direccion_logica;
+		char* valor_registro;
+	} t_motivo_memoria;
 
 	extern t_cpu_config *configuracion_cpu;
 

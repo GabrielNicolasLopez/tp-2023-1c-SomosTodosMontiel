@@ -17,6 +17,8 @@
 #include <pthread.h>
 #include <time.h>
 
+typedef enum {OK} cpu_memoria;
+
 extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];
 extern char *nombresRegistros[];

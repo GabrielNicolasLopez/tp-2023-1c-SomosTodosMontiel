@@ -1,5 +1,7 @@
 #include <cpu.h>
 
+
+
 // CICLO DE INSTRUCCION DEL CPU
 t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, int cliente_fd_kernel, bool* enviamos_CE_al_kernel)
 {
@@ -113,16 +115,76 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case MOV_IN: 	// MOV_IN (Registro, Dirección Lógica): 
 						// Lee el valor de memoria correspondiente a la Dirección Lógica y lo almacena en el Registro.
 			
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %s - %u", 
+				contexto_ejecucion->pid, 
+				nombresInstrucciones[instruccion->tipo],
+				nombresRegistros[instruccion->registro],
+				instruccion->paramIntA);
+			
+			enviar_mov_in_a_memoria(MOV_IN, instruccion -> paramIntA);
+
+			char* cadena = esperar_respuesta_mov_in();
+
+			switch(instruccion -> registro){
+				// registros de tamaño 4
+				case AX: memcpy(contexto_ejecucion -> registrosCPU -> registroC -> ax, cadena, 4);
+				log_debug(logger, "El registro AX = %.4s", contexto_ejecucion -> registrosCPU -> registroC -> ax); 
+				break;
+				case BX: memcpy(contexto_ejecucion -> registrosCPU -> registroC -> bx, cadena, 4);
+				log_debug(logger, "El registro BX = %.4s", contexto_ejecucion -> registrosCPU -> registroC -> bx); 
+				break;
+				case CX: memcpy(contexto_ejecucion -> registrosCPU -> registroC -> cx, cadena, 4);
+				log_debug(logger, "El registro CX = %.4s", contexto_ejecucion -> registrosCPU -> registroC -> cx); 
+				break;
+				case DX: memcpy(contexto_ejecucion -> registrosCPU -> registroC -> dx, cadena, 4);
+				log_debug(logger, "El registro DX = %.4s", contexto_ejecucion -> registrosCPU -> registroC -> dx); 
+				break;
+				// registros de tamaño 8
+				case EAX: memcpy(contexto_ejecucion -> registrosCPU -> registroE -> eax, cadena, 8);
+				log_debug(logger, "El registro EAX = %.8s", contexto_ejecucion -> registrosCPU -> registroE -> eax); 
+				break;
+				case EBX: memcpy(contexto_ejecucion -> registrosCPU -> registroE -> ebx, cadena, 8);
+				log_debug(logger, "El registro EBX = %.8s", contexto_ejecucion -> registrosCPU -> registroE -> ebx); 
+				break;
+				case ECX: memcpy(contexto_ejecucion -> registrosCPU -> registroE -> ecx, cadena, 8);
+				log_debug(logger, "El registro ECX = %.8s", contexto_ejecucion -> registrosCPU -> registroE -> ecx); 
+				break;
+				case EDX: memcpy(contexto_ejecucion -> registrosCPU -> registroE -> edx, cadena, 8);
+				log_debug(logger, "El registro EDX = %.8s", contexto_ejecucion -> registrosCPU -> registroE -> edx); 
+				break;
+				// registros de tamaño 16
+				case RAX: memcpy(contexto_ejecucion -> registrosCPU -> registroR -> rax, cadena, 16);
+				log_debug(logger, "El registro AX = %.16s", contexto_ejecucion -> registrosCPU -> registroR -> rax); 
+				break;
+				case RBX: memcpy(contexto_ejecucion -> registrosCPU -> registroR -> rbx, cadena, 16);
+				log_debug(logger, "El registro AX = %.16s", contexto_ejecucion -> registrosCPU -> registroR -> rbx); 
+				break;
+				case RCX: memcpy(contexto_ejecucion -> registrosCPU -> registroR -> rcx, cadena, 16);
+				log_debug(logger, "El registro AX = %.16s", contexto_ejecucion -> registrosCPU -> registroR -> rcx); 
+				break;
+				case RDX: memcpy(contexto_ejecucion -> registrosCPU -> registroR -> rdx, cadena, 16);
+				log_debug(logger, "El registro AX = %.16s", contexto_ejecucion -> registrosCPU -> registroR -> rdx); 
+				break;
+			}
+
+			contexto_ejecucion -> program_counter++;
+
 			break;
 		case MOV_OUT: 	// MOV_OUT (Dirección Lógica, Registro): 
 						// Lee el valor del Registro y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica.
 				//MOV_OUT 120 AX
-				log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %d - %s",
-				contexto_ejecucion->pid,
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %s", 
+				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->paramIntA,
 				nombresRegistros[instruccion->registro]);
-				contexto_ejecucion -> program_counter++;
+
+			enviar_mov_out_a_memoria(MOV_OUT, valor_registro(contexto_ejecucion, instruccion -> registro), instruccion -> paramIntA);
+
+			esperar_respuesta_mov_out();
+
+			contexto_ejecucion -> program_counter++;
+
 			break;
 		case F_TRUNCATE: // F_TRUNCATE (Nombre Archivo, Tamaño): 
 						 // Esta instrucción solicita al Kernel que se modifique el tamaño del archivo al indicado por parámetro.
@@ -285,4 +347,97 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		default:
 	}
 	return contexto_ejecucion;
+}
+
+
+void enviar_mov_in_a_memoria(t_tipoInstruccion tipo, uint32_t direccion_logica){
+	t_buffer* buffer_MOV_IN = buffer_create();
+
+	buffer_pack(buffer_MOV_IN, &tipo, sizeof(t_tipoInstruccion));
+	buffer_pack(buffer_MOV_IN, &direccion_logica, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_memoria, buffer_MOV_IN);
+
+	buffer_destroy(buffer_MOV_IN);
+}
+
+char* esperar_respuesta_mov_in(){
+	t_buffer* buffer_MOV_IN = buffer_create();
+
+	int size;
+
+	stream_recv_buffer(conexion_memoria, buffer_MOV_IN);
+
+	buffer_unpack(buffer_MOV_IN, &size, sizeof(uint32_t));
+
+	char* respuesta = malloc(size);
+
+	buffer_unpack(buffer_MOV_IN, respuesta, size);
+
+	buffer_destroy(buffer_MOV_IN);
+
+	return respuesta;
+}
+
+void enviar_mov_out_a_memoria(t_tipoInstruccion tipo, char* valor_registro, uint32_t direccion_logica){
+	t_buffer* buffer_MOV_OUT = buffer_create();
+
+	buffer_pack(buffer_MOV_OUT, &tipo, sizeof(t_tipoInstruccion));
+	uint32_t size = string_length(valor_registro);
+	buffer_pack(buffer_MOV_OUT, &size, sizeof(uint32_t));
+	buffer_pack(buffer_MOV_OUT, valor_registro, size);
+	buffer_pack(buffer_MOV_OUT, &direccion_logica, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_memoria, buffer_MOV_OUT);
+
+	buffer_destroy(buffer_MOV_OUT);	
+}
+
+void esperar_respuesta_mov_out(){
+	t_buffer* buffer_MOV_OUT = buffer_create();
+
+	cpu_memoria respuesta;
+
+	stream_recv_buffer(conexion_memoria, buffer_MOV_OUT);
+
+	buffer_unpack(buffer_MOV_OUT, &respuesta, sizeof(cpu_memoria));
+
+	buffer_destroy(buffer_MOV_OUT);
+
+	if(respuesta == OK)
+		log_info(logger, "MOV_OUT ejecutado correctamente.");
+	else
+		log_error(logger, "No se ejecuto MOV_OUT correctamente.");
+}
+
+char* valor_registro(t_contextoEjecucion* contexto_ejecucion, t_registro registro){
+	switch(registro){
+				// registros de tamaño 4
+				case AX: return contexto_ejecucion -> registrosCPU -> registroC -> ax;
+				break;
+				case BX: return contexto_ejecucion -> registrosCPU -> registroC -> bx;
+				break;
+				case CX: return contexto_ejecucion -> registrosCPU -> registroC -> cx;
+				break;
+				case DX: return contexto_ejecucion -> registrosCPU -> registroC -> dx;
+				break;
+				// registros de tamaño 8
+				case EAX: return contexto_ejecucion -> registrosCPU -> registroE -> eax;
+				break;
+				case EBX: return contexto_ejecucion -> registrosCPU -> registroE -> ebx;
+				break;
+				case ECX: return contexto_ejecucion -> registrosCPU -> registroE -> ecx;
+				break;
+				case EDX: return contexto_ejecucion -> registrosCPU -> registroE -> edx;
+				break;
+				// registros de tamaño 16
+				case RAX: return contexto_ejecucion -> registrosCPU -> registroR -> rax;
+				break;
+				case RBX: return contexto_ejecucion -> registrosCPU -> registroR -> rbx;
+				break;
+				case RCX: return contexto_ejecucion -> registrosCPU -> registroR -> rcx;
+				break;
+				case RDX: return contexto_ejecucion -> registrosCPU -> registroR -> rdx; 
+				break;
+			}
 }
