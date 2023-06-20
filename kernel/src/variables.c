@@ -6,6 +6,9 @@ t_list* lista_de_recursos;
 t_list *tgaa; //Tabla General Archivos Abiertos
 int PID_PCB = -1;
 
+int conexion_con_memoria;
+int conexion_con_cpu;
+
 t_list *LISTA_NEW;
 t_list *LISTA_READY;
 t_list *LISTA_EXEC;

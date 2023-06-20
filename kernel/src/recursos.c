@@ -85,7 +85,7 @@ void actualizar_procesos_bloqueados(char nombre_recurso){
 		//Asignamos el recurso
 		asignarRecurso(nombre_recurso);
 		//Lo desbloqueamos
-		t_pcb* pcb_blocked_a_ready = pcb_list_remove(recurso->lista_block, 0);
+		t_pcb* pcb_blocked_a_ready = list_remove(recurso->lista_block, 0);
 		//Y lo mandamos a la cola de ready
 		pasar_a_ready(pcb_blocked_a_ready);
 	}

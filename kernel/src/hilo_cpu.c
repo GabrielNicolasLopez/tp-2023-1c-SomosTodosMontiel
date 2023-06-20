@@ -139,13 +139,13 @@ void crear_hilo_cpu()
 				devolverRecurso(motivoDevolucion->cadena);
 				log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
 				//liberar alguna pcb si necesitaba algun recurso que se devolvió
-				revisar_recursos_bloqueados(motivoDevolucion->cadena);
+				//revisar_recursos_bloqueados(motivoDevolucion->cadena);
 				//Reenviamos el contexto			
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
-			case CREATE_SEGMENT:
+			/*case CREATE_SEGMENT:
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
 				//Creo un t_segment y asigno id y tamaño
 				t_segmento *nuevo_segmento = malloc(sizeof(t_segmento));
@@ -189,7 +189,7 @@ void crear_hilo_cpu()
 
 				break;
 
-			/*case DELETE_SEGMENT:
+			case DELETE_SEGMENT:
 
 				eliminar_segmento(DELETE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
 				respuesta = recibir_respuesta_delete_segment();
@@ -225,7 +225,7 @@ void crear_hilo_cpu()
 	}
 }
 
-void recibir_respuesta_create_segment(uint32_t *base_segmento){
+/*void recibir_respuesta_create_segment(uint32_t *base_segmento){
 
 	t_buffer* respuesta_crear_segmento = buffer_create();
 	t_respuestaMemoria respuesta_memoria;
@@ -284,7 +284,7 @@ void eliminar_segmento(t_instruccion instruccion, uint32_t id){
 	stream_send_buffer(conexion_con_memoria, crear_segmento);
 
 	buffer_destroy(crear_segmento);
-}
+}*/
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion)
 {
