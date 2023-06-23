@@ -4,64 +4,52 @@ t_memoria_config* configuracion_memoria; 		//variables globales para no vivir pa
 void* espacioUsuario;
 registro_EU* registro_espacioUsuario;
 
+char* IP_MEMORIA = "127.0.0.1";
 
-
-
-int main(){
+int main(int argc, char** argv){
 
     //Creo logger para info
-	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_INFO);
+	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_DEBUG);
 
-    log_info(logger, "INICIANDO MEMORIA...");
+    if (argc != NUMBER_OF_ARGS_REQUIRED) {
+        log_error(logger, "Cantidad de argumentos inválida.\nArgumentos: <configPath>");
+        log_destroy(logger);
+        return -1;
+    }
 
-    configuracionMemoria = leerConfiguracion(logger);
+	log_debug(logger, "INICIANDO MEMORIA...");
 
-    /*int server_fd = iniciar_servidor("127.0.0.1", configuracionMemoria->PUERTO_ESCUCHA, logger);
-    log_info(logger, "Memoria lista para recibir a los modulos");
-    int cliente_fd = esperar_cliente(server_fd, logger);*/
+    t_memoria_config *configuracionMemoria = leerConfiguracion();
 
-    crear_hilos_memoria();
-    log_info(logger, "Hola");
-}
+	int socketEscucha = iniciar_servidor(IP_MEMORIA, configuracionMemoria->puerto_escucha);
 
-void crear_hilos_memoria()
-{
-	pthread_t hiloKernel, hiloCPU, hiloFilesystem;
+    recibir_conexiones(socketEscucha);
 
-	pthread_create(&hiloKernel, NULL, (void *)iniciar_servidor_hacia_kernel, NULL);
-	pthread_create(&hiloCPU, NULL, (void *)iniciar_servidor_hacia_cpu, NULL);
-    pthread_create(&hiloFilesystem, NULL, (void *)iniciar_servidor_hacia_filesystem, NULL);
-
-	pthread_detach(hiloKernel);
-    pthread_detach(hiloFilesystem);
+	//Espera la finalizacion de los hilos
+	pthread_join(hiloFilesystem, NULL);
+	pthread_join(hiloKernel, NULL);
 	pthread_join(hiloCPU, NULL);
 }
 
-void iniciar_servidor_hacia_kernel(){
-    //Inicio el servidor para kernel
-    int server_fd = iniciar_servidor(IP_MEMORIA, configuracionMemoria->PUERTO_ESCUCHA_KERNEL, logger);
-	log_info(logger, "MEMORIA listo para recibir al kernel");
-	socketKernel = esperar_cliente(server_fd, logger);
-
-    while(1){}
+void hilo_kernel(){
+    while(1){
+		//Mensajes recibidos de kernel
+		//switch
+	}
 }
 
-void iniciar_servidor_hacia_cpu(){
-    //Inicio el servidor para CPU
-    int server_fd = iniciar_servidor(IP_MEMORIA, configuracionMemoria->PUERTO_ESCUCHA_CPU, logger);
-	log_info(logger, "MEMORIA listo para recibir al CPU");
-	socketCPU = esperar_cliente(server_fd, logger);
-
-    while(1){}
+void hilo_cpu(){
+    while(1){
+		//Mensajes recibidos de cpu
+		//switch
+	}
 }
 
-void iniciar_servidor_hacia_filesystem(){
-    //Inicio el servidor para filesystem
-    int server_fd = iniciar_servidor(IP_MEMORIA, configuracionMemoria->PUERTO_ESCUCHA_FILESYSTEM, logger);
-	log_info(logger, "MEMORIA listo para recibir al FILESYSTEM");
-	socketFilesystem = esperar_cliente(server_fd, logger);
-
-    while(1){}
+void hilo_filesystem(){
+    while(1){
+		//Mensajes recibidos de fs
+		//switch
+	}	
 }
 
 
@@ -74,7 +62,7 @@ t_memoria_config* leerConfiguracion(){
 	t_memoria_config* configuracionMemoria = malloc(sizeof(t_memoria_config));
 
 	//Estraer los datos 
-	configuracionMemoria -> PUERTO_ESCUCHA = strdup(config_get_string_value(configuracion, "PUERTO_ESCUCHA"));
+	configuracionMemoria -> puerto_escucha = strdup(config_get_string_value(configuracion, "PUERTO_ESCUCHA"));
 	configuracionMemoria -> tam_memoria = config_get_int_value(configuracion, "TAM_MEMORIA");
 
 	configuracionMemoria -> tam_memoria = config_get_int_value(configuracion, "TAM_MEMORIA");
@@ -88,9 +76,9 @@ t_memoria_config* leerConfiguracion(){
 
 	//Leo los datos del config (memoria no tiene IP en el archivo de config)
 	//configuracionConsola.ip = config_get_string_value(config, "IP");
-	configuracionMemoria->PUERTO_ESCUCHA_KERNEL = config_get_string_value(configuracion, "PUERTO_ESCUCHA_KERNEL");
-    configuracionMemoria->PUERTO_ESCUCHA_CPU = config_get_string_value(configuracion, "PUERTO_ESCUCHA_CPU");
-    configuracionMemoria->PUERTO_ESCUCHA_FILESYSTEM = config_get_string_value(configuracion, "PUERTO_ESCUCHA_FILESYSTEM");
+	// configuracionMemoria->PUERTO_ESCUCHA_KERNEL = config_get_string_value(configuracion, "PUERTO_ESCUCHA_KERNEL");
+    // configuracionMemoria->PUERTO_ESCUCHA_CPU = config_get_string_value(configuracion, "PUERTO_ESCUCHA_CPU");
+    // configuracionMemoria->PUERTO_ESCUCHA_FILESYSTEM = config_get_string_value(configuracion, "PUERTO_ESCUCHA_FILESYSTEM");
 	
 	//Loggeo los datos leidos del config
 	//log_info(logger, "Me conecté a la IP: %s", configuracionConsola.ip);
@@ -111,4 +99,84 @@ void configurar_memoria(char* path){
 	//Me falta ver como hacer lo de espacio usuario 
 	
 
+}
+
+#include "memoria.h"
+
+t_memoria_config* configuracion_memoria; 		//variables globales para no vivir pasando datos por parametro.
+void* espacioUsuario;
+registro_EU* registro_espacioUsuario;
+
+t_list* lista_de_segmentos;
+t_segmento* segmento_0;
+t_memoria_config* configuracionMemoria;
+
+int conexion_con_kernel;
+int conexion_con_memoria;
+int conexion_con_cpu;
+
+char* IP_MEMORIA = "127.0.0.1";
+
+pthread_t hiloFilesystem, hiloKernel, hiloCPU;
+
+
+
+
+t_memoria_config* leerConfiguracion(){
+
+	//Creo el config para leer IP y PUERTO
+	t_config* configuracion = config_create(CONFIG_PATH);// nose si poner el path
+
+	//Creo el archivo config
+	t_memoria_config* configuracionMemoria = malloc(sizeof(t_memoria_config));
+
+	//Estraer los datos 
+	configuracionMemoria->puerto_escucha       = config_get_string_value(configuracion, "PUERTO_ESCUCHA");
+	configuracionMemoria->tam_memoria          = config_get_int_value(configuracion, "TAM_MEMORIA");
+	configuracionMemoria->tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEGMENTO_0");
+	configuracionMemoria->cant_segmentos       = config_get_int_value(configuracion, "CANT_SEGMENTOS");
+	configuracionMemoria->retardo_memoria      = config_get_int_value(configuracion, "RETARDO_MEMORIA");
+	configuracionMemoria->retardo_compatacion  = config_get_int_value(configuracion, "RETARDO_COMPACTACION");
+	configuracionMemoria->algoritmo_asignacion = config_get_string_value(configuracion, "ALGORITMO_ASIGNACION");
+
+	//config_destroy(configuracion);
+
+	return configuracionMemoria;
+}
+
+void recibir_conexion(int socketEscucha) {
+	log_debug(logger, "Esperando cliente...");
+	int socketCliente = esperar_cliente(socketEscucha);
+    uint8_t handshake = stream_recv_header(socketCliente);
+    stream_recv_empty_buffer(socketCliente);
+    if (handshake == HANDSHAKE_cpu) {
+		conexion_con_cpu = socketCliente;
+        log_info(logger, "Se acepta conexión de CPU en socket %d", socketCliente);
+        stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
+		pthread_create(&hiloCPU, NULL, (void *)hilo_cpu, NULL);
+		pthread_detach(hiloCPU);
+    } else if (handshake == HANDSHAKE_kernel) {
+		conexion_con_memoria = socketCliente;
+        log_info(logger, "Se acepta conexión de Kernel en socket %d", socketCliente);
+        stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
+		pthread_create(&hiloKernel, NULL, (void *)hilo_kernel, NULL);
+		pthread_detach(hiloKernel);
+	 } else if (handshake == HANDSHAKE_filesystem) {
+		conexion_con_kernel = socketCliente;
+        log_info(logger, "Se acepta conexión de Filesystem en socket %d", socketCliente);
+        stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
+		pthread_create(&hiloFilesystem, NULL, (void *)hilo_filesystem, NULL);
+		pthread_detach(hiloFilesystem);
+    } else {
+        log_error(logger, "Error al recibir handshake de cliente: %s", strerror(errno));
+        exit(-1);
+    }
+
+}
+
+void recibir_conexiones(int socketEscucha){
+	//Recibimos a los 3 clientes: kernel, cpu y fs
+	for(int i=0; i<3; i++){
+    	recibir_conexion(socketEscucha);
+	}
 }

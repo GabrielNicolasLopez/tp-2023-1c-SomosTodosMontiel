@@ -21,6 +21,25 @@ char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
 char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT",
                                       "IO", "WAIT", "SIGNAL", "F_OPEN", "F_CLOSE", "DELETE_SEGMENT", "YIELD", "EXIT"};
 
+typedef enum {
+    HEADER_fin,
+    HEADER_error_out_of_memory,
+    HEADER_error_recurso,
+    HEADER_lista_instrucciones,
+    HEADER_contexto_ejecucion,
+    HEADER_instruccion,
+    HEADER_segmentation_fault
+} t_header;
+
+typedef enum {
+    HANDSHAKE_consola,
+    HANDSHAKE_cpu,
+    HANDSHAKE_filesystem,
+    HANDSHAKE_kernel,
+    HANDSHAKE_ok_continue,
+    HANDSHAKE_error
+} t_handshake;
+
 typedef enum
 {
 	MENSAJE,
@@ -161,8 +180,8 @@ extern t_log* logger;
 void* recibir_buffer(int*, int);
 
 //int iniciar_servidor(void);
-int iniciar_servidor(char *IP, char *PUERTO, t_log* logger);
-int esperar_cliente(int, t_log*);
+int iniciar_servidor(char *IP, char *PUERTO);
+int esperar_cliente(int);
 t_list* recibir_paquete(int);
 void recibir_mensaje(int);
 int recibir_operacion(int);

@@ -12,7 +12,7 @@
 #define LOG_PATH "./cfg/memoriaPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Memoria"
 
-
+#define NUMBER_OF_ARGS_REQUIRED 2
 
 int socketKernel, socketCPU, socketFilesystem;
 char* IP_MEMORIA = "127.0.0.1";
@@ -27,7 +27,7 @@ list_add(lista_de_segmentos,segmento_0);
 //Archivo de Configuaracion
 typedef struct
 {
-    char* PUERTO_ESCUCHA;//(Este es el generico )
+    char* puerto_escucha;//(Este es el generico )
     uint32_t tam_memoria;
     uint32_t tam_segmento_O;
     uint32_t cant_segmentos;
@@ -36,9 +36,9 @@ typedef struct
     char* algoritmo_asignacion;
     
     //Estan puesto pero nose para que 
-    char* PUERTO_ESCUCHA_KERNEL;
+    /*char* PUERTO_ESCUCHA_KERNEL;
     char* PUERTO_ESCUCHA_CPU;
-    char* PUERTO_ESCUCHA_FILESYSTEM;
+    char* PUERTO_ESCUCHA_FILESYSTEM;*/
 } t_memoria_config;
 
 typedef struct 
