@@ -5,7 +5,9 @@ void crear_hilo_productor()
     t_instruccion* p_instruccion;
     while(1){
         // REVISO SI HAY QUE FINALIZAR
-        if (stream_recv_header(socketKernel) == (uint8_t) FINALIZAR_FS) {
+        uint8_t header = stream_recv_header(socketKernel);
+        
+        if ( header == (uint8_t) FINALIZAR_FS) {
             log_info(logger, "FS debe finalizar");
             // LE AVISO A HILO_CONSUMIDOR
             pthread_mutex_lock(&mutex_lista);
@@ -14,6 +16,10 @@ void crear_hilo_productor()
             list_add(lista_inst, (void*) p_instruccion);
             pthread_mutex_unlock(&mutex_lista);
             break;
+        }
+        
+        if ( header != (uint8_t) INSTRUCCION) {
+          exit(-1);
         }
 
         p_instruccion = recibir_instruccion(socketKernel);
@@ -43,7 +49,14 @@ t_instruccion* recibir_instruccion(int socket)
         instruccion->cadena = malloc(instruccion->longitud_cadena);
         //Cadena
         buffer_unpack(buffer, instruccion->cadena, instruccion->longitud_cadena);
-    }
+    } else
+    if(instruccion->tipo == F_CREATE){
+        //Longitud cadena
+        buffer_unpack(buffer, &instruccion->longitud_cadena, sizeof(uint32_t));
+        instruccion->cadena = malloc(instruccion->longitud_cadena);
+        //Cadena
+        buffer_unpack(buffer, instruccion->cadena, instruccion->longitud_cadena);
+    } else
     if(instruccion->tipo == F_TRUNCATE){
         //Longitud cadena
         buffer_unpack(buffer, &instruccion->longitud_cadena, sizeof(uint32_t));
@@ -52,7 +65,7 @@ t_instruccion* recibir_instruccion(int socket)
         buffer_unpack(buffer, instruccion->cadena, instruccion->longitud_cadena);
         //Parametro A
         buffer_unpack(buffer, &instruccion->paramIntA, sizeof(uint32_t));
-    }
+    } else
     if(instruccion->tipo == F_WRITE){
         //Longitud cadena
         buffer_unpack(buffer, &instruccion->longitud_cadena, sizeof(uint32_t));
@@ -63,7 +76,7 @@ t_instruccion* recibir_instruccion(int socket)
         buffer_unpack(buffer, &instruccion->paramIntA, sizeof(uint32_t));
         //Parametro B
         buffer_unpack(buffer, &instruccion->paramIntB, sizeof(uint32_t));
-    }
+    } else
     if(instruccion->tipo == F_READ){
         //Longitud cadena
         buffer_unpack(buffer, &instruccion->longitud_cadena, sizeof(uint32_t));
@@ -75,7 +88,7 @@ t_instruccion* recibir_instruccion(int socket)
         //Parametro B
         buffer_unpack(buffer, &instruccion->paramIntB, sizeof(uint32_t));
     }
-
+    
     buffer_destroy(buffer);
 
     return instruccion;

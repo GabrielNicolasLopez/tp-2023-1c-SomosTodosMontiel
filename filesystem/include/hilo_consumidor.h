@@ -3,6 +3,8 @@
 
     #include "filesystem.h"
 
-    void crear_hilo_consumidor();   
+    void crear_hilo_consumidor();
+    void respuesta_a_kernel(int operacion, t_instruccion* instruccion); 
+ 
 
 #endif

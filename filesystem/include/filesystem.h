@@ -6,6 +6,7 @@
     #include <sys/types.h>
     #include <sys/stat.h>
     #include <unistd.h>
+    #include <fcntl.h>
 
     #include <sys/mman.h>
 
@@ -28,6 +29,8 @@
 
     // VARIABLES GLOBALES
     extern t_list* lista_inst;
+    extern t_list* l_FCBs_abiertos;
+
     extern pthread_mutex_t mutex_lista;
     extern sem_t cant_inst;
 

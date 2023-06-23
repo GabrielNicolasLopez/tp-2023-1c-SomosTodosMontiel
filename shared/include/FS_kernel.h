@@ -7,7 +7,12 @@
     {
         //Header kernel -> FS
         INSTRUCCION,
-        FINALIZAR_FS
+        FINALIZAR_FS,
+        //Header FS -> kernel
+        FS_OPEN_OK,
+        FS_OPEN_NO_OK,
+        FS_CREATE_OK,
+
     } t_FS_header;
 
 #endif

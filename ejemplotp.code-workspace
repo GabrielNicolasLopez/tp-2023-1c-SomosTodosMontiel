@@ -42,7 +42,11 @@
 			"consola_serializer.h": "c",
 			"stdlib.h": "c",
 			"syscall.h": "c",
-			"unistd.h": "c"
+			"unistd.h": "c",
+			"estructuras.h": "c",
+			"fcntl.h": "c",
+			"stat.h": "c",
+			"types.h": "c"
 		}
 	}
 }

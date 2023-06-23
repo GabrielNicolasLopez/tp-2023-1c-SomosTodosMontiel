@@ -48,7 +48,7 @@ int crear_servidor_kernel()
         log_error(logger, "Error al intentar iniciar servidor");
         return -1;
     }
-    log_info(logger, "Filesystem listo para recibir a Kernel");
+    log_info(logger, "Filesystem listo para recibir el socketKernel");
 
 	socketKernel = esperar_cliente(server_fd_kernel);
     uint8_t handshake = stream_recv_header(socketKernel);

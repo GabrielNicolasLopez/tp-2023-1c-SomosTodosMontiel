@@ -19,29 +19,49 @@
 
     } t_FCB_config ;
 
+    typedef struct
+    {
+        char* nombre_archivo;
+        t_config* config;
+        t_FCB_config* FCB_config;
+    } t_lista_FCB_config;
 
 
+
+    // SUPERBLOQUE
+    extern t_config* t_config_SupBloque;
     extern t_superbloque_config* config_SupBloque;
-    extern t_FCB_config* config_FCB;
 
+    // BITMAP
     extern struct stat stats_fd_bitmap;
     extern char* p_bitmap;
     extern t_bitarray* bitA_bitmap;
 
+    // BLOQUES
+    extern struct stat stats_fd_bloques;
+    extern char* p_bloques;
+    extern t_bitarray* bitA_bloques;
 
 
-    void levantar_volumen();
-    // CREACION DE ARCHIVOS EN LA CARPTA FS
-    t_superbloque_config* leerConfiguracion_superbloque(t_config* config_superbloque);
-    t_FCB_config* leerConfiguracion_FCB(t_config* config_FCB);
+
+    int levantar_volumen();
+    void levantar_superbloque();
     
     void crear_bitmap();
     void crear_archivo_de_bloques();
-    void crear_archivo_de_FCB();
+    int crear_carpeta_de_FCBs();
+    t_config* crear_FCB(char* archivo);
+    t_config* buscar_FCB(char* archivo);
+
 
     void levantar_bitmap();
+    void levantar_bloques();
+    t_FCB_config* levantar_FCB(t_config* t_config_FCB);
 
-    // Indica si existe o no un archivo
+    t_superbloque_config* leerConfiguracion_superbloque();
+    t_FCB_config* leerConfiguracion_FCB(t_config* config_FCB);
+
+    // Existe = 1 | NoExiste = 0
     bool existe_archivo(const char* ruta_archivo);
 
 #endif

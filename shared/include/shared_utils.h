@@ -84,6 +84,7 @@ typedef enum
     WAIT,
     SIGNAL,
     F_OPEN,
+    F_CREATE,
     F_CLOSE,
     DELETE_SEGMENT,
     // 0 parámetros

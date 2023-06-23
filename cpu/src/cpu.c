@@ -403,6 +403,11 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	//Asignamos la cantidad de instrucciones
 	contextoEjecucion->instrucciones->cantidadInstrucciones = cantidad_de_instrucciones;
 
+	//Registros
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
+
 	log_debug(logger, "cant inst recibidas: %d", contextoEjecucion->instrucciones->cantidadInstrucciones);
 
     buffer_destroy(ce_recibido);

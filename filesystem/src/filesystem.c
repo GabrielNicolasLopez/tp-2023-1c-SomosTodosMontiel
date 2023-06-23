@@ -1,6 +1,8 @@
 #include "filesystem.h"
 
 t_list* lista_inst;
+t_list* l_FCBs_abiertos;
+
 pthread_mutex_t mutex_lista;
 sem_t cant_inst;
 
@@ -21,7 +23,7 @@ int main(int argc, char ** argv){
     // CONFIG
     config = config_create(CONFIG_PATH);
     configFS = leerConfiguracion(config);
-    
+    /*
     // CONEXION COMO CLIENTE CON MEMORIA
     int error_memoria = crear_conexion_con_memoria();
     if (error_memoria == -1) {
@@ -29,13 +31,16 @@ int main(int argc, char ** argv){
 	    free(configFS);
         exit(-1);
     }
-    
-    // LEVANTO ARCHIVOS DE LA CARPETA FS
-    levantar_volumen();
-    
+    */
+    // LEVANTO ARCHIVOS DEL VOLUMEN (CARPETA FS)
+    if (levantar_volumen() == -1) {
+        config_destroy(config);
+	    free(configFS);
+        exit(-1);
+    }
+
     // CREO SERVER PARA CONEXION COMO SERVIDOR CON KERNEL
-    int error_kernel = crear_servidor_kernel();
-    if (error_kernel == -1) {
+    if (crear_servidor_kernel() == -1) {
         config_destroy(config);
 	    free(configFS);
         exit(-1);
@@ -52,6 +57,9 @@ int main(int argc, char ** argv){
 void iniciar_listas_y_sem()
 {
     lista_inst = list_create();
+    FCBs_abiertos = list_create();
+
+
     pthread_mutex_init(&mutex_lista, NULL);
     sem_init(&cant_inst, 0, 0);
 }
@@ -59,6 +67,8 @@ void iniciar_listas_y_sem()
 void listas_y_sem_destroy()
 {
     list_destroy(lista_inst);
+    list_destroy(FCBs_abiertos);
+
     pthread_mutex_destroy(&mutex_lista);
     sem_destroy(&cant_inst);
 }
