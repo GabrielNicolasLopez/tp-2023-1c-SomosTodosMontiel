@@ -1,36 +1,52 @@
 #ifndef FILESYSTEM_H_
 #define FILESYSTEM_H_
     
+    #include <math.h>
+
+    #include <fcntl.h>
+
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+
+    #include <sys/mman.h>
+
+    #include <commons/bitarray.h>
+    
     #include "shared_utils.h"
-    #include "hilo_kernel.h"
-    #include "hilo_memoria.h"
+    #include "stream.h"
+    #include "FS_kernel.h"
+   
+    #include "configFS.h"
+    #include "superbloque.h"
+    #include "bitmap.h"
+    #include "FCB.h"
+    #include "bloques.h"
+    #include "hilo_productor.h"
+    #include "hilo_consumidor.h"
+
     #include "tests.h"
 
     //#define LOG_PATH "./cfg/filesystem.log" LOG QUE PERSISTE EN EL REPO REMOTO
     #define LOG_PATH "./cfg/filesystemPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
     #define MODULE_NAME "Filesystem"
 
-    // CONFIG
-    typedef struct
-    {
-        //datos para filesystem como cliente
-        char* IP_MEMORIA;
-        char* PUERTO_MEMORIA;
-        //datos para filesystem como servidor
-        char* PUERTO_ESCUCHA;
-        //resto de datos
-        char* PATH_SUPERBLOQUE;
-        char* PATH_BITMAP;
-        char* PATH_BLOQUES;
-        char* PATH_FCB;
-        int RETARDO_ACCESO_BLOQUE;
+    // VARIABLES GLOBALES
+    extern t_list* lista_inst;
+    extern t_list* l_FCBs_abiertos;
 
-    } t_filesystem_config;
-    
-    extern t_filesystem_config* configuracionFS;
-    t_filesystem_config* leerConfiguracion(t_config* config);
+    extern pthread_mutex_t mutex_lista;
+    extern sem_t cant_inst;
 
-    // HILOS
-    void crear_hilos_filesystem();
+    // PRODUCTOR CONSUMIDOR
+    void iniciar_listas_y_sem();
+    void listas_y_sem_destroy();
+
+    // HILOS PARA MANEJAR LAS INSTRUCCIONES ENVIADAS POR KERNEL
+    void crear_hilos_productor_consumidor();
+
+    // ANTES DE FINALIZAR EL PROCESO LIBERAR MEMORIA:
+    void liberar_memoria();
 
 #endif

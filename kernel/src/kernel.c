@@ -72,12 +72,16 @@ void iniciar_listas_y_semaforos(){
 }
 
 void crear_hilos_kernel(){
-	pthread_t hiloConsola, hiloCPU, hiloPlaniCortoPlazo, hiloPlaniLargoPlazo;
-	//, hiloFilesystem, hiloMemoria, , ;
+	pthread_t hiloConsola, hiloCPU,hiloFilesystem, hiloMemoria, hiloPlaniCortoPlazo, hiloPlaniLargoPlazo;
 
 	//Hilos de modulos
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
 	pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
+	pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
+	pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
+	pthread_detach(hiloCPU);
+	pthread_detach(hiloFilesystem);
+	pthread_detach(hiloMemoria);
 
 	//Hilos de planificadores
 	pthread_create(&hiloPlaniCortoPlazo, NULL, (void *)planiCortoPlazo, NULL);
@@ -86,14 +90,8 @@ void crear_hilos_kernel(){
 	pthread_detach(hiloPlaniCortoPlazo);
 	pthread_detach(hiloPlaniLargoPlazo);
 
+	//Esperamos a que finalice el hilo de consola
 	pthread_join(hiloConsola, NULL);
-	
-	//pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
-	//pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
-
-	//pthread_detach(hiloCPU);
-	//pthread_detach(hiloFilesystem);
-	//pthread_detach(hiloMemoria);
 }
 
 void liberar_listas_y_semaforos(){}

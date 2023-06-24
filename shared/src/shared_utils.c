@@ -26,7 +26,7 @@ char *nombresRegistros[] =
 t_log *logger;
 t_log *loggerMinimo;
 
-int crear_conexion(char *ip, char *puerto, t_log *logger)
+int crear_conexion(char *ip, char *puerto)
 {
 	struct addrinfo hints;
 	struct addrinfo *server_info;
@@ -62,7 +62,7 @@ void liberar_conexion(int socket_cliente)
 }
 
 
-int iniciar_servidor(char *IP, char *PUERTO, t_log *logger)
+int iniciar_servidor(char *IP, char *PUERTO)
 {
 	int socket_servidor;
 
@@ -109,7 +109,7 @@ int iniciar_servidor(char *IP, char *PUERTO, t_log *logger)
 	return socket_servidor;
 }
 
-int esperar_cliente(int socket_servidor, t_log *logger)
+int esperar_cliente(int socket_servidor)
 {
 
 	// Aceptamos un nuevo cliente

@@ -22,13 +22,34 @@ extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];
 extern char *nombresRegistros[];
 
+typedef enum {
+    HEADER_fin,
+    HEADER_error_out_of_memory,
+    HEADER_error_recurso,
+    HEADER_lista_instrucciones,
+    HEADER_contexto_ejecucion,
+    HEADER_instruccion,
+    HEADER_segmentation_fault
+} t_header;
+
+typedef enum {
+    HANDSHAKE_consola,
+    HANDSHAKE_cpu,
+    HANDSHAKE_filesystem,
+    HANDSHAKE_kernel,
+    HANDSHAKE_ok_continue,
+    HANDSHAKE_error
+} t_handshake;
+
 typedef struct 
 {
     uint32_t id_segmento;
     uint32_t base;
     uint32_t tamanio;
     //int libre;
+    
 }t_segmento;
+
 typedef enum
 {
     INSTRUCCIONES,
@@ -193,10 +214,10 @@ typedef struct
 
 extern t_log* logger;
 
-int iniciar_servidor(char *IP, char *PUERTO, t_log* logger);
-int esperar_cliente(int socket_cliente, t_log* logger);
+int iniciar_servidor(char *IP, char *PUERTO);
+int esperar_cliente(int socket_cliente);
 
-int crear_conexion(char *ip, char *puerto, t_log* logger);
+int crear_conexion(char *ip, char *puerto);
 
 
 void enviar_paquete(t_paquete *paquete, int socket_cliente);

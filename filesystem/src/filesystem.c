@@ -1,6 +1,10 @@
 #include "filesystem.h"
 
-t_filesystem_config* configuracionFS;
+t_list* lista_inst;
+t_list* l_FCBs_abiertos;
+
+pthread_mutex_t mutex_lista;
+sem_t cant_inst;
 
 int main(int argc, char ** argv){
     if (argc != 2) {
@@ -17,57 +21,79 @@ int main(int argc, char ** argv){
     log_info(logger, "INICIANDO FILESYSTEM...");
 
     // CONFIG
-    t_config *config = config_create(CONFIG_PATH);
-    configuracionFS = leerConfiguracion(config);
+    config = config_create(CONFIG_PATH);
+    configFS = leerConfiguracion(config);
+    /*
+    // CONEXION COMO CLIENTE CON MEMORIA
+    int error_memoria = crear_conexion_con_memoria();
+    if (error_memoria == -1) {
+        config_destroy(config);
+	    free(configFS);
+        exit(-1);
+    }
+    */
+    // LEVANTO ARCHIVOS DEL VOLUMEN (CARPETA FS)
+    if (levantar_volumen() == -1) {
+        config_destroy(config);
+	    free(configFS);
+        exit(-1);
+    }
 
-    // CREACION DE HILOS
-    crear_hilos_filesystem();
+    // CREO SERVER PARA CONEXION COMO SERVIDOR CON KERNEL
+    if (crear_servidor_kernel() == -1) {
+        config_destroy(config);
+	    free(configFS);
+        exit(-1);
+    }
 
+    // HILOS PARA MANEJAR LAS INSTRUCCIONES ENVIADAS POR KERNEL
+    crear_hilos_productor_consumidor();
 
     // ANTES DE FINALIZAR EL PROCESO LIBERAR MEMORIA:
-	config_destroy(config);
-	free(configuracionFS);
+    liberar_memoria();
+    return 0;
 }
 
-
-// CREACION DE HILOS
-void crear_hilos_filesystem()
+void iniciar_listas_y_sem()
 {
-	pthread_t hiloMemoria, hiloKernel;
-	
-    pthread_create(&hiloMemoria, NULL, &crear_hilo_memoria, NULL);
-    pthread_create(&hiloKernel, NULL, &crear_hilo_kernel, NULL);
+    lista_inst = list_create();
+    l_FCBs_abiertos = list_create();
 
 
-
-    int* hiloMemoria_return;
-    pthread_join(hiloMemoria, (void**) &hiloMemoria_return);
-    if (*hiloMemoria_return) {
-        log_error(logger, "Error en HILO_MEMORIA");
-    }
-    
-    int* hiloKernel_return;
-    pthread_join(hiloKernel, (void**) &hiloKernel_return);
-    if (!*hiloKernel_return) {
-        log_error(logger, "Error en HILO_KERNEL");
-    }
-    
-    
+    pthread_mutex_init(&mutex_lista, NULL);
+    sem_init(&cant_inst, 0, 0);
 }
 
-// CONFIGURACION
-t_filesystem_config *leerConfiguracion(t_config* config)
+void listas_y_sem_destroy()
 {
-    t_filesystem_config* configuracion = malloc(sizeof(t_filesystem_config));
+    list_destroy(lista_inst);
+    list_destroy(l_FCBs_abiertos);
 
-	configuracion->IP_MEMORIA = config_get_string_value(config, "IP_MEMORIA");
-	configuracion->PUERTO_MEMORIA = config_get_string_value(config, "PUERTO_MEMORIA");
-    configuracion->PUERTO_ESCUCHA = config_get_string_value(config, "PUERTO_ESCUCHA");
-    configuracion->PATH_SUPERBLOQUE = config_get_string_value(config, "PATH_SUPERBLOQUE");
-    configuracion->PATH_BITMAP = config_get_string_value(config, "PATH_BITMAP");
-    configuracion->PATH_BLOQUES = config_get_string_value(config, "PATH_BLOQUES");
-    configuracion->PATH_FCB = config_get_string_value(config, "PATH_FCB");
-    configuracion->RETARDO_ACCESO_BLOQUE = config_get_int_value(config, "RETARDO_ACCESO_BLOQUE");
+    pthread_mutex_destroy(&mutex_lista);
+    sem_destroy(&cant_inst);
+}
 
-	return configuracion;
+void crear_hilos_productor_consumidor()
+{
+    // Hilos Productor Consumidor
+    iniciar_listas_y_sem();
+    pthread_t hilo_productor, hilo_consumidor;
+    
+    pthread_create(&hilo_productor, NULL, (void *)crear_hilo_productor, NULL);
+    pthread_create(&hilo_consumidor, NULL, (void *)crear_hilo_consumidor, NULL);
+
+    pthread_join(hilo_productor, NULL);
+    pthread_join(hilo_consumidor, NULL);
+
+    listas_y_sem_destroy();
+}
+
+void liberar_memoria()
+{
+    // Liberando config
+    config_destroy(config);
+	free(configFS);
+    // Liberando bitmap
+    bitarray_destroy(bitA_bitmap);
+    munmap(p_bitmap, stats_fd_bitmap.st_size);
 }

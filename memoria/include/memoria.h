@@ -13,18 +13,36 @@
 #define MODULE_NAME "Memoria"
 
 
+#define NUMBER_OF_ARGS_REQUIRED 2
 
-int socketKernel, socketCPU, socketFilesystem;
-char* IP_MEMORIA = "127.0.0.1";
 
+//Variables globales de memoria
+t_list* lista_de_segmentos;
+t_segmento* segmento_0;
+t_list* lista_de_huecos;
+
+
+//Estruturas 
 typedef struct
-{
-    char* PUERTO_ESCUCHA_KERNEL;
-    char* PUERTO_ESCUCHA_CPU;
-    char* PUERTO_ESCUCHA_FILESYSTEM;
+{   char* puerto_escucha;//(Este es el generico )
+    uint32_t tam_memoria;
+    uint32_t tam_segmento_O;
+    uint32_t cant_segmentos;
+    uint32_t retardo_memoria;
+    uint32_t retardo_compatacion;
+    char* algoritmo_asignacion;
+    
 } t_memoria_config;
 
-t_memoria_config* leerConfiguracion(t_log* logger);
+
+typedef struct 
+{
+ uint32_t base;
+ u_int32_t tamanio;
+}t_hueco;
+
+
+t_memoria_config* leerConfiguracion();
 
 t_memoria_config* configuracionMemoria;
 
