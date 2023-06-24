@@ -29,7 +29,14 @@ typedef struct
     uint32_t tamanio;
     //int libre;
 }t_segmento;
-
+typedef enum
+{
+    INSTRUCCIONES,
+    FIN,
+    OUT_OF_MEMORY,
+    E_SIGNAL,
+    E_WAIT
+} t_Kernel_Consola;
 typedef enum
 {
     CE,
@@ -101,16 +108,6 @@ typedef enum
     YIELD,
     EXIT,
 } t_tipoInstruccion;
-
-typedef enum
-{
-    FIN,
-    OUT_OF_MEMORY,
-    E_SIGNAL,
-    E_WAIT
-} t_razonFinConsola;
-
-
 
 typedef struct
 {
