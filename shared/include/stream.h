@@ -38,13 +38,13 @@ void stream_recv_empty_buffer(int fromSocket);
  *
  * @example stream_send_buffer(socketModuloDestinatario, header, bufferSerializado);
  */
-void stream_send_buffer(int toSocket, t_buffer* buffer);
+void stream_send_buffer(int toSocket, uint8_t header, t_buffer* buffer);
 
 /**
  * @brief Envía solamente el header del buffer (sin payload)
  *
  * @example stream_send_empty_buffer(socketModuloDestinatario, header);
  */
-void stream_send_empty_buffer(int toSocket);
+void stream_send_empty_buffer(int toSocket, uint8_t header);
 
 #endif

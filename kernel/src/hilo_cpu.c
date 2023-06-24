@@ -155,9 +155,12 @@ void crear_hilo_cpu()
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
 				//Creo un t_segment y asigno id y tamaño
 				t_segmento *nuevo_segmento = malloc(sizeof(t_segmento));
+				
 				//Cada segmento tiene ID, BASE Y TAMAÑO
+				
 				//ID - El ID del segmento viene dado por parámetro
 				nuevo_segmento->id_segmento = motivoDevolucion->cant_int;
+				
 				//BASE - La base del segmento se la pregunto a memoria
 				//Creo el paquete y se lo envío a memoria con: instruccion, id, tamaño
 				crear_segmento(CREATE_SEGMENT, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
@@ -234,13 +237,13 @@ void crear_hilo_cpu()
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
 
 	t_buffer* respuesta_crear_segmento = buffer_create();
-	t_mensajesMemoria respuesta_memoria;
+	t_Kernel_Memoria respuesta_memoria;
 	int valor_esPosibleCompactar;
 
 	stream_recv_buffer(conexion_con_memoria, respuesta_crear_segmento);
 
 	//Respuesta de Memoria (OK, OUT_OF_MEMORY Ó NECESITO_COMPACTAR)
-	buffer_unpack(respuesta_crear_segmento, &respuesta_memoria, sizeof(t_mensajesMemoria));
+	buffer_unpack(respuesta_crear_segmento, &respuesta_memoria, sizeof(t_Kernel_Memoria));
 
 	switch (respuesta_memoria){
 		case OK: //Si puede crear el segmento, tengo que recibir la base del segmento asignado
@@ -277,12 +280,12 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 void esperar_respuesta_compactacion(){
 	
 	t_buffer* respuesta_memoria = buffer_create();
-	t_mensajesMemoria respuesta_compactacion;
+	t_Kernel_Memoria respuesta_compactacion;
 	
 	stream_recv_buffer(conexion_con_memoria, respuesta_memoria);
 
 	//Respuesta de Memoria (OK, OUT_OF_MEMORY Ó NECESITO_COMPACTAR)
-	buffer_unpack(respuesta_memoria, &respuesta_compactacion, sizeof(t_mensajesMemoria));
+	buffer_unpack(respuesta_memoria, &respuesta_compactacion, sizeof(t_Kernel_Memoria));
 
 	if(respuesta_compactacion != FIN_COMPACTACION)
 		log_error(logger, "Memoria no compactó correctamente");
@@ -292,15 +295,17 @@ void esperar_respuesta_compactacion(){
 
 void pedir_a_memoria_que_compacte(){
 	
-	t_buffer* empezar_compactacion = buffer_create();
-	t_mensajesMemoria mensaje = EMPEZA_A_COMPACTAR;
+	// t_buffer* empezar_compactacion = buffer_create();
+	// t_Kernel_Memoria mensaje = EMPEZA_A_COMPACTAR;
 
 	//Peticion a memoria
-	buffer_pack(empezar_compactacion, &mensaje, sizeof(t_mensajesMemoria));
+	// buffer_pack(empezar_compactacion, &mensaje, sizeof(t_Kernel_Memoria));
 
-	stream_send_buffer(conexion_con_memoria, empezar_compactacion);
+	// stream_send_buffer(conexion_con_memoria, EMPEZA_A_COMPACTAR, empezar_compactacion);
 
-	buffer_destroy(empezar_compactacion);
+	//buffer_destroy(empezar_compactacion);
+
+	stream_send_empty_buffer(conexion_con_memoria, EMPEZA_A_COMPACTAR);
 }
 
 void crear_segmento(t_tipoInstruccion instruccion, uint32_t id, uint32_t tamanio){
@@ -316,7 +321,7 @@ void crear_segmento(t_tipoInstruccion instruccion, uint32_t id, uint32_t tamanio
 	//Tamaño del segmento a crear
 	buffer_pack(crear_segmento, &tamanio, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_con_memoria, crear_segmento);
+	stream_send_buffer(conexion_con_memoria, INSTRUCCION, crear_segmento);
 
 	buffer_destroy(crear_segmento);
 }
@@ -331,7 +336,7 @@ void eliminar_segmento(t_instruccion instruccion, uint32_t id){
 	//ID del segmento a crear
 	buffer_pack(crear_segmento, &id, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_con_memoria, crear_segmento);
+	stream_send_buffer(conexion_con_memoria, INSTRUCCION, crear_segmento);
 
 	buffer_destroy(crear_segmento);
 }
@@ -359,10 +364,11 @@ void sleep_IO(t_datosIO *datosIO){
 void terminar_consola(t_razonFinConsola razon){
 	t_pcb *pcb = pcb_ejecutando_remove();
 
-	t_buffer *fin_consola = buffer_create();
-	buffer_pack(fin_consola, &razon, sizeof(t_razonFinConsola));
-	stream_send_buffer(pcb->contexto->socket, fin_consola);
-	buffer_destroy(fin_consola);
+	//t_buffer *fin_consola = buffer_create();
+	//buffer_pack(fin_consola, &razon, sizeof(t_razonFinConsola));
+	//stream_send_buffer(pcb->contexto->socket, FIN, fin_consola);
+	stream_send_empty_buffer(pcb->contexto->socket, razon);
+	//buffer_destroy(fin_consola);
 
 	log_error(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->contexto->pid, razonFinConsola[razon]);
 	

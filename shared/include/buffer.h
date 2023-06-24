@@ -7,13 +7,6 @@
 #include <string.h>
 #include <shared_utils.h>
 
-
-/*typedef struct {
-    uint32_t size;
-    void *stream;
-} t_buffer;*/
-
-
 /**
  * @brief Desempaqueta un string del buffer, leyendo y desempaquetando
  * previamente la longitud del string

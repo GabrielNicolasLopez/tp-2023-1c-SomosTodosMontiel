@@ -32,6 +32,26 @@ typedef struct
 
 typedef enum
 {
+    CE,
+    CYM
+} t_Kernel_CPU;
+
+typedef enum
+{
+    OK,
+    SIN_MEMORIA,
+    NECESITO_COMPACTAR,
+    EMPEZA_A_COMPACTAR,
+    FIN_COMPACTACION,
+    INSTRUCCION
+} t_Kernel_Memoria;
+
+/*typedef enum
+{
+} t_Kernel_FS;*/
+
+typedef enum
+{
 	MENSAJE,
 	PAQUETE,
 	NEW
@@ -88,14 +108,6 @@ typedef enum
     E_WAIT
 } t_razonFinConsola;
 
-typedef enum
-{
-    OK,
-    SIN_MEMORIA,
-    NECESITO_COMPACTAR,
-    EMPEZA_A_COMPACTAR,
-    FIN_COMPACTACION
-} t_mensajesMemoria;
 
 
 typedef struct

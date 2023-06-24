@@ -232,7 +232,7 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 
-	stream_send_buffer(cliente_fd_kernel, cym_a_enviar);
+	stream_send_buffer(cliente_fd_kernel, CYM, cym_a_enviar);
 	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
 
     buffer_destroy(cym_a_enviar);
@@ -241,6 +241,11 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
 	log_debug(logger, "Esperando ce de kernel");
+
+	t_Kernel_CPU header = stream_recv_header(cliente_fd_kernel);
+
+	if(header != CE)
+		log_error(logger, "CPU RECIBIO UN HEADER DIFERENTE A CE");
 
     t_buffer* ce_recibido = buffer_create();
 	t_contextoEjecucion* contextoEjecucion = malloc(sizeof(t_contextoEjecucion));

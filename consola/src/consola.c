@@ -83,7 +83,7 @@ int main(int argc, char** argv){
 	return EXIT_SUCCESS;
 }
 
-t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel){
+/*t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel){
 	t_buffer* razon_recibida = buffer_create();
 	t_razonFinConsola* razon_p = malloc(sizeof(t_razonFinConsola));
 	t_razonFinConsola razon;
@@ -99,6 +99,10 @@ t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel){
 	free(razon_p);
 
 	return razon;
+}*/
+
+t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel){
+	return stream_recv_header(conexionKernel);;
 }
 
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel){
