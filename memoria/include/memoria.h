@@ -20,7 +20,7 @@ char* IP_MEMORIA = "127.0.0.1";
 t_list* lista_de_segmentos ;// aca van los segmentos generales 
 
 t_segmento* segmento_0 ;//segemeto global va en todas las listas de segmentos
-
+t_list * lista_de_huecos;
 list_add(lista_de_segmentos,segmento_0);
 
 
@@ -64,9 +64,9 @@ typedef struct
 
 typedef struct 
 {
-    // me falta pensarlo 
-
-}huecos_libres;
+ uint32_t base;
+ u_int32_t tamanio;
+}t_hueco;
 
 
 

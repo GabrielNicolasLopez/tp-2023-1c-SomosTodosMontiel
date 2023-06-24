@@ -3,7 +3,7 @@
 
 
 
-t_segmento* crear_segmento(int id, int base, int tam);
+uint32_t comprobar_Creacion_de_Seg(t_segmento** tablaSegmentos, t_hueco** tablaHuecos,uint32_t id, uint32_t tam);
 void * eliminnar_segmento(t_segmento* segmento);
 
 
