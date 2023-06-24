@@ -2,7 +2,7 @@
 
 void crear_hilo_cpu()
 {
-	t_razonFinConsola razon;
+	t_Kernel_Consola razon;
 
 	// Me conecto a cpu
 	conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU, logger);
@@ -163,7 +163,7 @@ void crear_hilo_cpu()
 				
 				//BASE - La base del segmento se la pregunto a memoria
 				//Creo el paquete y se lo envío a memoria con: instruccion, id, tamaño
-				crear_segmento(CREATE_SEGMENT, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
+				crear_segmento(motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				
 				//Espero la respuesta de memoria y pueden pasar 3 cosas: OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
 				recibir_respuesta_create_segment(nuevo_segmento->base, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
@@ -171,30 +171,7 @@ void crear_hilo_cpu()
 				//TAMAÑO
 				nuevo_segmento->tamanio     = motivoDevolucion->cant_intB;
 
-
-
-				/*switch (respuesta){
-				case OK:
-					//leer un uint_32 desde el paquete
-					//Completo y asigno el segmento a la pcb
-					break;
-				case OUT_OF_MEMORY:
-					se_reenvia_el_contexto = false;
-					terminar_consola();
-					sem_post(&CPUVacia);
-					break;
-				case COMPACTACION:
-					if(se puede compactar)
-						avisar_a_memoria();
-
-					//esperar a terminar
-					recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
-					actualizar_las_tablas_de_las_pcb();
-					crear_segmento(CREATE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id, tamaño
-					//Devolver el contexto de ejecucion a CPU
-					break;
-				}*/
-
+				agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 				break;
 
 			/*case DELETE_SEGMENT:
@@ -237,20 +214,19 @@ void crear_hilo_cpu()
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
 
 	t_buffer* respuesta_crear_segmento = buffer_create();
-	t_Kernel_Memoria respuesta_memoria;
-	int valor_esPosibleCompactar;
+	
+	//int valor_esPosibleCompactar;
+
+	t_Kernel_Memoria respuesta_memoria = stream_recv_header(conexion_con_memoria);
 
 	stream_recv_buffer(conexion_con_memoria, respuesta_crear_segmento);
 
-	//Respuesta de Memoria (OK, OUT_OF_MEMORY Ó NECESITO_COMPACTAR)
-	buffer_unpack(respuesta_crear_segmento, &respuesta_memoria, sizeof(t_Kernel_Memoria));
-
 	switch (respuesta_memoria){
-		case OK: //Si puede crear el segmento, tengo que recibir la base del segmento asignado
+		case BASE: //Si puede crear el segmento, tengo que recibir la base del segmento asignado
 			buffer_unpack(respuesta_crear_segmento, &base_segmento, sizeof(uint32_t));
 			break;
-		case OUT_OF_MEMORY:
-			//Si no hay memoria no se reenviar la PCB. Se la finaliza y libera la CPU ya que no hay memoria.
+		case SIN_MEMORIA:
+			//Si no hay memoria no se reenvia la PCB. Se la finaliza y libera la CPU ya que no hay memoria.
 			se_reenvia_el_contexto = false;
 			terminar_consola(OUT_OF_MEMORY);
 			sem_post(&CPUVacia);
@@ -258,17 +234,25 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 		case NECESITO_COMPACTAR:
 			//Espero a que sea posible compactar
 			log_debug(logger, "Kernel está esperando para poder compactar");
-			//sem_wait(&esPosibleCompactar);
-			sem_getvalue(&esPosibleCompactar, &valor_esPosibleCompactar);
+
+
+			/*--------VERIFICAR QUE LO ESTÉ CONTROLANDO BIEN AL SEMAFORO--------*/
+			sem_wait(&esPosibleCompactar);
+			/*--------VERIFICAR QUE LO ESTÉ CONTROLANDO BIEN AL SEMAFORO--------*/
+
+
+			//sem_getvalue(&esPosibleCompactar, &valor_esPosibleCompactar);
 			//Si valor==1 significa que se completaron todos los F_READ y F_WRITE.
 			//El valor inicial del semáforo es 1. Cuando se empieza una instruccion se resta 1.
-			if(valor_esPosibleCompactar == 1)
-				pedir_a_memoria_que_compacte();
+			//if(valor_esPosibleCompactar == 1)
+
+
+			pedir_a_memoria_que_compacte();
 			log_debug(logger, "Compactación: <Se solicitó compactación / Esperando Fin de Operaciones de FS>");
 			esperar_respuesta_compactacion(CREATE_SEGMENT, id, tamanio);
 			log_debug(logger, "Se finalizó el proceso de compactación");
-			crear_segmento(CREATE_SEGMENT, id, tamanio);
-			recibir_respuesta_create_segment(base_segmento, NULL, NULL);
+			crear_segmento(id, tamanio);
+			recibir_respuesta_create_segment(base_segmento, -1, -1);
 		default:
 			log_error(logger, "Mensaje de memoria no valido en la creacion de un segmento");
 			break;
@@ -278,19 +262,12 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 }
 
 void esperar_respuesta_compactacion(){
-	
-	t_buffer* respuesta_memoria = buffer_create();
-	t_Kernel_Memoria respuesta_compactacion;
-	
-	stream_recv_buffer(conexion_con_memoria, respuesta_memoria);
 
-	//Respuesta de Memoria (OK, OUT_OF_MEMORY Ó NECESITO_COMPACTAR)
-	buffer_unpack(respuesta_memoria, &respuesta_compactacion, sizeof(t_Kernel_Memoria));
+	t_Kernel_Memoria respuesta_compactacion = stream_recv_header(conexion_con_memoria);
 
 	if(respuesta_compactacion != FIN_COMPACTACION)
 		log_error(logger, "Memoria no compactó correctamente");
 
-	buffer_destroy(respuesta_memoria);
 }
 
 void pedir_a_memoria_que_compacte(){
@@ -308,9 +285,10 @@ void pedir_a_memoria_que_compacte(){
 	stream_send_empty_buffer(conexion_con_memoria, EMPEZA_A_COMPACTAR);
 }
 
-void crear_segmento(t_tipoInstruccion instruccion, uint32_t id, uint32_t tamanio){
+void crear_segmento(uint32_t id, uint32_t tamanio){
 	
 	t_buffer* crear_segmento = buffer_create();
+	t_tipoInstruccion instruccion = CREATE_SEGMENT;
 
 	//ID del segmento a crear
 	buffer_pack(crear_segmento, &instruccion, sizeof(t_tipoInstruccion));
@@ -326,9 +304,10 @@ void crear_segmento(t_tipoInstruccion instruccion, uint32_t id, uint32_t tamanio
 	buffer_destroy(crear_segmento);
 }
 
-void eliminar_segmento(t_instruccion instruccion, uint32_t id){
+void eliminar_segmento(uint32_t id){
 	
 	t_buffer* crear_segmento = buffer_create();
+	t_tipoInstruccion instruccion = DELETE_SEGMENT;
 
 	//ID del segmento a crear
 	buffer_pack(crear_segmento, &instruccion, sizeof(t_instruccion));
@@ -361,11 +340,11 @@ void sleep_IO(t_datosIO *datosIO){
 	pasar_a_ready(datosIO->pcb);
 }
 
-void terminar_consola(t_razonFinConsola razon){
+void terminar_consola(t_Kernel_Consola razon){
 	t_pcb *pcb = pcb_ejecutando_remove();
 
 	//t_buffer *fin_consola = buffer_create();
-	//buffer_pack(fin_consola, &razon, sizeof(t_razonFinConsola));
+	//buffer_pack(fin_consola, &razon, sizeof(t_Kernel_Consola));
 	//stream_send_buffer(pcb->contexto->socket, FIN, fin_consola);
 	stream_send_empty_buffer(pcb->contexto->socket, razon);
 	//buffer_destroy(fin_consola);

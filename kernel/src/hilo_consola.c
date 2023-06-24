@@ -14,9 +14,6 @@ void crear_hilo_consola(){
 		
 		datos->instrucciones = recibir_instruciones_desde_consola(socketCliente);
 		datos->socket = socketCliente;
-		
-		if(!enviarMensaje(socketCliente, "Llegaron las instrucciones"))
-			log_error(logger, "Error al enviar el mensaje");
 
 		pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, (void*)datos);
 		pthread_detach(hilo_atender_consola);
@@ -32,7 +29,11 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 	t_instruccion* instruccionRecibida;
 	t_instrucciones* instruccionesRecibidas = malloc(sizeof(t_instrucciones));
 	instruccionesRecibidas->listaInstrucciones = list_create();
-	
+
+	t_Kernel_Consola header = stream_recv_header(cliente_fd);
+
+	if(header != INSTRUCCIONES)
+		log_error(logger, "El header que mando consola a kernel no es INSTRUCCIONES");	
 	
     t_buffer* bufferInstrucciones = buffer_create();
 
