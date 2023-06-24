@@ -23,7 +23,7 @@ typedef struct
     char *puerto;
 } t_consola_config;
 
-t_consola_config leerConfiguracion(t_log *logger);
+t_consola_config leerConfiguracion(t_config *config);
 void verificacionDeConfiguracion(int argc, t_log *logger);
 FILE *abrirArchivo(char *filename, t_log *logger);
 void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instrucciones, FILE* archivoInstrucciones);

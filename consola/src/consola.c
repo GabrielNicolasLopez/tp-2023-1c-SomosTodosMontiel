@@ -11,8 +11,11 @@ int main(int argc, char** argv){
 	//Verifico la correcta inicializacion de la consola
 	verificacionDeConfiguracion(argc, logger);
 
+	//Creo el config para leer IP y PUERTO
+	t_config* config = config_create(CONFIG_PATH);
+
 	//Leo la configuracion y la muestro
-	t_consola_config consola_config = leerConfiguracion(logger);
+	t_consola_config consola_config = leerConfiguracion(config);
 
 	//Abro el archivo de instrucciones para sacar las instrucciones
 	FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);
@@ -24,9 +27,6 @@ int main(int argc, char** argv){
 	
 	//Agrego las instrucciones del archivo a instructionsBuffer
 	agregarInstruccionesDesdeArchivo(instructionsBuffer, instrucciones, archivoInstrucciones);
-
-	//Creo el paquete con las instrucciones
-	//t_paquete *paqueteInstrucciones = crear_paquete_instrucciones(instrucciones);
 	
 	//Consola se conecta a kernel
 	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
@@ -37,19 +37,14 @@ int main(int argc, char** argv){
 	}
 	
 	log_debug(logger, "CONSOLA SE CONECTÓ A KERNEL.");
-
-	//log_info(logger, "CONSOLA-KERNEL");
-	//enviar_mensaje("HOLA SOY LA CONSOLA", conexionKernel);
 	
 	//Enviamos el paquete
-	//enviar_paquete(paqueteInstrucciones, conexionKernel);
 	enviar_instrucciones_a_kernel(instructionsBuffer, instrucciones, conexionKernel);
 
-	//Borramos el paquete
-	//eliminar_paquete(paqueteInstrucciones);
+	buffer_destroy(instructionsBuffer);
+
 	//Liberamos la memoria de las instrucciones
-	//limpiarInformacion(instrucciones);
-	liberar_instrucciones(instrucciones);
+	liberar_instrucciones(instrucciones); //REVISAR
 
 
 	log_info(logger, "INSTRUCCIONES ENVIADAS, ESPERANDO...");
@@ -69,32 +64,19 @@ int main(int argc, char** argv){
 		case E_SIGNAL:
 			log_error(logger,"Finalizando consola: Signal de un recurso no válido");
 		break;
+		default:
+			log_error(logger,"Finalizando consola: RAZON INVALIDA");
+		break;
 	}
 	
 	//Libero la conexion
 	liberar_conexion(conexionKernel);
+	//Destruyo el config
+	config_destroy(config);
 	//Destruyo el logger
 	log_destroy(logger);
 	return EXIT_SUCCESS;
 }
-
-/*t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel){
-	t_buffer* razon_recibida = buffer_create();
-	t_razonFinConsola* razon_p = malloc(sizeof(t_razonFinConsola));
-	t_razonFinConsola razon;
-
-	stream_recv_buffer(conexionKernel, razon_recibida);
-
-	buffer_unpack(razon_recibida, razon_p, sizeof(t_razonFinConsola));
-
-	buffer_destroy(razon_recibida);
-
-	razon = *razon_p;
-
-	free(razon_p);
-
-	return razon;
-}*/
 
 t_Kernel_Consola recibir_fin_desde_kernel(int conexionKernel){
 	return stream_recv_header(conexionKernel);;
@@ -104,37 +86,8 @@ void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones
 
     stream_send_buffer(conexionKernel, INSTRUCCIONES, instructionsBuffer);
 	log_error(logger, "Tamaño de las instrucciones enviadas a kernel %d", instructionsBuffer->size);
-    buffer_destroy(instructionsBuffer);
+    //buffer_destroy(instructionsBuffer);
 }	
-
-char *recibirMensaje(int socket){
-	size_t *tamanio_mensaje;
-	char *msj;
-
-	tamanio_mensaje = recibirStream(socket, sizeof(*tamanio_mensaje));
-
-	if (tamanio_mensaje ){
-		if ((msj = recibirStream(socket, *tamanio_mensaje))){
-			free(tamanio_mensaje);
-			return msj;
-		}
-		free(tamanio_mensaje);
-	}
-	return NULL;
-}
-
-void *recibirStream(int socket, size_t stream_size){
-	void *stream = malloc(stream_size);
-
-	if (recv(socket, stream, stream_size, 0) == -1)
-	{
-		free(stream);
-		stream = NULL;
-		exit(-1);
-	}
-
-	return stream;
-}
 
 void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instrucciones, FILE* archivoInstrucciones){
 	if (archivoInstrucciones == NULL){
@@ -145,17 +98,14 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 	const unsigned MAX_LENGTH = 256;
 	char buffer_renglon[MAX_LENGTH];
 
-	char **palabras = malloc(sizeof(buffer_renglon));
-	//uint32_t cadena;
-	unsigned char cadena_pack[16];
+	char* cadena_pack = malloc(sizeof(cadena_pack));
+	char** palabras   = malloc(sizeof(buffer_renglon));
 
 
 	while (fgets(buffer_renglon, 256, archivoInstrucciones) != NULL){ //Mientras pueda leer del archivo
 		//Una vez que lee una linea, crea una lista con cada una de las palabras que se generan luego haberlas separado por un espacio
-		//char **palabras = string_split(buffer, " ");
 		palabras = string_split(buffer_renglon, " ");
 
-		//t_instruccion *instruccion = malloc(sizeof(t_instruccion));
 		int i = 0;
 		while (palabras[i]!=NULL){
 			if(string_ends_with(palabras[i],"\n")){
@@ -163,10 +113,6 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 				palabras[i]= palabraSinSaltoLinea;
 			}
 			i++;
-		}
-
-		for(int i=0; i<16 ;i++){
-			cadena_pack[i]='\0';
 		}
 
 		if (strcmp(palabras[0], "SET") == 0){
@@ -335,6 +281,9 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 	}
 
 	fclose(archivoInstrucciones);
+	free(palabras[0]);
+	free(palabras[1]);
+	free(palabras[2]);
 	free(palabras);
 }
 
@@ -385,10 +334,7 @@ void verificacionDeConfiguracion(int argc, t_log* logger){
 		log_info(logger, "CONSOLA INICIALIZADA CORRECTAMENTE");
 }
 
-t_consola_config leerConfiguracion(t_log* logger){
-
-	//Creo el config para leer IP y PUERTO
-	t_config* config = config_create(CONFIG_PATH);
+t_consola_config leerConfiguracion(t_config* config){
 
 	//Creo el archivo config
 	t_consola_config configuracionConsola;
@@ -396,16 +342,15 @@ t_consola_config leerConfiguracion(t_log* logger){
 	//Leo los datos del config
 	configuracionConsola.ip = config_get_string_value(config, "IP_KERNEL");
 	configuracionConsola.puerto = config_get_string_value(config, "PUERTO_KERNEL");
-	
-	//Loggeo los datos leidos del config
-	//log_info(logger, "Me conecté a la IP: %s", configuracionConsola.ip);
-	//log_info(logger, "Me conecté al PUERTO: %s", configuracionConsola.puerto);
 
 	return configuracionConsola;
 }
 
-void liberar_instrucciones(t_instrucciones *intrucciones)
+void liberar_instrucciones(t_instrucciones *instrucciones)
 {
-	list_destroy_and_destroy_elements(intrucciones->listaInstrucciones, free);
-	free(intrucciones);
+	for(int i=0; i<list_size(instrucciones->listaInstrucciones);i++){
+		list_remove_and_destroy_element(instrucciones->listaInstrucciones, i, free);
+	}
+	list_destroy(instrucciones->listaInstrucciones);
+	free(instrucciones);
 }
