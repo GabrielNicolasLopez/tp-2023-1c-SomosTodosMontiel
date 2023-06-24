@@ -34,6 +34,6 @@ void *recibirStream(int socket, size_t stream_size);
 void liberar_instrucciones(t_instrucciones *intrucciones);
 t_instrucciones get_instrucciones(t_instrucciones* instrucciones);
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel);
-t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel);
+t_Kernel_Consola recibir_fin_desde_kernel(int conexionKernel);
 
 #endif

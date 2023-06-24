@@ -54,12 +54,7 @@ int main(int argc, char** argv){
 
 	log_info(logger, "INSTRUCCIONES ENVIADAS, ESPERANDO...");
 	
-	char *mensaje = recibirMensaje(conexionKernel);
-	log_info(logger, "Kernel dice: %s", mensaje);
-
-	log_info(logger, "Consola en espera de nuevos mensajes del kernel..");
-	
-	t_razonFinConsola razon = recibir_fin_desde_kernel(conexionKernel);
+	t_Kernel_Consola razon = recibir_fin_desde_kernel(conexionKernel);
 
 	switch(razon){
 		case FIN:
@@ -101,13 +96,13 @@ int main(int argc, char** argv){
 	return razon;
 }*/
 
-t_razonFinConsola recibir_fin_desde_kernel(int conexionKernel){
+t_Kernel_Consola recibir_fin_desde_kernel(int conexionKernel){
 	return stream_recv_header(conexionKernel);;
 }
 
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel){
 
-    stream_send_buffer(conexionKernel, instructionsBuffer);
+    stream_send_buffer(conexionKernel, INSTRUCCIONES, instructionsBuffer);
 	log_error(logger, "Tamaño de las instrucciones enviadas a kernel %d", instructionsBuffer->size);
     buffer_destroy(instructionsBuffer);
 }	
