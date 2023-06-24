@@ -7,6 +7,8 @@ int conexion_con_kernel;
 int conexion_con_memoria;
 int conexion_con_cpu;
 
+
+
 char* IP_MEMORIA = "127.0.0.1";
 
 pthread_t hiloFilesystem, hiloKernel, hiloCPU;

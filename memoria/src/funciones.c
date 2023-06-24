@@ -1,4 +1,3 @@
-#include <memoria.h>
 #include <funciones.h>
 
 
@@ -22,7 +21,7 @@ uint32_t comprobar_Creacion_de_Seg(t_segmento** tablaSegmentos, t_hueco** tablaH
     uint32_t direccionBase = 0;
     
     for (int i = 0; i < list_size(tablaHuecos); i++) {
-        if (verificarEspacioContiguo(tablaHuecos[i], tam)) {
+        if (/*verificarEspacioContiguo(tablaHuecos[i], tam*/1) {
             espacioContiguoDisponible = true;
             break;
         }

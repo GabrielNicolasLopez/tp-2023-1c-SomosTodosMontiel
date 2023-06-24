@@ -1,24 +1,11 @@
-#include <memoria.h>
-#include <funciones.h>
+#include <comunicacion.h>
 
 
-void iniciar_servidor_con_karnel()
-{
-    int server_fd =iniciar_servidor(IPPORT_EFSSERVER,configuracionMemoria -> puerto_escucha);
-    log_info(logger, "Servidor listo para recibir al kernel");
-
-    socketKernel= esperar_cliente(server_fd);
-    char *mensaje = recibirMensaje(socketKernel);
-
-	log_info(logger, "Mensaje de confirmacion del Kernel: %s\n", mensaje);
-   
-    t_tipoInstruccion instruccion;
-
-    while (1)
-    {
+void hilo_kernel()
+{ while (1){
     log_info(logger, "Estoy esperando paquete, soy memoria\n");
 	
-        uint8_t header = stream_recv_header(socketKernel);
+        uint8_t header = stream_recv_header(conexion_con_kernel);
 
         switch (header)
         {
@@ -54,7 +41,7 @@ void iniciar_servidor_con_karnel()
             list_remove_element(lista_de_segmentos,segmentoEncontrado);
 
             //devuelvo la lista nueva con el segemto elimado     
-            mandarLista();//Falta terminar esto 
+           // mandarLista(); Falta terminar esto 
             
             break;
      
@@ -94,7 +81,7 @@ t_segmento *recibirIDTam(uint32_t id, uint32_t tam){
 
     t_buffer* buffer = buffer_create();
 
-     stream_recv_buffer(socketKernel,buffer);
+     stream_recv_buffer(conexion_con_kernel,buffer);
 
     t_segmento *seg =malloc(sizeof(t_segmento));
 
@@ -132,7 +119,7 @@ void mandarLaBase(uint32_t baseMandar){
         //stream_send_buffer(socketKernel, &instruccion);
     }
 
-    stream_send_buffer(socketKernel, &instruccion, buffer);
+    stream_send_buffer(conexion_con_kernel, &instruccion, buffer);
     buffer_destroy(buffer);
 }
 
@@ -143,7 +130,7 @@ uint32_t recibirID(uint32_t id){
 
     uint32_t id_recibida;
 
-    stream_recv_buffer(socketKernel,buffer);
+    stream_recv_buffer(conexion_con_kernel,buffer);
 
     id_recibida=buffer_unpack(buffer,&id,sizeof(uint32_t));
     buffer_destroy(buffer);

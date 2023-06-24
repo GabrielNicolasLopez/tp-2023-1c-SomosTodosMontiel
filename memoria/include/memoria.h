@@ -15,6 +15,11 @@
 
 #define NUMBER_OF_ARGS_REQUIRED 2
 
+extern int conexion_con_kernel;
+extern int conexion_con_memoria;
+extern int conexion_con_cpu;
+
+extern pthread_t hiloFilesystem, hiloKernel, hiloCPU;
 
 //Variables globales de memoria
 t_list* lista_de_segmentos;
@@ -47,8 +52,8 @@ t_memoria_config* leerConfiguracion();
 t_memoria_config* configuracionMemoria;
 
 void crear_hilos_memoria();
-void iniciar_servidor_hacia_kernel();
-void iniciar_servidor_hacia_cpu();
-void iniciar_servidor_hacia_filesystem();
+void hilo_cpu();
+void hilo_filesystem();
+void hilo_kernel();
 
 #endif
