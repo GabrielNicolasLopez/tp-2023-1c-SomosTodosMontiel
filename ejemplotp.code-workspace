@@ -42,7 +42,8 @@
 			"consola_serializer.h": "c",
 			"stdlib.h": "c",
 			"configfs.h": "c",
-			"superbloque.h": "c"
+			"superbloque.h": "c",
+			"math.h": "c"
 		}
 	}
 }

@@ -18,7 +18,7 @@ void crear_hilo_consumidor()
         int tipo_inst = p_instruccion->tipo;
         if (tipo_inst == F_OPEN) {
             if (existe_archivo(p_instruccion->cadena)) {
-                t_lista_FCB_config* FCB;
+                t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
                 FCB->nombre_archivo = p_instruccion->cadena;
                 FCB->config = buscar_FCB(p_instruccion->cadena);
                 FCB->FCB_config = levantar_FCB(config);
@@ -30,7 +30,7 @@ void crear_hilo_consumidor()
             respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
         } else
         if (tipo_inst == F_CREATE) {
-            t_lista_FCB_config* FCB;
+            t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
             FCB->nombre_archivo = p_instruccion->cadena;
             FCB->config = crear_FCB(p_instruccion->cadena);
             FCB->FCB_config = levantar_FCB(config);

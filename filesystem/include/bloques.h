@@ -3,8 +3,8 @@
 
     #include "filesystem.h"
     
-    extern t_config* t_config_SupBloque;
-    extern t_superbloque_config* config_SupBloque;
+    extern struct stat stats_fd_bloques;
+    extern char* p_bloques;
 
     void crear_archivo_de_bloques();
     void levantar_bloques();

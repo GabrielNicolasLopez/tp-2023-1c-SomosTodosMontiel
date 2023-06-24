@@ -27,10 +27,12 @@
 
     t_config* buscar_FCB(char* archivo);
 
-    bool es_el_archivo(char* archivo, t_lista_FCB_config* FCB);
     t_lista_FCB_config* FCB_list_get(char* archivo);
     
 
     int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes);
+
+    uint32_t get_free_block();
+    uint32_t minimum(uint32_t x, uint32_t y);
 
 #endif

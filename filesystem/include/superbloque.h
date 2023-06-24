@@ -11,9 +11,8 @@
     } t_superbloque_config;
     
 
-    // BLOQUES
-    extern struct stat stats_fd_bloques;
-    extern char* p_bloques;
+    extern t_config* t_config_SupBloque;
+    extern t_superbloque_config* config_SupBloque;
 
 
 

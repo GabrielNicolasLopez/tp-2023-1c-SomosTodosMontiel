@@ -87,17 +87,15 @@ t_FCB_config* levantar_FCB(t_config* t_config_FCB)
     return config_FCB;
 }
 
-bool es_el_archivo(char* archivo, t_lista_FCB_config* FCB)
-{
-    if (strcmp(FCB->nombre_archivo, archivo) == 0) {
-        return true;
-    }
-    return false;
-}
-
 t_lista_FCB_config* FCB_list_get(char* archivo)
 {
-    return (t_lista_FCB_config*) list_find(l_FCBs_abiertos, archivo_corresponde_con_FCB(archivo));
+    for (int i = 0; i < list_size(l_FCBs_abiertos); i++)
+	{
+		t_lista_FCB_config *FCB = list_get(l_FCBs_abiertos, i);
+		if (strcmp(FCB->nombre_archivo, archivo) == 0)
+			return FCB;
+	}
+	return NULL;
 }
 
 int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
