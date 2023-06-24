@@ -29,5 +29,6 @@ sem_t multiprogramacion;
 sem_t CPUVacia;
 sem_t pasar_pcb_a_CPU;
 
-
 bool se_reenvia_el_contexto = false;
+
+t_segmento *segmento0;

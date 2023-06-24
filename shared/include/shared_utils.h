@@ -144,7 +144,6 @@ typedef struct
 	t_registroR *registroR;
 }t_registrosCPU;
 
-
 typedef struct
 {
     uint32_t prueba;
@@ -155,9 +154,7 @@ typedef struct
 	uint32_t socket;
     uint32_t pid;
 	uint32_t program_counter;
-    uint32_t tamanio_tabla;
 	t_instrucciones *instrucciones;
-	t_list *tablaDeSegmentos;
 	t_registrosCPU *registrosCPU;
 } t_contextoEjecucion;
 

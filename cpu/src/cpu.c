@@ -93,6 +93,10 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	//Cantidad entero = numero entero
 	buffer_pack(cym_a_enviar, &motivo.cant_int, sizeof(uint32_t));
 	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+
+	//Cantidad entero = numero entero
+	buffer_pack(cym_a_enviar, &motivo.cant_intB, sizeof(uint32_t));
+	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	
 	//Longitud de la cadena
 	buffer_pack(cym_a_enviar, &motivo.longitud_cadena, sizeof(uint32_t));
@@ -112,9 +116,6 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	//PC
 	buffer_pack(cym_a_enviar, &contextoEjecucion->program_counter, sizeof(uint32_t));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
-	//Tamaño de tabla
-	buffer_pack(cym_a_enviar, &contextoEjecucion->tamanio_tabla, sizeof(uint32_t));
 	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 	//Instrucciones
@@ -226,6 +227,11 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 		}
 	}
 
+	//Registros C, E y R
+	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
+
 	stream_send_buffer(cliente_fd_kernel, cym_a_enviar);
 	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
 
@@ -238,14 +244,14 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
     t_buffer* ce_recibido = buffer_create();
 	t_contextoEjecucion* contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
-	t_instrucciones *inst = malloc(sizeof(t_instrucciones));
+	t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
 	
 	t_registrosCPU *registros = malloc(sizeof(t_registrosCPU));
 	t_registroC *registroC    = malloc(sizeof(t_registroC));
 	t_registroE *registroE    = malloc(sizeof(t_registroE));
 	t_registroR *registroR    = malloc(sizeof(t_registroR));
 	
-	contextoEjecucion->instrucciones = inst;
+	contextoEjecucion->instrucciones = instrucciones;
 	contextoEjecucion->instrucciones->listaInstrucciones = list_create();
 	contextoEjecucion->registrosCPU = registros;
 	contextoEjecucion->registrosCPU->registroC = registroC;
@@ -253,7 +259,7 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	contextoEjecucion->registrosCPU->registroR = registroR;
 
     stream_recv_buffer(cliente_fd_kernel, ce_recibido);
-	log_error(logger, "Tamaño del CE recibido de kernel %d", ce_recibido->size);
+	//log_error(logger, "Tamaño del CE recibido de kernel %d", ce_recibido->size);
 
 	//Socket
 	buffer_unpack(ce_recibido, &contextoEjecucion->socket, sizeof(uint32_t));
@@ -266,11 +272,6 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	//PC
 	buffer_unpack(ce_recibido, &contextoEjecucion->program_counter, sizeof(uint32_t));
 	//log_debug(logger, "program_counter: %d", contextoEjecucion->program_counter);
-	
-	//Tamaño de tabla
-	buffer_unpack(ce_recibido, &contextoEjecucion->tamanio_tabla, sizeof(uint32_t));
-	//log_debug(logger, "tamanio_tabla: %d", contextoEjecucion->tamanio_tabla);
-
 	
 	t_tipoInstruccion instruccion;
 	t_instruccion* instruccionRecibida;
@@ -402,8 +403,16 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	cantidad_de_instrucciones++;
 	//Asignamos la cantidad de instrucciones
 	contextoEjecucion->instrucciones->cantidadInstrucciones = cantidad_de_instrucciones;
-
 	log_debug(logger, "cant inst recibidas: %d", contextoEjecucion->instrucciones->cantidadInstrucciones);
+
+	//Registros
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
+
+	log_debug(logger, "%.4s", contextoEjecucion->registrosCPU->registroC->ax);
+	log_debug(logger, "%.4s", contextoEjecucion->registrosCPU->registroC->dx);
+
 
     buffer_destroy(ce_recibido);
 

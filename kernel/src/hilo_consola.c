@@ -178,32 +178,83 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 void crear_pcb(void *datos){
 	t_datosCrearPCB *datosPCB = (t_datosCrearPCB *)datos;
 	
-	t_pcb *pcb 					   = malloc(sizeof(t_pcb));
-	t_contextoEjecucion *contexto  = malloc(sizeof(t_contextoEjecucion));
-	t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
+	t_pcb *pcb 					           = malloc(sizeof(t_pcb));
+	pcb->contexto                          = malloc(sizeof(t_contextoEjecucion));
+	pcb->contexto->instrucciones           = malloc(sizeof(t_instrucciones));
+	pcb->contexto->registrosCPU            = malloc(sizeof(t_registrosCPU));
+	pcb->contexto->registrosCPU->registroC = malloc(sizeof(t_registroC));
+	pcb->contexto->registrosCPU->registroE = malloc(sizeof(t_registroE));
+	pcb->contexto->registrosCPU->registroR = malloc(sizeof(t_registroR));
 
-	pcb->contexto = contexto;
-	pcb->contexto->instrucciones = instrucciones;
-
+	//Primero relleno los datos del contexto de ejecucion
+	//PID
 	pthread_mutex_lock(&PID);
 	pcb->contexto->pid              = ++PID_PCB;
 	pthread_mutex_unlock(&PID);
+	//Socket
 	pcb->contexto->socket           = datosPCB->socket;
+	//PC
 	pcb->contexto->program_counter  = 0;
 
+	//Instrucciones
 	pcb->contexto->instrucciones->cantidadInstrucciones = datosPCB->instrucciones->cantidadInstrucciones;
-	pcb->contexto->instrucciones->listaInstrucciones = list_create();
-	pcb->contexto->instrucciones->listaInstrucciones = list_duplicate(datosPCB->instrucciones->listaInstrucciones);
+	pcb->contexto->instrucciones->listaInstrucciones    = list_create();
+	pcb->contexto->instrucciones->listaInstrucciones    = list_duplicate(datosPCB->instrucciones->listaInstrucciones);
 	
-	pcb->contexto->tablaDeSegmentos = list_create();
-	//agregar_segmento_a_pcb(); //agregar el segmento 0 recibido de memoria
-	//pcb-> registrosCPU;
-	pcb->estimacion_anterior       = 10000;
-	pcb->real_anterior             = 0;
-    //pcb->llegadaReady            = time(NULL);
-	pcb->taap                      = list_create();
+	//Inicializar registros en \0
+	inicializar_registro_cpu(pcb);
+	
+	//Estimacion anterior
+	pcb->estimacion_anterior = configuracionKernel->ESTIMACION_INICIAL;
+	//Real anterior
+	pcb->real_anterior       = 0;
 
+	//Tabla de segmentos del proceso
+	//crear_tabla_de_segmentos(pcb);
+	//Agrego el segmento 0 al proceso
+	//agregar_segmento_0_a_pcb(pcb); 
+
+	//Tabla de archivos abiertos del proceso
+	//crear_tabla_de_archivos_proceso(pcb);
+
+	//Una vez inicializada la PCB, la pasamos a NEW
 	pasar_a_new(pcb);
 
+	//Sumamos uno a la cantidad de PCB's en new
 	sem_post(&CantPCBNew);
+}
+
+void crear_tabla_de_archivos_proceso(t_pcb *pcb){
+	pcb->taap = list_create();
+}
+
+void agregar_segmento_0_a_pcb(t_pcb *pcb){
+	agregar_segmento(pcb, segmento0);
+}
+
+void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar){
+	list_add(pcb->tablaDeSegmentos, segmento_a_agregar);
+}
+
+void crear_tabla_de_segmentos(t_pcb *pcb){
+	pcb->tablaDeSegmentos = list_create();
+}
+
+void inicializar_registro_cpu(t_pcb *pcb){
+	char* valorInicial = "\0\0\0\0";
+	//Resgitros C
+	strcpy(pcb->contexto->registrosCPU->registroC->ax, "hola");
+	strcpy(pcb->contexto->registrosCPU->registroC->bx, valorInicial);
+	strcpy(pcb->contexto->registrosCPU->registroC->cx, valorInicial);
+	strcpy(pcb->contexto->registrosCPU->registroC->dx, valorInicial);
+	//Resgitros E
+	strcpy(pcb->contexto->registrosCPU->registroE->eax, valorInicial);
+	strcpy(pcb->contexto->registrosCPU->registroE->ebx, valorInicial);
+	strcpy(pcb->contexto->registrosCPU->registroE->ecx, valorInicial);
+	strcpy(pcb->contexto->registrosCPU->registroE->edx, valorInicial);
+	//Resgitros R
+	strcpy(pcb->contexto->registrosCPU->registroR->rax, valorInicial);
+	strcpy(pcb->contexto->registrosCPU->registroR->rbx, valorInicial);
+	strcpy(pcb->contexto->registrosCPU->registroR->rcx, valorInicial);
+	strcpy(pcb->contexto->registrosCPU->registroR->rdx, valorInicial);
 }

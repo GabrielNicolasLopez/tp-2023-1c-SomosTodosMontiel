@@ -14,9 +14,6 @@ void enviar_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cp
 	// PC
 	buffer_pack(ce_a_enviar, &contextoEjecucion->program_counter, sizeof(uint32_t));
 	// log_error(logger, "TAMAÑO DEL BUFFER %d", ce_a_enviar->size);
-	// Tamaño de tabla
-	buffer_pack(ce_a_enviar, &contextoEjecucion->tamanio_tabla, sizeof(uint32_t));
-	// log_error(logger, "TAMAÑO DEL BUFFER %d", ce_a_enviar->size);
 
 	// Instrucciones
 	t_instruccion *instruccion = malloc(sizeof(t_instruccion));
@@ -116,21 +113,17 @@ void enviar_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cp
 			buffer_pack(ce_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
 			// log_error(logger, "TAMAÑO DEL BUFFER %d", ce_a_enviar->size);
 		}
-		else if (instruccion->tipo == YIELD)
-		{
-			// log_error(logger, "TAMAÑO DEL BUFFER %d", ce_a_enviar->size);
-		}
-		else if (instruccion->tipo == EXIT)
-		{
-			// log_error(logger, "TAMAÑO DEL BUFFER %d", ce_a_enviar->size);
-		}
+		//Para los casos EXIT y YIELD no se envían mas parámetros y por eso no existe
+		//un if para dichos casos
 	}
 
-	// Tabla de segmentos
-	// pack de tabla de segmentos coming soon
+	//Registros C, E y R
+	buffer_pack(ce_a_enviar, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	buffer_pack(ce_a_enviar, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	buffer_pack(ce_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 
 	stream_send_buffer(conexion_con_cpu, ce_a_enviar);
-	//log_error(logger, "Tamaño del CE enviado a CPU %d", ce_a_enviar->size);
+	log_error(logger, "Tamaño del CE enviado a CPU %d", ce_a_enviar->size);
 
 	buffer_destroy(ce_a_enviar);
 }

@@ -6,19 +6,14 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	t_buffer *cym_recibido = buffer_create();
 
 	t_contextoEjecucion *contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
-	t_instrucciones *inst = malloc(sizeof(t_instrucciones));
+	contextoEjecucion->instrucciones = malloc(sizeof(t_instrucciones));
 
-	/*t_registrosCPU *registros = malloc(sizeof(t_registrosCPU));
-	t_registroC *registroC    = malloc(sizeof(t_registroC));
-	t_registroE *registroE    = malloc(sizeof(t_registroE));
-	t_registroR *registroR    = malloc(sizeof(t_registroR));*/
+	contextoEjecucion->registrosCPU            = malloc(sizeof(t_registrosCPU));
+	contextoEjecucion->registrosCPU->registroC = malloc(sizeof(t_registroC));
+	contextoEjecucion->registrosCPU->registroE = malloc(sizeof(t_registroE));
+	contextoEjecucion->registrosCPU->registroR = malloc(sizeof(t_registroR));
 
-	contextoEjecucion->instrucciones = inst;
 	contextoEjecucion->instrucciones->listaInstrucciones = list_create();
-	/*contextoEjecucion->registrosCPU = registros;
-	contextoEjecucion->registrosCPU->registroC = registroC;
-	contextoEjecucion->registrosCPU->registroE = registroE;
-	contextoEjecucion->registrosCPU->registroR = registroR;*/
 
 	motivoDevolucion->contextoEjecucion = contextoEjecucion;
 
@@ -31,6 +26,10 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 
 	// Cantidad entero = numero entero
 	buffer_unpack(cym_recibido, &motivoDevolucion->cant_int, sizeof(uint32_t));
+	// log_error(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
+
+	// Cantidad entero = numero entero
+	buffer_unpack(cym_recibido, &motivoDevolucion->cant_intB, sizeof(uint32_t));
 	// log_error(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
 
 	// Longitud de la cadena
@@ -54,10 +53,6 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	// PC
 	buffer_unpack(cym_recibido, &contextoEjecucion->program_counter, sizeof(uint32_t));
 	// log_debug(logger, "program_counter: %d", contextoEjecucion->program_counter);
-
-	// Tamaño de tabla
-	buffer_unpack(cym_recibido, &contextoEjecucion->tamanio_tabla, sizeof(uint32_t));
-	// log_debug(logger, "tamanio_tabla: %d", contextoEjecucion->tamanio_tabla);
 
 	t_tipoInstruccion instruccion;
 	t_instruccion *instruccionRecibida;
@@ -204,6 +199,11 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	cantidad_de_instrucciones++;
 	// Asignamos la cantidad de instrucciones
 	contextoEjecucion->instrucciones->cantidadInstrucciones = cantidad_de_instrucciones;
+
+	//Registros
+	buffer_unpack(cym_recibido, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	buffer_unpack(cym_recibido, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	buffer_unpack(cym_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 
 	buffer_destroy(cym_recibido);
 }

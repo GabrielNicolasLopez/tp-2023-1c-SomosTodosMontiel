@@ -43,7 +43,6 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		// 2 PARAMETROS
 		case SET: 	// SET (Registro, Valor): 
 					// Asigna al registro el valor pasado como parámetro
-			log_info(logger, "entre");
 			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %s",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],

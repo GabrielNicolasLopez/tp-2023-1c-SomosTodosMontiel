@@ -43,13 +43,14 @@ typedef struct
 
 typedef struct
 {
-	float estimacionProxRafaga;
-	struct timespec llegadaReady;
-	t_list *taap; //Tabla de Archivos Abiertos del Proceso
-	//Agregados de la consigna
 	t_contextoEjecucion* contexto;
+	//float estimacionProxRafaga;
+	struct timespec llegadaReady;
 	double estimacion_anterior;
 	double real_anterior;
+	t_list *tablaDeSegmentos;
+	uint32_t tamanio_tabla;
+	t_list *taap; //Tabla de Archivos Abiertos del Proceso
 } t_pcb;
 
 typedef struct
@@ -134,7 +135,7 @@ void pedir_a_memoria_que_compacte();
 
 void actualizar_procesos_bloqueados(char *nombre_recurso);
 void crear_segmento(t_tipoInstruccion instruccion, uint32_t id, uint32_t tamanio);
-void recibir_respuesta_create_segment(uint32_t base_segmento);
+void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio);
 
 
 
@@ -181,5 +182,7 @@ extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];
 
 extern bool se_reenvia_el_contexto;
+
+extern t_segmento *segmento0;
 
 #endif
