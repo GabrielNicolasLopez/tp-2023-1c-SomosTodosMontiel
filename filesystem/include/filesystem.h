@@ -32,22 +32,6 @@
     #define LOG_PATH "./cfg/filesystemPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
     #define MODULE_NAME "Filesystem"
 
-    typedef struct
-    {
-        char* NOMBRE_ARCHIVO;
-        uint32_t TAMANIO_ARCHIVO;
-        uint32_t PUNTERO_DIRECTO;
-        uint32_t PUNTERO_INDIRECTO;
-
-    } t_FCB_config ;
-
-    typedef struct
-    {
-        char* nombre_archivo;
-        t_config* config;
-        t_FCB_config* FCB_config;
-    } t_lista_FCB_config;
-
     // VARIABLES GLOBALES
     extern t_list* lista_inst;
     extern t_list* l_FCBs_abiertos;

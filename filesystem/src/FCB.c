@@ -118,7 +118,6 @@ int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
         // TAMAÑO MAXIMO REAL DEL ARCHIVO
         uint32_t tam_max_arch = minimum(tam_bloque * (1 + 1 * cant_punt_x_bloque), tam_bloque * config_SupBloque->BLOCK_COUNT);
 
-
     // CANTIDAD DE BLOQUES YA OCUPADOS
     uint32_t bloques_ya_ocupados = ceil((double) tam_ant_arch / tam_bloque);
     // CANTIDAD DE BLOQUES TOTALES A OCUPAR
