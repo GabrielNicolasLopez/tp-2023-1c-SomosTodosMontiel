@@ -23,7 +23,8 @@ void crear_hilo_consumidor()
                 FCB->config = buscar_FCB(p_instruccion->cadena);
                 FCB->FCB_config = levantar_FCB(config);
                 list_add(l_FCBs_abiertos, (void*) FCB);
-
+                
+                log_info(logger, "Abrir Archivo: <%s>", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_OK, p_instruccion);
             }
             respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
@@ -35,12 +36,23 @@ void crear_hilo_consumidor()
             FCB->FCB_config = levantar_FCB(config);
             list_add(l_FCBs_abiertos, (void*) FCB);
 
+            log_info(logger, "Crear Archivo: <%s>", p_instruccion->cadena);
             respuesta_a_kernel(FS_CREATE_OK, p_instruccion);
         } else
         if (tipo_inst == F_TRUNCATE) {
+            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
+
+            uint32_t tamanio_anterior = FCB->FCB_config->TAMANIO_ARCHIVO;
+            uint32_t tamanio_nuevo = p_instruccion->paramIntA;
             
+            if (tamanio_nuevo > tamanio_anterior) {
+                // Asignar bloques: 
+                asignar_bloques(FCB, p_instruccion->paramIntA);
+            } else {
+                // Liberar bloques:
+                
+            }
             
-            if (p_instruccion->paramIntA > p_instruccion->cadena);
         } else
         if (tipo_inst == F_READ) {
             

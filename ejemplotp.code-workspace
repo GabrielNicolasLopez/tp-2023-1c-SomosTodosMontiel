@@ -46,7 +46,9 @@
 			"estructuras.h": "c",
 			"fcntl.h": "c",
 			"stat.h": "c",
-			"types.h": "c"
+			"types.h": "c",
+			"hilo_productor.h": "c",
+			"bitarray.h": "c"
 		}
 	}
 }

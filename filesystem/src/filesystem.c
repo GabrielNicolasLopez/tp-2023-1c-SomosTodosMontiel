@@ -57,7 +57,7 @@ int main(int argc, char ** argv){
 void iniciar_listas_y_sem()
 {
     lista_inst = list_create();
-    FCBs_abiertos = list_create();
+    l_FCBs_abiertos = list_create();
 
 
     pthread_mutex_init(&mutex_lista, NULL);
@@ -67,7 +67,7 @@ void iniciar_listas_y_sem()
 void listas_y_sem_destroy()
 {
     list_destroy(lista_inst);
-    list_destroy(FCBs_abiertos);
+    list_destroy(l_FCBs_abiertos);
 
     pthread_mutex_destroy(&mutex_lista);
     sem_destroy(&cant_inst);
