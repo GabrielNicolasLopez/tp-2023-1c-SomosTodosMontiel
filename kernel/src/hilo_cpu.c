@@ -14,7 +14,7 @@ void crear_hilo_cpu()
 	}
 
 	stream_send_empty_buffer(conexion_con_cpu, HANDSHAKE_kernel);
-    uint8_t cpuResponse = stream_recv_header(conexion_con_cpu);
+    t_handshake cpuResponse = stream_recv_header(conexion_con_cpu);
 
     if (cpuResponse != HANDSHAKE_ok_continue)
 	{
@@ -80,25 +80,31 @@ void crear_hilo_cpu()
 				break;
 
 			case F_OPEN:
+				//enviar_fopen_a_fs(motivoDevolucion);
 				break;
 
 			case F_CLOSE:
+				//enviar_fclose_a_fs();
 				break;
 
 			case F_SEEK:
+				//enviar_fseek_a_fs();
 				break;
 
 			case F_READ:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
 				sem_wait(&esPosibleCompactar);
+				//enviar_fread_a_fs();
 				break;
 
 			case F_WRITE:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
 				sem_wait(&esPosibleCompactar);
+				//enviar_fwrite_a_fs();
 				break;
 
 			case F_TRUNCATE:
+				//enviar_ftruncate_a_fs();
 				break;
 
 			case WAIT:
@@ -221,6 +227,21 @@ void crear_hilo_cpu()
 			}
 	}
 }
+
+/*void enviar_fopen_a_fs(t_motivoDevolucion *motivoDevolucion){
+
+	t_buffer* buffer_fopen = buffer_create();
+
+	//Tamaño de la cadena
+	buffer_pack(buffer_fopen, motivoDevolucion->longitud_cadena, sizeof(uint32_t));
+    //Cadena
+    buffer_pack(buffer_fopen, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+
+	stream_send_buffer(conexion_con_memoria, INSTRUCCION, crear_segmento);
+
+	buffer_destroy(crear_segmento);
+
+}*/
 
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
 

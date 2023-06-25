@@ -3,7 +3,7 @@
 void crear_hilo_consola(){
 	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA);
 	log_info(logger, "Kernel listo para recibir clientes consola");
-	uint8_t handshake;
+	t_handshake handshake;
 	while (1){
 		pthread_t hilo_atender_consola;
 		int socketCliente = esperar_cliente(server_fd);
@@ -12,7 +12,7 @@ void crear_hilo_consola(){
 			log_info(logger, "Se envia handshake ok continue a consola");
 			stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
 
-			log_debug(logger, "KERNEL SE CONECTO CON UNA CONSOLA");
+			log_debug(logger, "KERNEL SE CONECTO CON UNA CONSOLA");			
 			
 			t_datosCrearPCB *datos = malloc(sizeof(t_datosCrearPCB));
 			t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
@@ -251,7 +251,7 @@ void crear_tabla_de_segmentos(t_pcb *pcb){
 void inicializar_registro_cpu(t_pcb *pcb){
 	char* valorInicial = "\0\0\0\0";
 	//Resgitros C
-	strcpy(pcb->contexto->registrosCPU->registroC->ax, "hola");
+	strcpy(pcb->contexto->registrosCPU->registroC->ax, valorInicial);
 	strcpy(pcb->contexto->registrosCPU->registroC->bx, valorInicial);
 	strcpy(pcb->contexto->registrosCPU->registroC->cx, valorInicial);
 	strcpy(pcb->contexto->registrosCPU->registroC->dx, valorInicial);

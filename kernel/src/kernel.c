@@ -77,10 +77,11 @@ void crear_hilos_kernel(){
 	//Hilos de modulos
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
 	pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
-	pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
+	//pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
 	pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
+	
 	pthread_detach(hiloCPU);
-	pthread_detach(hiloFilesystem);
+	//pthread_detach(hiloFilesystem);
 	pthread_detach(hiloMemoria);
 
 	//Hilos de planificadores

@@ -8,6 +8,7 @@ int PID_PCB = -1;
 
 int conexion_con_memoria;
 int conexion_con_cpu;
+int conexion_con_fs;
 
 t_list *LISTA_NEW;
 t_list *LISTA_READY;

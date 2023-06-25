@@ -13,6 +13,7 @@
 
 extern int conexion_con_memoria;
 extern int conexion_con_cpu;
+extern int conexion_con_fs;
 
 typedef struct
 {
@@ -132,10 +133,18 @@ void pedir_a_memoria_que_compacte();
 
 void actualizar_procesos_bloqueados(char *nombre_recurso);
 
+void esperar_respuesta_compactacion();
+
 //---------------------------------MEMORIA---------------------------------
+void crear_tabla_de_segmentos(t_pcb *pcb);
 void crear_segmento(uint32_t id, uint32_t tamanio);
+void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar);
 void eliminar_segmento(uint32_t id);
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio);
+
+
+
+void inicializar_registro_cpu(t_pcb *pcb);
 
 
 

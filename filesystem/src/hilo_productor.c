@@ -5,9 +5,9 @@ void crear_hilo_productor()
     t_instruccion* p_instruccion;
     while(1){
         // REVISO SI HAY QUE FINALIZAR
-        uint8_t header = stream_recv_header(socketKernel);
+        t_handshake header = stream_recv_header(socketKernel);
         
-        if ( header == (uint8_t) FS_FINALIZAR) {
+        if ( header == (t_handshake) FS_FINALIZAR) {
             log_info(logger, "FS debe finalizar");
             // LE AVISO A HILO_CONSUMIDOR
             pthread_mutex_lock(&mutex_lista);
@@ -18,7 +18,7 @@ void crear_hilo_productor()
             break;
         }
         
-        if ( header != (uint8_t) FS_INSTRUCCION) {
+        if ( header != (t_handshake) FS_INSTRUCCION) {
           exit(-1);
         }
 

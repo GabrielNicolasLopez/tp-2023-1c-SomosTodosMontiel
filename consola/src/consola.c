@@ -9,7 +9,7 @@ int main(int argc, char** argv){
 	log_info(logger, "INICIANDO CONSOLA...");
 
 	//Verifico la correcta inicializacion de la consola
-	verificacionDeConfiguracion(argc, logger);
+	verificacionDeConfiguracion(argc);
 
 	//Creo el config para leer IP y PUERTO
 	t_config* config = config_create(CONFIG_PATH);
@@ -17,8 +17,30 @@ int main(int argc, char** argv){
 	//Leo la configuracion y la muestro
 	t_consola_config consola_config = leerConfiguracion(config);
 
+	//Consola se conecta a kernel
+	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto);
+
+	if(conexionKernel == -1){
+		log_error(logger, "CONSOLA NO SE CONECTÓ A KERNEL. FINALIZANDO CONSOLA...");
+		exit(1);
+	}
+
+	log_debug(logger, "CONSOLA SE CONECTÓ A KERNEL.");
+
+    stream_send_empty_buffer(conexionKernel, HANDSHAKE_consola);
+	log_debug(logger, "CONSOLA ENVIO HANDSHAKE A KERNEL.");
+    t_handshake kernelResponse = stream_recv_header(conexionKernel);
+
+    if (kernelResponse != HANDSHAKE_ok_continue) {
+        log_error(logger, "Error al intentar establecer Handshake inicial con módulo Kernel");
+        //consola_destroy(consola_config, logger);
+        exit(1);
+    }
+
+	log_debug(logger, "CONSOLA HIZO HANDSHAKE CON KERNEL.");
+
 	//Abro el archivo de instrucciones para sacar las instrucciones
-	FILE *archivoInstrucciones = abrirArchivo(argv[2], logger);
+	FILE *archivoInstrucciones = abrirArchivo(argv[2]);
 
 	t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
 	instrucciones->listaInstrucciones = list_create();
@@ -29,7 +51,7 @@ int main(int argc, char** argv){
 	agregarInstruccionesDesdeArchivo(instructionsBuffer, instrucciones, archivoInstrucciones);
 	
 	//Consola se conecta a kernel
-	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto, logger);
+	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto);
 
 	if(conexionKernel == -1){
 		log_error(logger, "CONSOLA NO SE CONECTÓ A KERNEL. FINALIZANDO CONSOLA...");
@@ -72,7 +94,7 @@ int main(int argc, char** argv){
 	//Libero la conexion
 	liberar_conexion(conexionKernel);
 	//Destruyo el config
-	config_destroy(config);
+	//config_destroy(config);
 	//Destruyo el logger
 	log_destroy(logger);
 	return EXIT_SUCCESS;
@@ -316,7 +338,7 @@ t_registro devolverRegistro(char *registro){
 	return -1;
 }
 
-FILE *abrirArchivo(char *nombreArchivo, t_log* logger){
+FILE *abrirArchivo(char *nombreArchivo){
 	if (!nombreArchivo){ //Probar
 		log_error(logger, "NOMBRE DE ARCHIVO ERRONEO");
 		exit(1);
@@ -324,7 +346,7 @@ FILE *abrirArchivo(char *nombreArchivo, t_log* logger){
 	return fopen(nombreArchivo, "r");
 }
 
-void verificacionDeConfiguracion(int argc, t_log* logger){
+void verificacionDeConfiguracion(int argc){
 	log_info(logger, "Cantidad de parametros: %d", argc);
 	if (argc != 3){ //.c, config, pseudocodigo
 		log_error(logger, "CANTIDAD DE PARAMETROS INCORRECTA");
@@ -340,7 +362,7 @@ t_consola_config leerConfiguracion(t_config* config){
 	t_consola_config configuracionConsola;
 
 	//Leo los datos del config
-	configuracionConsola.ip = config_get_string_value(config, "IP_KERNEL");
+	configuracionConsola.ip     = config_get_string_value(config, "IP_KERNEL");
 	configuracionConsola.puerto = config_get_string_value(config, "PUERTO_KERNEL");
 
 	return configuracionConsola;
