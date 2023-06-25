@@ -81,6 +81,24 @@ void crear_hilo_cpu()
 
 			case F_OPEN:
 				//enviar_fopen_a_fs(motivoDevolucion);
+				/*char* nombreArchivo = motivoDevolucion->cadena; //suponiendo que aqui se encuentra el nombre del archivo
+				if(existeEnTGAA(nombreArchivo)){
+					t_entradaTAAP *entradaTAAP = malloc(t_entradaTAAP);
+					t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
+					entradaTAAP->nombreArchivo = entradaTGAA->nombreArchivo;
+					entradaTAAP->inicioDelArchivo = entradaTGAA->inicioDelArchivo;
+					agregarEnTAAP(entradaTAAP);
+				}else{
+					t_buffer* buffer = buffer_create();
+					uint32_t lognitudNombreArchivo = sizeof(nombreArchivo);
+					//habria que pasarle minimamente el pid o  el contexto para que luego en el hilo_fs se pueda buscar y actualizar
+					// LONGITUD_ARCHIVO
+					buffer_pack(buffer, *lognitudNombreArchivo, uint32_t);
+					// CADENA_ARCHIVO
+					buffer_pack(buffer, *nombreArchivo, sizeof(nombreArchivo));
+					stream_send_buffer(socketFS, HEADER_existe_archivo, existe_archivo);
+					buffer_destroy(existeArchivo);
+				}*/
 				break;
 
 			case F_CLOSE:
@@ -401,4 +419,37 @@ t_pcb *pcb_ejecutando_remove(){
 	list_remove(LISTA_EXEC, 0);			  // Elimino la pcb de la lista
 	pthread_mutex_unlock(&listaExec);
 	return pcb;
+}
+
+
+bool existeEnTGAA(char *archivo)
+{
+	for (int i = 0; i < list_size(LISTA_TGAA); i++)
+	{
+		t_entradaTGAA *entradaTGAA = list_get(LISTA_TGAA, i);
+		if (strcmp(entradaTGAA->nombre, nombre_recurso) == 0)
+			return true;
+	}
+	return false;
+}    
+
+t_entradaTGAA* devolverEntradaTGAA(char *archivo)
+{
+	int posicion;
+	for (int i = 0; i < string_array_size(LISTA_TGAA); i++)
+	{
+		if (strcmp(LISTA_TGAA, archivo) == 0)
+			posicion = i;
+	}
+
+	t_entradaTGAA *entradaTGAA = list_get(LISTA_TGAA, posicion);
+	return entradaTGAA;
+}
+
+void agregarEnTAAP(t_entradaTAAP *entradaTAAP)
+{
+	t_pcb *pcb = pcb_ejecutando();
+	pthread_mutex_lock(&pcb->mutex_TAAP);
+	list_add(pcb->taap, entradaTAAP);
+	pthread_mutex_unlock(&pcb->mutex_TAAP);
 }

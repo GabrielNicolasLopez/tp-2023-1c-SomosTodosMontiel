@@ -15,6 +15,7 @@ t_list *LISTA_READY;
 t_list *LISTA_EXEC;
 t_list *LISTA_BLOCKED;
 t_list *LISTA_EXIT;
+t_list *LISTA_TGAA;
 
 pthread_mutex_t PID;
 pthread_mutex_t listaNew;
@@ -22,6 +23,7 @@ pthread_mutex_t listaReady;
 pthread_mutex_t listaExec;
 pthread_mutex_t listaBlocked;
 pthread_mutex_t listaExit;
+pthread_mutex_t listaTGAA;
 
 sem_t esPosibleCompactar;
 sem_t CantPCBNew;

@@ -62,6 +62,7 @@ void iniciar_listas_y_semaforos(){
 	LISTA_EXEC = list_create();
 	LISTA_BLOCKED = list_create();
 	LISTA_EXIT  = list_create();
+	LISTA_TGAA = list_create();
 
 	sem_init(&CantPCBNew, 0, 0);
 	sem_init(&CPUVacia, 0, 1);

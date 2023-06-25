@@ -52,6 +52,7 @@ typedef struct
 	t_list *tablaDeSegmentos;
 	uint32_t tamanio_tabla;
 	t_list *taap; //Tabla de Archivos Abiertos del Proceso
+	pthread_mutex_t mutex_TAAP;
 } t_pcb;
 
 typedef struct
@@ -62,8 +63,16 @@ typedef struct
 
 typedef struct
 {
-	char* inicioArchivo;
+	char* nombreArchivo;
+	char* inicioDelArchivo;
 }t_entradaTAAP;
+
+typedef struct
+{
+	char* nombreArchivo;
+	char* inicioDelArchivo;
+	pthread_mutex_t mutex_archivo;
+}t_entradaTGAA;
 
 typedef struct
 {
@@ -157,7 +166,7 @@ void sleep_IO(t_datosIO*);
 extern t_config *config;
 extern t_kernel_config *configuracionKernel;
 extern t_list* lista_de_recursos;
-extern t_list *tgaa; //Tabla General Archivos Abiertos
+extern t_list * LISTA_TGAA; //Tabla General Archivos Abiertos
 extern int PID_PCB;
 
 //Estados
@@ -176,7 +185,6 @@ extern pthread_mutex_t listaReady;
 extern pthread_mutex_t listaExec;
 extern pthread_mutex_t listaBlocked;
 extern pthread_mutex_t listaExit;
-
 
 //Semaforos
 extern sem_t CantPCBNew;
