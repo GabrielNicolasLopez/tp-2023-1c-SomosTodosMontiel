@@ -5,11 +5,11 @@ void crear_hilo_productor()
     t_instruccion* p_instruccion;
     while(1){
         // REVISO SI HAY QUE FINALIZAR
-        log_error(logger, "FS esperando instruccion de kernel");
+        log_debug(logger, "Hilo_productor: esperando instruccion de kernel");
         t_handshake header = stream_recv_header(socketKernel);
         
         if ( header == (t_handshake) FS_FINALIZAR) {
-            log_info(logger, "FS debe finalizar");
+            log_info(logger, "Hilo_productor: FS debe finalizar");
             // LE AVISO A HILO_CONSUMIDOR
             pthread_mutex_lock(&mutex_lista);
             p_instruccion = malloc(sizeof(t_instruccion));
@@ -34,8 +34,6 @@ void crear_hilo_productor()
 
 t_instruccion* recibir_instruccion(int socket)
 {
-    log_debug(logger, "Esperando instruccion de kernel");
-
     t_buffer* buffer = buffer_create();
     stream_recv_buffer(socket, buffer);
     log_debug(logger, "Tamaño de la instruccion recibida %u", buffer->size);

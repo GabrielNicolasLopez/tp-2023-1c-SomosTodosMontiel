@@ -51,14 +51,14 @@ int crear_servidor_kernel()
     log_info(logger, "Filesystem listo para recibir el socketKernel");
 
 	socketKernel = esperar_cliente(server_fd_kernel);
-    /*t_handshake handshake = stream_recv_header(socketKernel);
+    t_handshake handshake = stream_recv_header(socketKernel);
     if (handshake != HANDSHAKE_kernel) {
         log_error(logger, "Error al recibir handshake");
         return -1;
 	}
 
     log_info(logger, "Se envia handshake ok continue a kernel");
-    stream_send_empty_buffer(socketKernel, HANDSHAKE_ok_continue);*/
+    stream_send_empty_buffer(socketKernel, HANDSHAKE_ok_continue);
 
     log_info(logger, "FS se conectó con kernel");
 

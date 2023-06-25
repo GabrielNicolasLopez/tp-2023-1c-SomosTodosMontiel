@@ -61,11 +61,11 @@ void hilo_kernel(){
 	log_error(logger, "CPU listo para recibir clientes del Kernel");
     int cliente_fd_kernel = esperar_cliente(server_fd_kernel); // esperamos un proceso para ejecutar
 
-	/*t_handshake handshake = stream_recv_header(cliente_fd_kernel);
+	t_handshake handshake = stream_recv_header(cliente_fd_kernel);
 	log_info(logger, "handshake: %d", handshake);
 	if (handshake == HANDSHAKE_kernel) {
 		log_info(logger, "Se envia handshake ok continue a kernel");
-		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);*/
+		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);
 
 		log_debug(logger, "CPU SE CONECTO CON KERNEL");
 
@@ -73,8 +73,8 @@ void hilo_kernel(){
 		bool enviamos_CE_al_kernel;
 		
 		while(1){
-			//t_Kernel_CPU header = stream_recv_header(cliente_fd_kernel);
-			//log_debug(logger, "header: %d", header);
+			t_Kernel_CPU header = stream_recv_header(cliente_fd_kernel);
+			log_debug(logger, "header: %d", header);
 			contexto_ejecucion = recibir_ce_de_kernel(cliente_fd_kernel);
 			enviamos_CE_al_kernel = false;
 			while(contexto_ejecucion && !enviamos_CE_al_kernel)
@@ -84,9 +84,9 @@ void hilo_kernel(){
 			//contexto_de_ejecucion_destroy(contexto_ejecucion);
 		}
 
-	/*} else {
+	} else {
 		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_error);
-	}*/
+	}
 
 }
 
