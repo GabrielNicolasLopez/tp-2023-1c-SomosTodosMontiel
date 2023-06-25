@@ -5,6 +5,7 @@ void crear_hilo_productor()
     t_instruccion* p_instruccion;
     while(1){
         // REVISO SI HAY QUE FINALIZAR
+        log_error(logger, "FS esperando instruccion de kernel");
         t_handshake header = stream_recv_header(socketKernel);
         
         if ( header == (t_handshake) FS_FINALIZAR) {

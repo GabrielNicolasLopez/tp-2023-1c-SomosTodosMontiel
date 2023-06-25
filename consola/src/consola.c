@@ -27,7 +27,7 @@ int main(int argc, char** argv){
 
 	log_debug(logger, "CONSOLA SE CONECTÓ A KERNEL.");
 
-    stream_send_empty_buffer(conexionKernel, HANDSHAKE_consola);
+    /*stream_send_empty_buffer(conexionKernel, HANDSHAKE_consola);
 	log_debug(logger, "CONSOLA ENVIO HANDSHAKE A KERNEL.");
     t_handshake kernelResponse = stream_recv_header(conexionKernel);
 
@@ -35,7 +35,7 @@ int main(int argc, char** argv){
         log_error(logger, "Error al intentar establecer Handshake inicial con módulo Kernel");
         //consola_destroy(consola_config, logger);
         exit(1);
-    }
+    }*/
 
 	log_debug(logger, "CONSOLA HIZO HANDSHAKE CON KERNEL.");
 
@@ -49,16 +49,6 @@ int main(int argc, char** argv){
 	
 	//Agrego las instrucciones del archivo a instructionsBuffer
 	agregarInstruccionesDesdeArchivo(instructionsBuffer, instrucciones, archivoInstrucciones);
-	
-	//Consola se conecta a kernel
-	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto);
-
-	if(conexionKernel == -1){
-		log_error(logger, "CONSOLA NO SE CONECTÓ A KERNEL. FINALIZANDO CONSOLA...");
-		exit(1);
-	}
-	
-	log_debug(logger, "CONSOLA SE CONECTÓ A KERNEL.");
 	
 	//Enviamos el paquete
 	enviar_instrucciones_a_kernel(instructionsBuffer, instrucciones, conexionKernel);

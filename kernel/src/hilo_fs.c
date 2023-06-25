@@ -2,7 +2,7 @@
 
 void crear_hilo_filesystem(){
 	// Me conecto a filesystem
-	int conexion_con_fs = crear_conexion(configuracionKernel->IP_FILESYSTEM, configuracionKernel->PUERTO_FILESYSTEM);
+	conexion_con_fs = crear_conexion(configuracionKernel->IP_FILESYSTEM, configuracionKernel->PUERTO_FILESYSTEM);
 
 	if (conexion_con_fs == -1) //Si no se puede conectar
 	{
@@ -11,7 +11,7 @@ void crear_hilo_filesystem(){
 		exit(-1);
 	}
 
-	stream_send_empty_buffer(conexion_con_fs, HANDSHAKE_kernel);
+	/*stream_send_empty_buffer(conexion_con_fs, HANDSHAKE_kernel);
     t_handshake fsResponse = stream_recv_header(conexion_con_fs);
 
     if (fsResponse != HANDSHAKE_ok_continue)
@@ -19,11 +19,11 @@ void crear_hilo_filesystem(){
         log_error(logger, "Error al hacer handshake con módulo FS");
         //kernel_destroy(configuracionKernel, logger);
         exit(-1);
-    }
+    }*/
 	
 	log_debug(logger, "KERNEL SE CONECTO CON FS");
-	t_buffer* buffer = buffer_create();
-	t_instruccion* p_instruccion;
+	//t_buffer* buffer = buffer_create();
+	//t_instruccion* p_instruccion;
 
 	while (1){
 		/*
@@ -60,8 +60,8 @@ void crear_hilo_filesystem(){
 			case :
 			break;
 		}
-		
-	}*/
+	*/	
+	}
 }
 /*
 void agregarEnTGAA(t_entradaTGAA *entradaTGAA)

@@ -18,19 +18,10 @@ int main(int argc, char **argv){
 
 	log_info(logger, "INICIANDO CPU...");
 	
-	++k;
-	log_error(logger, "1k:%d", k);
-	
 	t_config* config = config_create(CONFIG_PATH);
 	configuracion_cpu = leer_configuracion(config);
 
-	++k;
-	log_error(logger, "2k:%d", k);
-
 	crear_hilos_cpu();
-
-	++k;
-	log_error(logger, "3k:%d", k);
 
 	// ANTES DE FINALIZAR EL PROCESO LIBERAR MEMORIA:
 	config_destroy(config);
@@ -57,20 +48,11 @@ void crear_hilos_cpu()
 {
 	pthread_t hiloKernel, hiloMemoria;
 
-	++k;
-	log_error(logger, "21k:%d", k);
-
 	pthread_create(&hiloMemoria, NULL, (void *) hilo_memoria, NULL);
 	pthread_create(&hiloKernel, NULL, (void *) hilo_kernel, NULL);
 
-	++k;
-	log_error(logger, "22k:%d", k);
-
 	//pthread_join(hiloMemoria, NULL);	
 	pthread_join(hiloKernel, NULL);
-
-	++k;
-	log_error(logger, "23k:%d", k);
 }
 
 // *** HILO KERNEL ***
@@ -79,39 +61,21 @@ void hilo_kernel(){
 	log_error(logger, "CPU listo para recibir clientes del Kernel");
     int cliente_fd_kernel = esperar_cliente(server_fd_kernel); // esperamos un proceso para ejecutar
 
-	++k;
-	log_error(logger, "211k:%d", k);
-
-	t_handshake handshake = stream_recv_header(cliente_fd_kernel);
-	++k;
-	log_error(logger, "212k:%d", k);
+	/*t_handshake handshake = stream_recv_header(cliente_fd_kernel);
 	log_info(logger, "handshake: %d", handshake);
-	++k;
-	log_error(logger, "213k:%d", k);
 	if (handshake == HANDSHAKE_kernel) {
 		log_info(logger, "Se envia handshake ok continue a kernel");
-		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);
-		++k;
-		log_error(logger, "214k:%d", k);
+		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);*/
 
 		log_debug(logger, "CPU SE CONECTO CON KERNEL");
 
 		t_contextoEjecucion* contexto_ejecucion = malloc(sizeof(t_contextoEjecucion));
 		bool enviamos_CE_al_kernel;
-
-		++k;
-		log_error(logger, "215k:%d", k);
 		
 		while(1){
-			++k;
-			log_error(logger, "216k:%d", k);
 			//t_Kernel_CPU header = stream_recv_header(cliente_fd_kernel);
-			++k;
-			log_error(logger, "217k:%d", k);
 			//log_debug(logger, "header: %d", header);
 			contexto_ejecucion = recibir_ce_de_kernel(cliente_fd_kernel);
-			++k;
-			log_error(logger, "218k:%d", k);
 			enviamos_CE_al_kernel = false;
 			while(contexto_ejecucion && !enviamos_CE_al_kernel)
 			{
@@ -120,9 +84,9 @@ void hilo_kernel(){
 			//contexto_de_ejecucion_destroy(contexto_ejecucion);
 		}
 
-	} else {
+	/*} else {
 		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_error);
-	}
+	}*/
 
 }
 
@@ -169,6 +133,10 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	
 	//Cantidad entero = numero entero
 	buffer_pack(cym_a_enviar, &motivo.cant_int, sizeof(uint32_t));
+	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+
+	//Cantidad entero = numero entero
+	buffer_pack(cym_a_enviar, &motivo.cant_intB, sizeof(uint32_t));
 	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	
 	//Longitud de la cadena
@@ -300,7 +268,15 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 		}
 	}
 
-	stream_send_buffer(cliente_fd_kernel, HEADER_instruccion, cym_a_enviar);
+	//Registros C, E y R
+	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+
+	stream_send_buffer(cliente_fd_kernel, CYM, cym_a_enviar);
 	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
 
     buffer_destroy(cym_a_enviar);
@@ -309,6 +285,8 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
 	log_debug(logger, "Esperando ce de kernel");
+
+	log_debug(logger, "header: %d", stream_recv_header(cliente_fd_kernel));
 
     t_buffer* ce_recibido = buffer_create();
 	t_contextoEjecucion* contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
@@ -474,6 +452,14 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	contextoEjecucion->instrucciones->cantidadInstrucciones = cantidad_de_instrucciones;
 
 	log_debug(logger, "cant inst recibidas: %d", contextoEjecucion->instrucciones->cantidadInstrucciones);
+
+	//Registros C, E y R	
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
+	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 
     buffer_destroy(ce_recibido);
 

@@ -155,10 +155,12 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 
 void inicializar_registro_cpu(t_pcb *pcb);
 
-
-
-
-
+//---------------------------------FS---------------------------------
+void enviar_fopen_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
 
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);

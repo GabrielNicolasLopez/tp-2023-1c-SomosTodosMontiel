@@ -23,7 +23,7 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	motivoDevolucion->contextoEjecucion = contextoEjecucion;
 
 	stream_recv_buffer(conexion_con_cpu, cym_recibido);
-	//log_error(logger, "Tamaño de cym recibido de cpu %d", cym_recibido->size);
+	log_error(logger, "Tamaño de cym recibido de cpu %d", cym_recibido->size);
 
 	// Motivo = tipo de instruccion
 	buffer_unpack(cym_recibido, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
