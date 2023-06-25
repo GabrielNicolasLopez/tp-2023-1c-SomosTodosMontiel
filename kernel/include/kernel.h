@@ -1,6 +1,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#include "FS_kernel.h"
 #include "shared_utils.h"
 #include "kernel_cpu.h"
 #include "buffer.h"
@@ -162,6 +163,11 @@ void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
 
+bool existeEnTGAA(char *nombre_archivo);
+t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo);
+void agregarEnTAAP(t_entradaTAAP *entradaTAAP);
+void recibir_respuesta_fopen_desde_fs(t_buffer* buffer, t_FS_header respuesta_fs);
+
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);
 
@@ -187,6 +193,7 @@ extern pthread_mutex_t listaReady;
 extern pthread_mutex_t listaExec;
 extern pthread_mutex_t listaBlocked;
 extern pthread_mutex_t listaExit;
+extern pthread_mutex_t listaTGAA;
 
 //Semaforos
 extern sem_t CantPCBNew;

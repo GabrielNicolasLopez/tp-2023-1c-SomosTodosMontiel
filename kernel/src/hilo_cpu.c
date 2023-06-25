@@ -1,5 +1,8 @@
 #include "kernel.h"
 
+pthread_mutex_t mutexFS;
+pthread_mutex_t mutexMemoria;
+
 void crear_hilo_cpu()
 {
 	t_Kernel_Consola razon;
@@ -28,6 +31,12 @@ void crear_hilo_cpu()
 	t_motivoDevolucion *motivoDevolucion = malloc(sizeof(t_motivoDevolucion));
 	t_contextoEjecucion *contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
 	motivoDevolucion->contextoEjecucion = contextoEjecucion;
+
+
+	t_buffer* buffer = buffer_create();
+	
+	t_FS_header respuesta_fs;
+	//t_Kernel_Memoria respuesta_memoria;
 
 	while (1)
 	{
@@ -80,27 +89,23 @@ void crear_hilo_cpu()
 				break;
 
 			case F_OPEN:
-				enviar_fopen_a_fs(motivoDevolucion);
-				se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
-				/*char* nombreArchivo = motivoDevolucion->cadena; //suponiendo que aqui se encuentra el nombre del archivo - supusiste bien
+				// se_reenvia_el_contexto = true;
+				// devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+				char* nombreArchivo = motivoDevolucion->cadena; //suponiendo que aqui se encuentra el nombre del archivo - supusiste bien
 				if(existeEnTGAA(nombreArchivo)){
-					t_entradaTAAP *entradaTAAP = malloc(t_entradaTAAP);
+					t_entradaTAAP *entradaTAAP = malloc(sizeof(t_entradaTAAP));
 					t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
 					entradaTAAP->nombreArchivo = entradaTGAA->nombreArchivo;
 					entradaTAAP->inicioDelArchivo = entradaTGAA->inicioDelArchivo;
 					agregarEnTAAP(entradaTAAP);
-				}else{
-					t_buffer* buffer = buffer_create();
-					uint32_t lognitudNombreArchivo = sizeof(nombreArchivo);
-					//habria que pasarle minimamente el pid o  el contexto para que luego en el hilo_fs se pueda buscar y actualizar
-					// LONGITUD_ARCHIVO
-					buffer_pack(buffer, *lognitudNombreArchivo, uint32_t);
-					// CADENA_ARCHIVO
-					buffer_pack(buffer, *nombreArchivo, sizeof(nombreArchivo));
-					stream_send_buffer(socketFS, HEADER_existe_archivo, existe_archivo);
-					buffer_destroy(existeArchivo);
-				}*/
+					//y se bloqueará al proceso que ejecutó F_OPEN en la cola correspondiente a este archivo.
+					//no se a que se refiere lo de arriba
+				}else{					
+					pthread_mutex_lock(&mutexFS);
+					enviar_fopen_a_fs(motivoDevolucion);
+					recibir_respuesta_fopen_desde_fs(buffer, respuesta_fs);
+					pthread_mutex_unlock(&mutexFS);
+				}
 				break;
 
 			case F_CLOSE:
@@ -520,7 +525,7 @@ bool existeEnTGAA(char *nombre_archivo)
 	return false;
 }    
 
-/*t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
+t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
 {
 	int posicion;
 	for (int i = 0; i < string_array_size(LISTA_TGAA); i++)
@@ -531,7 +536,7 @@ bool existeEnTGAA(char *nombre_archivo)
 
 	t_entradaTGAA *entradaTGAA = list_get(LISTA_TGAA, posicion);
 	return entradaTGAA;
-}*/
+}
 
 void agregarEnTAAP(t_entradaTAAP *entradaTAAP)
 {
@@ -539,4 +544,11 @@ void agregarEnTAAP(t_entradaTAAP *entradaTAAP)
 	pthread_mutex_lock(&pcb->mutex_TAAP);
 	list_add(pcb->taap, entradaTAAP);
 	pthread_mutex_unlock(&pcb->mutex_TAAP);
+}
+
+void recibir_respuesta_fopen_desde_fs(t_buffer* buffer, t_FS_header respuesta_fs)
+{
+	respuesta_fs = stream_recv_header(conexion_con_fs);
+
+	stream_recv_buffer(conexion_con_memoria, buffer);
 }

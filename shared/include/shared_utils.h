@@ -29,7 +29,8 @@ typedef enum {
     HEADER_lista_instrucciones,
     HEADER_contexto_ejecucion,
     HEADER_instruccion,
-    HEADER_segmentation_fault
+    HEADER_segmentation_fault,
+    HEADER_existe_archivo,
 } t_header;
 
 typedef enum {
