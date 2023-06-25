@@ -62,6 +62,7 @@ void iniciar_listas_y_semaforos(){
 	LISTA_EXEC = list_create();
 	LISTA_BLOCKED = list_create();
 	LISTA_EXIT  = list_create();
+	LISTA_TGAA = list_create();
 
 	sem_init(&CantPCBNew, 0, 0);
 	sem_init(&CPUVacia, 0, 1);
@@ -79,6 +80,7 @@ void crear_hilos_kernel(){
 	pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
 	pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
 	pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
+	
 	pthread_detach(hiloCPU);
 	pthread_detach(hiloFilesystem);
 	pthread_detach(hiloMemoria);

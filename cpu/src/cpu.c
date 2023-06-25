@@ -2,6 +2,10 @@
 
 t_cpu_config* configuracion_cpu;
 
+int conexion_con_memoria;
+
+int k=0;
+
 int main(int argc, char **argv){
 	if (argc < 2) 
     {
@@ -42,40 +46,77 @@ t_cpu_config* leer_configuracion(t_config* config){
 // CREA LOS HILOS QUE VA A USAR LA CPU
 void crear_hilos_cpu()
 {
-	pthread_t thread_kernel, thread_memoria;
+	pthread_t hiloKernel, hiloMemoria;
 
-	pthread_create(&thread_memoria, NULL, (void *)crear_hilo_memoria, NULL);
-	pthread_create(&thread_kernel, NULL, (void *)crear_hilo_kernel, NULL);
+	pthread_create(&hiloMemoria, NULL, (void *) hilo_memoria, NULL);
+	pthread_create(&hiloKernel, NULL, (void *) hilo_kernel, NULL);
 
-	pthread_join(thread_memoria, NULL);	
-	pthread_join(thread_kernel, NULL);
+	//pthread_join(hiloMemoria, NULL);	
+	pthread_join(hiloKernel, NULL);
 }
-// *** HILO KERNEL ***
-void crear_hilo_kernel(){
-	int server_fd_kernel = iniciar_servidor("127.0.0.1", configuracion_cpu -> puerto_escucha, logger);
-	log_error(logger, "CPU listo para recibir clientes del Kernel");
-    int cliente_fd_kernel = esperar_cliente(server_fd_kernel, logger); // esperamos un proceso para ejecutar
 
-	t_contextoEjecucion* contexto_ejecucion = malloc(sizeof(t_contextoEjecucion));
-	bool enviamos_CE_al_kernel;
-    while(1){
-		contexto_ejecucion = recibir_ce_de_kernel(cliente_fd_kernel);
-		enviamos_CE_al_kernel = false;
-		while(contexto_ejecucion && !enviamos_CE_al_kernel)
-		{
-			ciclo_instruccion(contexto_ejecucion, cliente_fd_kernel, &enviamos_CE_al_kernel);
+// *** HILO KERNEL ***
+void hilo_kernel(){
+	int server_fd_kernel = iniciar_servidor("127.0.0.1", configuracion_cpu -> puerto_escucha);
+	log_error(logger, "CPU listo para recibir clientes del Kernel");
+    int cliente_fd_kernel = esperar_cliente(server_fd_kernel); // esperamos un proceso para ejecutar
+
+	/*t_handshake handshake = stream_recv_header(cliente_fd_kernel);
+	log_info(logger, "handshake: %d", handshake);
+	if (handshake == HANDSHAKE_kernel) {
+		log_info(logger, "Se envia handshake ok continue a kernel");
+		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);*/
+
+		log_debug(logger, "CPU SE CONECTO CON KERNEL");
+
+		t_contextoEjecucion* contexto_ejecucion = malloc(sizeof(t_contextoEjecucion));
+		bool enviamos_CE_al_kernel;
+		
+		while(1){
+			//t_Kernel_CPU header = stream_recv_header(cliente_fd_kernel);
+			//log_debug(logger, "header: %d", header);
+			contexto_ejecucion = recibir_ce_de_kernel(cliente_fd_kernel);
+			enviamos_CE_al_kernel = false;
+			while(contexto_ejecucion && !enviamos_CE_al_kernel)
+			{
+				ciclo_instruccion(contexto_ejecucion, cliente_fd_kernel, &enviamos_CE_al_kernel);
+			}
+			//contexto_de_ejecucion_destroy(contexto_ejecucion);
 		}
-		//contexto_de_ejecucion_destroy(contexto_ejecucion);
-	}
+
+	/*} else {
+		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_error);
+	}*/
+
 }
 
 // *** HILO MEMORIA ***
-void crear_hilo_memoria(){
-    int conexion_memoria = crear_conexion(configuracion_cpu -> ip_memoria, configuracion_cpu -> puerto_memoria, logger);
-	log_info(logger, "CPU se conectó a memoria, conexion: %d", conexion_memoria);
-	while(1){
+void hilo_memoria(){
+    
+	// Me conecto a filesystem
+	/*int conexion_con_memoria = crear_conexion(configuracion_cpu->ip_memoria, configuracion_cpu->puerto_memoria);
 
+	if (conexion_con_memoria == -1) //Si no se puede conectar
+	{
+		log_error(logger, "KERNEL NO SE CONECTÓ CON FS. FINALIZANDO CPU...");
+		//kernel_destroy(configuracionKernel, logger);
+		//exit(-1);
 	}
+
+	stream_send_empty_buffer(conexion_con_memoria, HANDSHAKE_cpu);
+    t_handshake memoriaResponse = stream_recv_header(conexion_con_memoria);
+
+    if (memoriaResponse != HANDSHAKE_ok_continue)
+	{
+        log_error(logger, "Error al hacer handshake con módulo Memoria");
+        //kernel_destroy(configuracionKernel, logger);
+        //exit(-1);
+    }
+	
+	log_debug(logger, "CPU SE CONECTO CON Memoria");
+	
+	while (1){}*/
+	
 }
 
 void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *contextoEjecucion, int cliente_fd_kernel){
@@ -229,8 +270,11 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 
 	//Registros C, E y R
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 	stream_send_buffer(cliente_fd_kernel, CYM, cym_a_enviar);
 	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
@@ -242,21 +286,18 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
 	log_debug(logger, "Esperando ce de kernel");
 
-	t_Kernel_CPU header = stream_recv_header(cliente_fd_kernel);
-
-	if(header != CE)
-		log_error(logger, "CPU RECIBIO UN HEADER DIFERENTE A CE");
+	log_debug(logger, "header: %d", stream_recv_header(cliente_fd_kernel));
 
     t_buffer* ce_recibido = buffer_create();
 	t_contextoEjecucion* contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
-	t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
+	t_instrucciones *inst = malloc(sizeof(t_instrucciones));
 	
 	t_registrosCPU *registros = malloc(sizeof(t_registrosCPU));
 	t_registroC *registroC    = malloc(sizeof(t_registroC));
 	t_registroE *registroE    = malloc(sizeof(t_registroE));
 	t_registroR *registroR    = malloc(sizeof(t_registroR));
 	
-	contextoEjecucion->instrucciones = instrucciones;
+	contextoEjecucion->instrucciones = inst;
 	contextoEjecucion->instrucciones->listaInstrucciones = list_create();
 	contextoEjecucion->registrosCPU = registros;
 	contextoEjecucion->registrosCPU->registroC = registroC;
@@ -264,7 +305,7 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	contextoEjecucion->registrosCPU->registroR = registroR;
 
     stream_recv_buffer(cliente_fd_kernel, ce_recibido);
-	//log_error(logger, "Tamaño del CE recibido de kernel %d", ce_recibido->size);
+	log_error(logger, "Tamaño del CE recibido de kernel %d", ce_recibido->size);
 
 	//Socket
 	buffer_unpack(ce_recibido, &contextoEjecucion->socket, sizeof(uint32_t));
@@ -277,6 +318,7 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	//PC
 	buffer_unpack(ce_recibido, &contextoEjecucion->program_counter, sizeof(uint32_t));
 	//log_debug(logger, "program_counter: %d", contextoEjecucion->program_counter);
+
 	
 	t_tipoInstruccion instruccion;
 	t_instruccion* instruccionRecibida;
@@ -408,16 +450,16 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	cantidad_de_instrucciones++;
 	//Asignamos la cantidad de instrucciones
 	contextoEjecucion->instrucciones->cantidadInstrucciones = cantidad_de_instrucciones;
+
 	log_debug(logger, "cant inst recibidas: %d", contextoEjecucion->instrucciones->cantidadInstrucciones);
 
-	//Registros
+	//Registros C, E y R	
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
+	log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
-
-	log_debug(logger, "%.4s", contextoEjecucion->registrosCPU->registroC->ax);
-	log_debug(logger, "%.4s", contextoEjecucion->registrosCPU->registroC->dx);
-
+	log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 
     buffer_destroy(ce_recibido);
 

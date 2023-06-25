@@ -13,6 +13,7 @@
 
 extern int conexion_con_memoria;
 extern int conexion_con_cpu;
+extern int conexion_con_fs;
 
 typedef struct
 {
@@ -51,6 +52,7 @@ typedef struct
 	t_list *tablaDeSegmentos;
 	uint32_t tamanio_tabla;
 	t_list *taap; //Tabla de Archivos Abiertos del Proceso
+	pthread_mutex_t mutex_TAAP;
 } t_pcb;
 
 typedef struct
@@ -61,8 +63,16 @@ typedef struct
 
 typedef struct
 {
-	char* inicioArchivo;
+	char* nombreArchivo;
+	char* inicioDelArchivo;
 }t_entradaTAAP;
+
+typedef struct
+{
+	char* nombreArchivo;
+	char* inicioDelArchivo;
+	pthread_mutex_t mutex_archivo;
+}t_entradaTGAA;
 
 typedef struct
 {
@@ -132,15 +142,25 @@ void pedir_a_memoria_que_compacte();
 
 void actualizar_procesos_bloqueados(char *nombre_recurso);
 
+void esperar_respuesta_compactacion();
+
 //---------------------------------MEMORIA---------------------------------
+void crear_tabla_de_segmentos(t_pcb *pcb);
 void crear_segmento(uint32_t id, uint32_t tamanio);
+void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar);
 void eliminar_segmento(uint32_t id);
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio);
 
 
 
+void inicializar_registro_cpu(t_pcb *pcb);
 
-
+//---------------------------------FS---------------------------------
+void enviar_fopen_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
 
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);
@@ -148,7 +168,7 @@ void sleep_IO(t_datosIO*);
 extern t_config *config;
 extern t_kernel_config *configuracionKernel;
 extern t_list* lista_de_recursos;
-extern t_list *tgaa; //Tabla General Archivos Abiertos
+extern t_list * LISTA_TGAA; //Tabla General Archivos Abiertos
 extern int PID_PCB;
 
 //Estados
@@ -167,7 +187,6 @@ extern pthread_mutex_t listaReady;
 extern pthread_mutex_t listaExec;
 extern pthread_mutex_t listaBlocked;
 extern pthread_mutex_t listaExit;
-
 
 //Semaforos
 extern sem_t CantPCBNew;

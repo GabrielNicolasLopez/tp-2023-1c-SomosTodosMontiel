@@ -3,16 +3,16 @@
 void crear_hilo_consola(){
 	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA);
 	log_info(logger, "Kernel listo para recibir clientes consola");
-	uint8_t handshake;
+	t_handshake handshake;
 	while (1){
 		pthread_t hilo_atender_consola;
 		int socketCliente = esperar_cliente(server_fd);
-		handshake = stream_recv_header(socketCliente);
+		/*handshake = stream_recv_header(socketCliente);
 		if (handshake == HANDSHAKE_consola){
 			log_info(logger, "Se envia handshake ok continue a consola");
-			stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
+			stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);*/
 
-			log_debug(logger, "KERNEL SE CONECTO CON UNA CONSOLA");
+			log_debug(logger, "KERNEL SE CONECTO CON UNA CONSOLA");			
 			
 			t_datosCrearPCB *datos = malloc(sizeof(t_datosCrearPCB));
 			t_instrucciones *instrucciones = malloc(sizeof(t_instrucciones));
@@ -22,8 +22,8 @@ void crear_hilo_consola(){
 			pthread_create(&hilo_atender_consola, NULL, (void *)crear_pcb, (void*)datos);
 			pthread_detach(hilo_atender_consola);
 
-		} else
-			stream_send_empty_buffer(socketCliente, HANDSHAKE_error);
+		/*} else
+			stream_send_empty_buffer(socketCliente, HANDSHAKE_error);*/
 	}
 }
 
@@ -45,7 +45,7 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
     t_buffer* bufferInstrucciones = buffer_create();
 
     stream_recv_buffer(cliente_fd, bufferInstrucciones);
-	//log_error(logger, "Tamaño de las instrucciones recibidas %d", bufferInstrucciones->size);
+	log_error(logger, "Tamaño de las instrucciones recibidas %d", bufferInstrucciones->size);
 
 	//Empiezo a desempaquetar
 	buffer_unpack(bufferInstrucciones, &instruccion, sizeof(t_tipoInstruccion));
@@ -251,7 +251,7 @@ void crear_tabla_de_segmentos(t_pcb *pcb){
 void inicializar_registro_cpu(t_pcb *pcb){
 	char* valorInicial = "\0\0\0\0";
 	//Resgitros C
-	strcpy(pcb->contexto->registrosCPU->registroC->ax, "hola");
+	strcpy(pcb->contexto->registrosCPU->registroC->ax, valorInicial);
 	strcpy(pcb->contexto->registrosCPU->registroC->bx, valorInicial);
 	strcpy(pcb->contexto->registrosCPU->registroC->cx, valorInicial);
 	strcpy(pcb->contexto->registrosCPU->registroC->dx, valorInicial);

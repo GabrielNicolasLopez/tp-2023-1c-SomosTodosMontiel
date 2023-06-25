@@ -7,8 +7,6 @@ int conexion_con_kernel;
 int conexion_con_memoria;
 int conexion_con_cpu;
 
-
-
 char* IP_MEMORIA = "127.0.0.1";
 
 pthread_t hiloFilesystem, hiloKernel, hiloCPU;
@@ -42,7 +40,7 @@ int main(int argc, char** argv){
 void recibir_conexion(int socketEscucha) {
 	log_debug(logger, "Esperando cliente...");
 	int socketCliente = esperar_cliente(socketEscucha);
-    uint8_t handshake = stream_recv_header(socketCliente);
+    t_handshake handshake = stream_recv_header(socketCliente);
     stream_recv_empty_buffer(socketCliente);
     if (handshake == HANDSHAKE_cpu) {
 		conexion_con_cpu = socketCliente;

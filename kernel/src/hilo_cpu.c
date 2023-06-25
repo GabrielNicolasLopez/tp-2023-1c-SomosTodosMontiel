@@ -13,15 +13,15 @@ void crear_hilo_cpu()
 		exit(-1);
 	}
 
-	stream_send_empty_buffer(conexion_con_cpu, HANDSHAKE_kernel);
-    uint8_t cpuResponse = stream_recv_header(conexion_con_cpu);
+	/*stream_send_empty_buffer(conexion_con_cpu, HANDSHAKE_kernel);
+    t_handshake cpuResponse = stream_recv_header(conexion_con_cpu);
 
     if (cpuResponse != HANDSHAKE_ok_continue)
 	{
         log_error(logger, "Error al hacer handshake con módulo Cpu");
         //kernel_destroy(configuracionKernel, logger);
         exit(-1);
-    }
+    }*/
 
 	log_debug(logger, "KERNEL SE CONECTO CON CPU...");
 
@@ -80,25 +80,58 @@ void crear_hilo_cpu()
 				break;
 
 			case F_OPEN:
+				enviar_fopen_a_fs(motivoDevolucion);
+				se_reenvia_el_contexto = true;
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+				/*char* nombreArchivo = motivoDevolucion->cadena; //suponiendo que aqui se encuentra el nombre del archivo - supusiste bien
+				if(existeEnTGAA(nombreArchivo)){
+					t_entradaTAAP *entradaTAAP = malloc(t_entradaTAAP);
+					t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
+					entradaTAAP->nombreArchivo = entradaTGAA->nombreArchivo;
+					entradaTAAP->inicioDelArchivo = entradaTGAA->inicioDelArchivo;
+					agregarEnTAAP(entradaTAAP);
+				}else{
+					t_buffer* buffer = buffer_create();
+					uint32_t lognitudNombreArchivo = sizeof(nombreArchivo);
+					//habria que pasarle minimamente el pid o  el contexto para que luego en el hilo_fs se pueda buscar y actualizar
+					// LONGITUD_ARCHIVO
+					buffer_pack(buffer, *lognitudNombreArchivo, uint32_t);
+					// CADENA_ARCHIVO
+					buffer_pack(buffer, *nombreArchivo, sizeof(nombreArchivo));
+					stream_send_buffer(socketFS, HEADER_existe_archivo, existe_archivo);
+					buffer_destroy(existeArchivo);
+				}*/
 				break;
 
 			case F_CLOSE:
 				break;
 
 			case F_SEEK:
+				enviar_fseek_a_fs(motivoDevolucion);
+				se_reenvia_el_contexto = true;
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
 			case F_READ:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				sem_wait(&esPosibleCompactar);
+				//sem_wait(&esPosibleCompactar);
+				enviar_fread_a_fs(motivoDevolucion);
+				se_reenvia_el_contexto = true;
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
 			case F_WRITE:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				sem_wait(&esPosibleCompactar);
+				//sem_wait(&esPosibleCompactar);
+				enviar_fwrite_a_fs(motivoDevolucion);
+				se_reenvia_el_contexto = true;
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
 			case F_TRUNCATE:
+				enviar_ftruncate_a_fs(motivoDevolucion);
+				se_reenvia_el_contexto = true;
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
 			case WAIT:
@@ -220,6 +253,103 @@ void crear_hilo_cpu()
 				break;
 			}
 	}
+}
+
+void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion){
+	
+	t_buffer* buffer_ftruncate = buffer_create();
+
+	//Tipo de instruccion
+	buffer_pack(buffer_ftruncate, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
+	//Tamaño de la cadena
+	buffer_pack(buffer_ftruncate, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
+    //Cadena
+    buffer_pack(buffer_ftruncate, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+	//Dirección Lógica
+	buffer_pack(buffer_ftruncate, &motivoDevolucion->cant_int, sizeof(uint32_t));
+	
+	stream_send_buffer(conexion_con_fs, 0, buffer_ftruncate);
+	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_ftruncate->size);
+
+	buffer_destroy(buffer_ftruncate);
+}
+
+void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion){
+	
+	t_buffer* buffer_fwrite = buffer_create();
+
+	//Tipo de instruccion
+	buffer_pack(buffer_fwrite, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
+	//Tamaño de la cadena
+	buffer_pack(buffer_fwrite, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
+    //Cadena
+    buffer_pack(buffer_fwrite, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+	//Dirección Lógica
+	buffer_pack(buffer_fwrite, &motivoDevolucion->cant_int, sizeof(uint32_t));
+	//Cantidad de Bytes
+	buffer_pack(buffer_fwrite, &motivoDevolucion->cant_intB, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_con_fs, 0, buffer_fwrite);
+	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fwrite->size);
+
+	buffer_destroy(buffer_fwrite);
+}
+
+void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion){
+	t_buffer* buffer_fread = buffer_create();
+
+	//Tipo de instruccion
+	buffer_pack(buffer_fread, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
+	//Tamaño de la cadena
+	buffer_pack(buffer_fread, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
+    //Cadena
+    buffer_pack(buffer_fread, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+	//Dirección Lógica
+	buffer_pack(buffer_fread, &motivoDevolucion->cant_int, sizeof(uint32_t));
+	//Cantidad de Bytes
+	buffer_pack(buffer_fread, &motivoDevolucion->cant_intB, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_con_fs, 0, buffer_fread);
+	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fread->size);
+
+	buffer_destroy(buffer_fread);
+}
+
+void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion){ 			//	F_SEEK (Nombre Archivo, Posición):
+	
+	t_buffer* buffer_fseek = buffer_create();
+
+	//Tipo de instruccion
+	buffer_pack(buffer_fseek, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
+	//Tamaño de la cadena
+	buffer_pack(buffer_fseek, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
+    //Cadena
+    buffer_pack(buffer_fseek, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+	//Posicion del fseek
+	buffer_pack(buffer_fseek, &motivoDevolucion->cant_int, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_con_fs, 0, buffer_fseek);
+	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fseek->size);
+
+	buffer_destroy(buffer_fseek);
+}
+
+void enviar_fopen_a_fs(t_motivoDevolucion *motivoDevolucion){
+
+	t_buffer* buffer_fopen = buffer_create();
+
+	//Tipo de instruccion
+	buffer_pack(buffer_fopen, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
+	//Tamaño de la cadena
+	buffer_pack(buffer_fopen, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
+    //Cadena
+    buffer_pack(buffer_fopen, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+
+	stream_send_buffer(conexion_con_fs, 0, buffer_fopen);
+	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fopen->size);
+
+	buffer_destroy(buffer_fopen);
+
 }
 
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
@@ -354,11 +484,7 @@ void sleep_IO(t_datosIO *datosIO){
 void terminar_consola(t_Kernel_Consola razon){
 	t_pcb *pcb = pcb_ejecutando_remove();
 
-	//t_buffer *fin_consola = buffer_create();
-	//buffer_pack(fin_consola, &razon, sizeof(t_Kernel_Consola));
-	//stream_send_buffer(pcb->contexto->socket, FIN, fin_consola);
 	stream_send_empty_buffer(pcb->contexto->socket, razon);
-	//buffer_destroy(fin_consola);
 
 	log_error(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->contexto->pid, razonFinConsola[razon]);
 	
@@ -380,4 +506,37 @@ t_pcb *pcb_ejecutando_remove(){
 	list_remove(LISTA_EXEC, 0);			  // Elimino la pcb de la lista
 	pthread_mutex_unlock(&listaExec);
 	return pcb;
+}
+
+
+bool existeEnTGAA(char *nombre_archivo)
+{
+	for (int i = 0; i < list_size(LISTA_TGAA); i++)
+	{
+		t_entradaTGAA *entradaTGAA = list_get(LISTA_TGAA, i);
+		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
+			return true;
+	}
+	return false;
+}    
+
+/*t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
+{
+	int posicion;
+	for (int i = 0; i < string_array_size(LISTA_TGAA); i++)
+	{
+		if (strcmp(LISTA_TGAA, nombre_archivo) == 0)
+			posicion = i;
+	}
+
+	t_entradaTGAA *entradaTGAA = list_get(LISTA_TGAA, posicion);
+	return entradaTGAA;
+}*/
+
+void agregarEnTAAP(t_entradaTAAP *entradaTAAP)
+{
+	t_pcb *pcb = pcb_ejecutando();
+	pthread_mutex_lock(&pcb->mutex_TAAP);
+	list_add(pcb->taap, entradaTAAP);
+	pthread_mutex_unlock(&pcb->mutex_TAAP);
 }

@@ -58,6 +58,7 @@ typedef enum
     E_SIGNAL,
     E_WAIT
 } t_Kernel_Consola;
+
 typedef enum
 {
     CE,

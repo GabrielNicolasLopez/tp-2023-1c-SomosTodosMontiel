@@ -20,6 +20,8 @@
 
 	extern t_cpu_config *configuracion_cpu;
 
+	extern int conexion_memoria, server_fd_kernel;
+
 	// OBTENEMOS LA CONFIGURACION DEL PROCESO
 	t_cpu_config* leer_configuracion(t_config* config);
 	
@@ -27,9 +29,11 @@
 	void crear_hilos_cpu();
 
 	// *** HILO MEMORIA ***
+	void hilo_memoria();
 	void crear_hilo_memoria();
 
 	// *** HILO KERNEL ***
+	void hilo_kernel();
 	void crear_hilo_kernel();
 	
 	// CICLO DE INSTRUCCION DEL CPU
@@ -54,9 +58,6 @@
 	void buffer_unpack(t_buffer* self, void* dest, int size);
 	void stream_recv_buffer(int fromSocket, t_buffer* destBuffer);
 	t_buffer* buffer_create(void);
-
-	static void __stream_send(int toSocket, void* streamToSend, uint32_t bufferSize);
-	static void* __stream_create(t_buffer* buffer);
-
+	void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *contextoEjecucion, int cliente_fd_kernel);
 
 #endif

@@ -41,6 +41,7 @@ int main(int argc, char ** argv){
 
     // CREO SERVER PARA CONEXION COMO SERVIDOR CON KERNEL
     if (crear_servidor_kernel() == -1) {
+        log_error(logger, "matando fs2");
         config_destroy(config);
 	    free(configFS);
         exit(-1);
@@ -48,6 +49,7 @@ int main(int argc, char ** argv){
 
     // HILOS PARA MANEJAR LAS INSTRUCCIONES ENVIADAS POR KERNEL
     crear_hilos_productor_consumidor();
+    log_error(logger, "matando fs");
 
     // ANTES DE FINALIZAR EL PROCESO LIBERAR MEMORIA:
     liberar_memoria();
@@ -75,6 +77,7 @@ void listas_y_sem_destroy()
 
 void crear_hilos_productor_consumidor()
 {
+    log_error(logger, "creandoooo");
     // Hilos Productor Consumidor
     iniciar_listas_y_sem();
     pthread_t hilo_productor, hilo_consumidor;
