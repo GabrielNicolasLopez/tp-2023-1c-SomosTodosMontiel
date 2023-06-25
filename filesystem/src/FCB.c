@@ -126,46 +126,40 @@ int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
     config_set_value(FCB->config, "TAMANIO_ARCHIVO", string_itoa(tam_nuevo_arch));
     
     if (tam_nuevo_arch > tam_max_arch) {
-        //logger    
+        log_error(logger, "Tamaño de truncamiento invalido, archivo: %s", FCB->nombre_archivo); 
         return -1;
     }
-    if (FCB->FCB_config->PUNTERO_DIRECTO == -1) {
+    // Casos dondo no hay asignado un puntero directo
+    if (tam_ant_arch == 0) {
         // Asigno puntero directo
         config_set_value(FCB->config, "PUNTERO_DIRECTO", string_itoa(get_free_block()));
     } 
     if (bloques_totales_a_ocupar > 1) {
-        if (FCB->FCB_config->PUNTERO_INDIRECTO == -1) {
+        // Casos dondo no hay asignado un puntero indirecto
+        if (tam_ant_arch <= tam_bloque) {
+            uint32_t bloque_punteros = get_free_block();
             // Asigno puntero indirecto
+            config_set_value(FCB->config, "PUNTERO_INDIRECTO", string_itoa(bloque_punteros));
         }
         
         if (bloques_nuevos_a_ocupar > 0) {
-            // verifico cual es el último puntero asignado del bloque de punteros
-
             // Asigno la cantidad de punteros a bloques de datos que necesito
+            uint32_t bloque_a_ocupar;
+            for(int i; i < bloques_nuevos_a_ocupar; i++) {
+                bloque_a_ocupar = get_free_block();
+                
+                // continuar ...
+            }
         }
     }
     
     
     config_save(config);
+    msync(p_bitmap, stats_fd_bitmap.st_size, MS_SYNC);
 
     return 0;
 }
 
-uint32_t get_free_block()
-{
-    uint32_t block = 0;
-    uint32_t MAX = bitarray_get_max_bit(bitA_bitmap);
-    while (block <= MAX && bitarray_test_bit(bitA_bitmap, block)) {
-        block++;
-    }
-
-    if (block > MAX) {
-        return -1;
-    }
-
-    bitarray_set_bit(bitA_bitmap, block);
-    return block;
-}
 
 uint32_t minimum(uint32_t x, uint32_t y)
 {

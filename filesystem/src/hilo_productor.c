@@ -18,7 +18,7 @@ void crear_hilo_productor()
             break;
         }
         
-        if ( header != (uint8_t) FS_INSTRUCCION) {
+        if (header != (uint8_t) FS_INSTRUCCION) {
           exit(-1);
         }
 

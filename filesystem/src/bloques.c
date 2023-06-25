@@ -30,3 +30,11 @@ void levantar_bloques()
     p_bloques = mmap(NULL, stats_fd_bloques.st_size, PROT_WRITE, MAP_SHARED, fd_bloques, 0);
     close(fd_bloques);
 }
+
+void escribir_bloque(uint32_t bloque, off_t offset, void* stream, size_t tamanio)
+{
+    // BYTE 0 DEL BLOQUE DONDE VAMOS A ESCRIBIR
+    off_t inicio_bloque = bloque * config_SupBloque->BLOCK_SIZE;
+    
+    memcpy(p_bloques + inicio_bloque + offset, stream, tamanio);
+}

@@ -32,7 +32,6 @@
 
     int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes);
 
-    uint32_t get_free_block();
     uint32_t minimum(uint32_t x, uint32_t y);
 
 #endif

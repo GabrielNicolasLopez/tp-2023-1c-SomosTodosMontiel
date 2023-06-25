@@ -9,6 +9,6 @@
     void crear_archivo_de_bloques();
     void levantar_bloques();
 
-
+    void escribir_bloque(uint32_t bloque, off_t offset, void* stream, size_t tamanio);
 
 #endif

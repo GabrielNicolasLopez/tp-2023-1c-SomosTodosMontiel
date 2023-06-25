@@ -33,5 +33,22 @@ void levantar_bitmap()
     bitA_bitmap = bitarray_create_with_mode(p_bitmap, stats_fd_bitmap.st_size, LSB_FIRST);
 }
 
+uint32_t get_free_block()
+{
+    uint32_t block = 0;
+    uint32_t MAX = bitarray_get_max_bit(bitA_bitmap);
+    while (block <= MAX && !bitarray_test_bit(bitA_bitmap, block)) {
+        block++;
+    }
+
+    if (block > MAX) {
+        log_error(logger, "No hay bloques libres!!!"); 
+        return -1;
+    }
+
+    bitarray_set_bit(bitA_bitmap, block);
+    return block;
+}
+
 
 
