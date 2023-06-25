@@ -61,7 +61,7 @@ typedef enum
 
 typedef enum
 {
-    CE,
+    CE=9,
     CYM
 } t_Kernel_CPU;
 

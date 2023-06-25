@@ -125,8 +125,8 @@ void enviar_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cp
 	buffer_pack(ce_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 	log_error(logger, "TAMAÑO DEL BUFFER %d", ce_a_enviar->size);
 
-
-	stream_send_buffer(conexion_con_cpu, CE, ce_a_enviar);
+	uint8_t header = CE;
+	stream_send_buffer(conexion_con_cpu, header, ce_a_enviar);
 	log_error(logger, "Tamaño del CE enviado a CPU %d", ce_a_enviar->size);
 
 	buffer_destroy(ce_a_enviar);

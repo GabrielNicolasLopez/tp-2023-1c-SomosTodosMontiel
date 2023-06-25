@@ -40,7 +40,7 @@ int main(int argc, char** argv){
 void recibir_conexion(int socketEscucha) {
 	log_debug(logger, "Esperando cliente...");
 	int socketCliente = esperar_cliente(socketEscucha);
-    t_handshake handshake = stream_recv_header(socketCliente);
+    uint8_t handshake = stream_recv_header(socketCliente);
     stream_recv_empty_buffer(socketCliente);
     if (handshake == HANDSHAKE_cpu) {
 		conexion_con_cpu = socketCliente;

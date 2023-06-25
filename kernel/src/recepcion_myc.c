@@ -3,7 +3,7 @@
 void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_con_cpu)
 {
 
-	t_Kernel_CPU header = stream_recv_header(conexion_con_cpu);
+	uint8_t header = stream_recv_header(conexion_con_cpu);
 
 	if(header != CYM)
 		log_error(logger, "KERNEL RECIBIO UN HEADER DIFERENTE A CYM");

@@ -3,7 +3,7 @@
 void crear_hilo_consola(){
 	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA);
 	log_info(logger, "Kernel listo para recibir clientes consola");
-	t_handshake handshake;
+	uint8_t handshake;
 	while (1){
 		pthread_t hilo_atender_consola;
 		int socketCliente = esperar_cliente(server_fd);

@@ -10,7 +10,7 @@ void crear_hilo_memoria(){
     }
 
     stream_send_empty_buffer(conexion_con_memoria, HANDSHAKE_kernel);
-    t_handshake memoriaResponse = stream_recv_header(conexion_con_memoria);
+    uint8_t memoriaResponse = stream_recv_header(conexion_con_memoria);
     if (memoriaResponse != HANDSHAKE_ok_continue) {
         log_error(logger, "Error al hacer handshake con módulo Memoria");
         //kernel_destroy(configuracionKernel);

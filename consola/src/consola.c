@@ -29,7 +29,7 @@ int main(int argc, char** argv){
 
     /*stream_send_empty_buffer(conexionKernel, HANDSHAKE_consola);
 	log_debug(logger, "CONSOLA ENVIO HANDSHAKE A KERNEL.");
-    t_handshake kernelResponse = stream_recv_header(conexionKernel);
+    uint8_t kernelResponse = stream_recv_header(conexionKernel);
 
     if (kernelResponse != HANDSHAKE_ok_continue) {
         log_error(logger, "Error al intentar establecer Handshake inicial con módulo Kernel");

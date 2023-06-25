@@ -1,7 +1,7 @@
 #include "stream.h"
 
 static void __stream_send(int toSocket, void* streamToSend, uint32_t bufferSize) {
-    t_handshake header = 0;
+    uint8_t header = 0;
     uint32_t size = 0;
     ssize_t bytesSent = send(toSocket, streamToSend, sizeof(header) + sizeof(size) + bufferSize, 0);
     if (bytesSent == -1) {
@@ -9,7 +9,7 @@ static void __stream_send(int toSocket, void* streamToSend, uint32_t bufferSize)
     }
 }
 
-static void* __stream_create(t_handshake header, t_buffer* buffer) {
+static void* __stream_create(uint8_t header, t_buffer* buffer) {
     void* streamToSend = malloc(sizeof(header) + sizeof(buffer->size) + buffer->size);
     int offset = 0;
     memcpy(streamToSend + offset, &header, sizeof(header));
@@ -20,13 +20,13 @@ static void* __stream_create(t_handshake header, t_buffer* buffer) {
     return streamToSend;
 }
 
-void stream_send_buffer(int toSocket, t_handshake header, t_buffer* buffer) {
+void stream_send_buffer(int toSocket, uint8_t header, t_buffer* buffer) {
     void* stream = __stream_create(header, buffer);
     __stream_send(toSocket, stream, buffer->size);
     free(stream);
 }
 
-void stream_send_empty_buffer(int toSocket, t_handshake header) {
+void stream_send_empty_buffer(int toSocket, uint8_t header) {
     t_buffer* emptyBuffer = buffer_create();
     stream_send_buffer(toSocket, header, emptyBuffer);
     buffer_destroy(emptyBuffer);
@@ -48,8 +48,8 @@ void stream_recv_empty_buffer(int fromSocket) {
     buffer_destroy(buffer);
 }
 
-t_handshake stream_recv_header(int fromSocket) {
-    t_handshake header;
+uint8_t stream_recv_header(int fromSocket) {
+    uint8_t header;
     ssize_t msgBytes = recv(fromSocket, &header, sizeof(header), 0);
     if (msgBytes == -1) {
         printf("\e[0;31mstream_recv_buffer: Error en la recepción del header [%s]\e[0m\n", strerror(errno));

@@ -5,7 +5,7 @@ void hilo_kernel()
 { while (1){
     log_info(logger, "Estoy esperando paquete, soy memoria\n");
 	
-        t_handshake header = stream_recv_header(conexion_con_kernel);
+        uint8_t header = stream_recv_header(conexion_con_kernel);
 
         switch (header)
         {

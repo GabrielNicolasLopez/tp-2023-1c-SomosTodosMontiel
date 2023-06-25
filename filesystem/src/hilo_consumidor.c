@@ -73,7 +73,7 @@ void crear_hilo_consumidor()
 
 void respuesta_a_kernel(int operacion, t_instruccion* instruccion) 
 {
-    t_handshake header = operacion;
+    uint8_t header = operacion;
     t_buffer* buffer = buffer_create();
 
     // LONGITUD_ARCHIVO

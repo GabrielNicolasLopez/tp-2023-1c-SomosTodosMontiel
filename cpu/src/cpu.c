@@ -61,8 +61,8 @@ void hilo_kernel(){
 	log_error(logger, "CPU listo para recibir clientes del Kernel");
     int cliente_fd_kernel = esperar_cliente(server_fd_kernel); // esperamos un proceso para ejecutar
 
-	t_handshake handshake = stream_recv_header(cliente_fd_kernel);
-	log_info(logger, "handshake: %d", handshake);
+	uint8_t handshake = stream_recv_header(cliente_fd_kernel);
+	log_info(logger, "handshake kernel = 3: %d", handshake);
 	if (handshake == HANDSHAKE_kernel) {
 		log_info(logger, "Se envia handshake ok continue a kernel");
 		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);
@@ -73,8 +73,6 @@ void hilo_kernel(){
 		bool enviamos_CE_al_kernel;
 		
 		while(1){
-			t_Kernel_CPU header = stream_recv_header(cliente_fd_kernel);
-			log_debug(logger, "header: %d", header);
 			contexto_ejecucion = recibir_ce_de_kernel(cliente_fd_kernel);
 			enviamos_CE_al_kernel = false;
 			while(contexto_ejecucion && !enviamos_CE_al_kernel)
@@ -104,7 +102,7 @@ void hilo_memoria(){
 	}
 
 	stream_send_empty_buffer(conexion_con_memoria, HANDSHAKE_cpu);
-    t_handshake memoriaResponse = stream_recv_header(conexion_con_memoria);
+    uint8_t memoriaResponse = stream_recv_header(conexion_con_memoria);
 
     if (memoriaResponse != HANDSHAKE_ok_continue)
 	{
@@ -275,8 +273,10 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
-
-	stream_send_buffer(cliente_fd_kernel, CYM, cym_a_enviar);
+	
+	
+	uint8_t header = CYM;
+	stream_send_buffer(cliente_fd_kernel, header, cym_a_enviar);
 	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
 
     buffer_destroy(cym_a_enviar);
@@ -286,7 +286,9 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
 	log_debug(logger, "Esperando ce de kernel");
 
-	log_debug(logger, "header: %d", stream_recv_header(cliente_fd_kernel));
+	uint8_t handshake = stream_recv_header(cliente_fd_kernel);
+
+	log_debug(logger, "header: %d", handshake);
 
     t_buffer* ce_recibido = buffer_create();
 	t_contextoEjecucion* contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
