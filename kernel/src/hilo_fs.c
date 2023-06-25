@@ -11,8 +11,10 @@ void crear_hilo_filesystem(){
 		exit(-1);
 	}
 
+	log_debug(logger, "Enviando ");
 	stream_send_empty_buffer(conexion_con_fs, (uint8_t) HANDSHAKE_kernel);
     uint8_t fsResponse = stream_recv_header(conexion_con_fs);
+	stream_recv_empty_buffer(conexion_con_fs);
 
     if (fsResponse != HANDSHAKE_ok_continue)
 	{

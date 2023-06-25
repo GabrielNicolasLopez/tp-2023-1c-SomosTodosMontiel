@@ -33,6 +33,7 @@ int crear_conexion_con_memoria()
     // Handshake
     stream_send_empty_buffer(socketMemoria, HANDSHAKE_filesystem);
     uint8_t memoriaResponse = stream_recv_header(socketMemoria);
+    stream_recv_empty_buffer(socketMemoria);
     if (memoriaResponse != HANDSHAKE_ok_continue) {
         log_error(logger, "Error al hacer handshake con módulo Memoria");
         return -1;
@@ -52,6 +53,7 @@ int crear_servidor_kernel()
 
 	socketKernel = esperar_cliente(server_fd_kernel);
     uint8_t handshake = stream_recv_header(socketKernel);
+    stream_recv_empty_buffer(socketKernel);
     if (handshake != HANDSHAKE_kernel) {
         log_error(logger, "Error al recibir handshake");
         return -1;

@@ -62,6 +62,7 @@ void hilo_kernel(){
     int cliente_fd_kernel = esperar_cliente(server_fd_kernel); // esperamos un proceso para ejecutar
 
 	uint8_t handshake = stream_recv_header(cliente_fd_kernel);
+	stream_recv_empty_buffer(cliente_fd_kernel);
 	log_info(logger, "handshake kernel = 3: %d", handshake);
 	if (handshake == HANDSHAKE_kernel) {
 		log_info(logger, "Se envia handshake ok continue a kernel");
@@ -103,6 +104,7 @@ void hilo_memoria(){
 
 	stream_send_empty_buffer(conexion_con_memoria, HANDSHAKE_cpu);
     uint8_t memoriaResponse = stream_recv_header(conexion_con_memoria);
+	stream_recv_empty_buffer(conexion_con_memoria);
 
     if (memoriaResponse != HANDSHAKE_ok_continue)
 	{

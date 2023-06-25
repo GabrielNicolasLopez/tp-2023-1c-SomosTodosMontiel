@@ -15,6 +15,7 @@ void crear_hilo_cpu()
 
 	stream_send_empty_buffer(conexion_con_cpu, (uint8_t) HANDSHAKE_kernel);
     uint8_t cpuResponse = stream_recv_header(conexion_con_cpu);
+	stream_recv_empty_buffer(conexion_con_cpu);
 	log_info(logger, "handshake HANDSHAKE_ok_continue = 4: %d", cpuResponse);
 
     if (cpuResponse != HANDSHAKE_ok_continue)
