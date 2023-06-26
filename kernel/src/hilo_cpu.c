@@ -38,6 +38,8 @@ void crear_hilo_cpu()
 	t_FS_header respuesta_fs;
 	t_entradaTAAP *entradaTAAP;
 	t_entradaTGAA *entradaTGAA;
+	char* nombreArchivo;
+	int posicionDeseadaPuntero; 
 	//t_Kernel_Memoria respuesta_memoria;
 
 	while (1)
@@ -93,12 +95,18 @@ void crear_hilo_cpu()
 			case F_OPEN:
 				// se_reenvia_el_contexto = true;
 				// devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
-				char* nombreArchivo = motivoDevolucion->cadena; //suponiendo que aqui se encuentra el nombre del archivo - supusiste bien
+				nombreArchivo = motivoDevolucion->cadena;
 				if(existeEnTGAA(nombreArchivo))
 				{
 					agregarArchivoEnTAAP(nombreArchivo, entradaTAAP, entradaTGAA);
-					pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, nombre_archivo);
-
+					t_pcb* pcb_a_blocked = pcb_ejecutando_remove();
+					log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
+					log_debug(logger, "PID: <%d> - Bloqueado por: <IO>", pcb_a_blocked->contexto->pid);
+					pasar_a_blocked_de_archivo_de_TGAA(pcb_a_blocked, nombre_archivo);
+					//Como se va a blocked no se reenvia
+					se_reenvia_el_contexto = false;
+					//Liberamos la CPU
+					sem_post(&CPUVacia);
 				}else{					
 					pthread_mutex_lock(&mutexFS);
 					enviar_fopen_a_fs(motivoDevolucion);
@@ -122,11 +130,25 @@ void crear_hilo_cpu()
 				break;
 
 			case F_CLOSE:
+				nombreArchivo = motivoDevolucion->cadena;
+				t_pcb* pcb = pcb_ejecutando();
+				quitarArchivoEnTAAP(pcb, nombreArchivo);
+				if(hayProcesosEsperandoAl(nombreArchivo))
+				{
+					desbloqueo_del_primer_proceso_de_la_cola_del(nombreArchivo);
+				}else{
+				quitarArchivoEnTGAA(nombreArchivo);
+				}
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
 			case F_SEEK:
-				enviar_fseek_a_fs(motivoDevolucion);
-				se_reenvia_el_contexto = true;
+				nombreArchivo = motivoDevolucion->cadena;
+				posicionDeseadaPuntero = motivoDevolucion->cant_int; //suponiendo que aca se encuentra la ubicacion donde tiene que estar el puntero
+				entradaTGAA = devolverEntradaTGAA;
+				entradaTGAA->puntero = posicionDeseadaPuntero;
+				//enviar_fseek_a_fs(motivoDevolucion);
+				//se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
@@ -629,3 +651,50 @@ void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char *nombre_archi
 	list_add(entradaTGAA->lista_block_archivo, pcb_a_blocked);
 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
 }
+
+void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo)
+{
+	int posicion;
+	for (int i = 0; i < string_array_size(pcb->taap); i++)
+	{
+		if (strcmp(pcb->taap, nombre_archivo) == 0)
+			posicion = i;
+	}
+
+	pthread_mutex_lock(&pcb->mutex_TAAP);
+	t_entradaTAAP *entradaTAAP = list_remove(pcb->taap, i); // Elimino el archivo de la lista taap
+	pthread_mutex_unlock(&pcb->mutex_TAAP);
+	free(entradaTAAP->nombreArchivo);
+	free(entradaTAAP);
+}
+
+bool hayProcesosEsperandoAl(char *nombre_archivo)
+{
+	t_entradaTGAA* entradaTGAA = devolverEntradaTGAA(nombre_archivo);
+	return string_array_size(entradaTGAA->lista_block_archivo) > 0;
+}
+
+void desbloqueo_del_primer_proceso_de_la_cola_del(char *nombre_archivo)
+{
+	t_entradaTGAA* entradaTGAA = devolverEntradaTGAA(nombre_archivo);
+	t_pcb *pcb_blocked_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0);
+	//Y lo mandamos a la cola de ready
+	log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_blocked_a_ready->contexto->pid);
+	pasar_a_ready(pcb_blocked_a_ready);
+}
+
+void quitarArchivoEnTGAA(char *nombre_archivo)
+{
+	int posicion;
+	for (int i = 0; i < string_array_size(LISTA_TGAA); i++)
+	{
+		if (strcmp(LISTA_TGAA, nombre_archivo) == 0)
+			posicion = i;
+	}
+	t_entradaTGAA* entradaTGAA = list_remove(LISTA_TGAA, i);
+	free(entradaTGAA->nombreArchivo);
+	list_destroy(entradaTGAA->lista_block_archivo);
+	pthread_mutex_destroy(&entradaTGAA->mutex_lista_block_archivo);
+	free(entradaTGAA);
+}
+
