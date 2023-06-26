@@ -36,6 +36,8 @@ void crear_hilo_cpu()
 	t_buffer* buffer = buffer_create();
 	
 	t_FS_header respuesta_fs;
+	t_entradaTAAP *entradaTAAP;
+	t_entradaTGAA *entradaTGAA;
 	//t_Kernel_Memoria respuesta_memoria;
 
 	while (1)
@@ -92,19 +94,30 @@ void crear_hilo_cpu()
 				// se_reenvia_el_contexto = true;
 				// devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				char* nombreArchivo = motivoDevolucion->cadena; //suponiendo que aqui se encuentra el nombre del archivo - supusiste bien
-				if(existeEnTGAA(nombreArchivo)){
-					t_entradaTAAP *entradaTAAP = malloc(sizeof(t_entradaTAAP));
-					t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
-					entradaTAAP->nombreArchivo = entradaTGAA->nombreArchivo;
-					entradaTAAP->inicioDelArchivo = entradaTGAA->inicioDelArchivo;
-					agregarEnTAAP(entradaTAAP);
-					//y se bloqueará al proceso que ejecutó F_OPEN en la cola correspondiente a este archivo.
-					//no se a que se refiere lo de arriba
+				if(existeEnTGAA(nombreArchivo))
+				{
+					agregarArchivoEnTAAP(nombreArchivo, entradaTAAP, entradaTGAA);
+					pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, nombre_archivo);
+
 				}else{					
 					pthread_mutex_lock(&mutexFS);
 					enviar_fopen_a_fs(motivoDevolucion);
 					recibir_respuesta_fopen_desde_fs(buffer, respuesta_fs);
 					pthread_mutex_unlock(&mutexFS);
+					switch (respuesta_fs)
+					{
+						case FS_OPEN_OK:
+							agregarArchivoEnTGAA(nombreArchivo, entradaTAAP, entradaTGAA);
+							agregarArchivoEnTAAP(nombreArchivo, entradaTGAA);
+							break;
+						case FS_OPEN_NO_OK: 
+							enviar_fcreate_a_fs(motivoDevolucion);
+							recibir_respuesta_fopen_desde_fs(buffer, respuesta_fs);
+							agregarArchivoEnTGAA(nombreArchivo, entradaTAAP, entradaTGAA);
+							agregarArchivoEnTAAP(nombreArchivo, entradaTGAA);
+							break;
+					}
+					devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				}
 				break;
 
@@ -357,6 +370,24 @@ void enviar_fopen_a_fs(t_motivoDevolucion *motivoDevolucion){
 
 }
 
+void enviar_fcreate_a_fs(t_motivoDevolucion *motivoDevolucion){
+
+	t_buffer* buffer_fcreate = buffer_create();
+
+	//Tipo de instruccion
+	buffer_pack(buffer_fcreate, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
+	//Tamaño de la cadena
+	buffer_pack(buffer_fcreate, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
+    //Cadena
+    buffer_pack(buffer_fcreate, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+
+	stream_send_buffer(conexion_con_fs, FS_CREATE, buffer_fcreate);
+	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fcreate->size);
+
+	buffer_destroy(buffer_fcreate);
+
+}
+
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
 
 	t_buffer* respuesta_crear_segmento = buffer_create();
@@ -546,9 +577,55 @@ void agregarEnTAAP(t_entradaTAAP *entradaTAAP)
 	pthread_mutex_unlock(&pcb->mutex_TAAP);
 }
 
-void recibir_respuesta_fopen_desde_fs(t_buffer* buffer, t_FS_header respuesta_fs)
+void agregarEnTGAA(t_entradaTGAA *entradaTGAA)
+{
+	pthread_mutex_lock(&listaTGAA);
+	list_add(LISTA_TGAA, entradaTGAA);
+	pthread_mutex_unlock(&listaTGAA);
+}
+
+void recibir_respuesta_fopen_desde_fs(t_buffer* buffer, t_FS_header* respuesta_fs)
 {
 	respuesta_fs = stream_recv_header(conexion_con_fs);
-
 	stream_recv_buffer(conexion_con_memoria, buffer);
+}
+
+void agregarArchivoEnTAAP(char *nombreArchivo, t_entradaTAAP *entradaTAAP, t_entradaTGAA *entradaTGAA)
+{
+	entradaTAAP = malloc(sizeof(t_entradaTAAP));
+	entradaTGAA = devolverEntradaTGAA(nombreArchivo);
+	entradaTAAP->nombreArchivo = malloc(sizeof(entradaTGAA->nombreArchivo));
+	entradaTAAP->nombreArchivo = entradaTGAA->nombreArchivo;
+	entradaTAAP->puntero = 0;
+	entradaTAAP->tamanioArchivo = 0;
+	agregarEnTAAP(entradaTAAP);
+}
+
+void agregarArchivoEnTGAA(char* nombreArchivo, t_entradaTGAA *entradaTGAA)
+{
+	entradaTGAA = malloc(sizeof(t_entradaTGAA));
+	entradaTGAA->nombreArchivo = malloc(sizeof(nombreArchivo));
+	entradaTGAA->nombreArchivo = nombreArchivo;
+	entradaTGAA->puntero = 0;
+	entradaTGAA->tamanioArchivo = 0;
+	entradaTGAA->lista_block_archivo = list_create();
+	pthread_mutex_init(&entradaTGAA->mutex_lista_block_archivo, NULL);
+	agregarEnTGAA(entradaTGAA);
+}
+
+void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char *nombre_archivo)
+{
+	int posicion;
+	for (int i = 0; i < string_array_size(LISTA_TGAA); i++)
+	{
+		if (strcmp(LISTA_TGAA, nombre_archivo) == 0)
+			posicion = i;
+	}
+
+	t_entradaTGAA *entradaTGAA = list_get(LISTA_TGAA, posicion);
+	log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
+	log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombre_recurso);
+	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
+	list_add(entradaTGAA->lista_block_archivo, pcb_a_blocked);
+	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
 }

@@ -53,12 +53,3 @@ void crear_hilo_filesystem(){
 		
 	}
 }
-
-void agregarEnTGAA(t_entradaTGAA *entradaTGAA)
-{
-	pthread_mutex_lock(&listaTGAA);
-	list_add(LISTA_TGAA, entradaTGAA);
-	pthread_mutex_unlock(&listaTGAA);
-}
-
-

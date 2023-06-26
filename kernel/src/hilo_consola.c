@@ -216,6 +216,10 @@ void crear_pcb(void *datos){
 	pcb->estimacion_anterior = configuracionKernel->ESTIMACION_INICIAL;
 	//Real anterior
 	pcb->real_anterior       = 0;
+	//TAAP (Tabla de archivos abiertos por proceso)
+	pcb->taap 				 = list_create();
+	//Inicializo el mutex
+	pthread_mutex_init(&pcb->mutex_TAAP, NULL);
 
 	//Tabla de segmentos del proceso
 	//crear_tabla_de_segmentos(pcb);

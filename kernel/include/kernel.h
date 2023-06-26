@@ -65,14 +65,17 @@ typedef struct
 typedef struct
 {
 	char* nombreArchivo;
-	char* inicioDelArchivo;
+	uint32_t puntero;
+	uint32_t tamanioArchivo;
 }t_entradaTAAP;
 
 typedef struct
 {
 	char* nombreArchivo;
-	char* inicioDelArchivo;
-	pthread_mutex_t mutex_archivo;
+	uint32_t puntero;
+	uint32_t tamanioArchivo;
+	t_list *lista_block_archivo;
+	pthread_mutex_t mutex_lista_block_archivo;
 }t_entradaTGAA;
 
 typedef struct
@@ -162,11 +165,15 @@ void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fcreate_a_fs(t_motivoDevolucion *motivoDevolucion);
 
 bool existeEnTGAA(char *nombre_archivo);
 t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo);
 void agregarEnTAAP(t_entradaTAAP *entradaTAAP);
+void agregarEnTGAA(t_entradaTGAA *entradaTGAA)
 void recibir_respuesta_fopen_desde_fs(t_buffer* buffer, t_FS_header respuesta_fs);
+void agregarArchivoEnTAAP(char* nombreArchivo, t_entradaTAAP *entradaTAAP, t_entradaTGAA *entradaTGAA);
+void agregarArchivoEnTGAA(char* nombreArchivo, t_entradaTGAA *entradaTGAA);
 
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);

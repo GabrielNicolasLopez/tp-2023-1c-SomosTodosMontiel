@@ -6,6 +6,7 @@
     typedef enum
     {
         //Header kernel -> FS
+        FS_CREATE,
         FS_INSTRUCCION,
         FS_FINALIZAR,
         //Header FS -> kernel
