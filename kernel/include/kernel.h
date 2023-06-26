@@ -1,6 +1,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#include "FS_kernel.h"
 #include "shared_utils.h"
 #include "kernel_cpu.h"
 #include "buffer.h"
@@ -14,6 +15,8 @@
 extern int conexion_con_memoria;
 extern int conexion_con_cpu;
 extern int conexion_con_fs;
+
+extern t_Kernel_Consola razon;
 
 typedef struct
 {
@@ -64,14 +67,17 @@ typedef struct
 typedef struct
 {
 	char* nombreArchivo;
-	char* inicioDelArchivo;
+	uint32_t puntero;
+	uint32_t tamanioArchivo;
 }t_entradaTAAP;
 
 typedef struct
 {
 	char* nombreArchivo;
-	char* inicioDelArchivo;
-	pthread_mutex_t mutex_archivo;
+	uint32_t puntero;
+	uint32_t tamanioArchivo;
+	t_list *lista_block_archivo;
+	pthread_mutex_t mutex_lista_block_archivo;
 }t_entradaTGAA;
 
 typedef struct
@@ -90,7 +96,7 @@ t_kernel_config *leerConfiguracion();
 void crear_pcb(void *datos);
 void crear_hilo_memoria();
 void crear_hilo_filesystem();
-void crear_hilo_cpu();
+void hilo_general();
 void crear_hilo_consola();
 void crear_hilos_kernel();
 void cargarRecursos();
@@ -161,9 +167,21 @@ void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fcreate_a_fs(t_motivoDevolucion *motivoDevolucion);
+
+bool existeEnTGAA(char *nombre_archivo);
+t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo);
+void agregarEnTAAP(t_entradaTAAP *entradaTAAP);
+void agregarEnTGAA(t_entradaTGAA *entradaTGAA);
+void recibir_respuesta_fopen_desde_fs(t_FS_header respuesta_fs);
+void agregarArchivoEnTAAP(char* nombreArchivo, t_entradaTAAP *entradaTAAP, t_entradaTGAA *entradaTGAA);
+void agregarArchivoEnTGAA(char* nombreArchivo, t_entradaTGAA *entradaTGAA);
+void desbloqueo_del_primer_proceso_de_la_cola_del(char *nombre_archivo);
 
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);
+
+extern t_FS_header respuesta_fs;
 
 extern t_config *config;
 extern t_kernel_config *configuracionKernel;
@@ -187,6 +205,8 @@ extern pthread_mutex_t listaReady;
 extern pthread_mutex_t listaExec;
 extern pthread_mutex_t listaBlocked;
 extern pthread_mutex_t listaExit;
+extern pthread_mutex_t listaTGAA;
+extern pthread_mutex_t mutexFS;
 
 //Semaforos
 extern sem_t CantPCBNew;

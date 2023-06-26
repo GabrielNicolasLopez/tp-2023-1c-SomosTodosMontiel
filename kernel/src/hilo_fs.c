@@ -1,7 +1,7 @@
 #include "kernel.h"
 
 void crear_hilo_filesystem(){
-	// Me conecto a filesystem
+	/*// Me conecto a filesystem
 	conexion_con_fs = crear_conexion(configuracionKernel->IP_FILESYSTEM, configuracionKernel->PUERTO_FILESYSTEM);
 
 	if (conexion_con_fs == -1) //Si no se puede conectar
@@ -25,7 +25,7 @@ void crear_hilo_filesystem(){
 	
 	log_debug(logger, "KERNEL SE CONECTO CON FS");
 	//t_buffer* buffer = buffer_create();
-	//t_instruccion* p_instruccion;
+	//t_instruccion* p_instruccion;*/
 
 	while (1){
 		/*

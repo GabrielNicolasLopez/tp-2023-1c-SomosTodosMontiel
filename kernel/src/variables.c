@@ -24,6 +24,7 @@ pthread_mutex_t listaExec;
 pthread_mutex_t listaBlocked;
 pthread_mutex_t listaExit;
 pthread_mutex_t listaTGAA;
+pthread_mutex_t mutexFS;
 
 sem_t esPosibleCompactar;
 sem_t CantPCBNew;
@@ -35,3 +36,8 @@ sem_t pasar_pcb_a_CPU;
 bool se_reenvia_el_contexto = false;
 
 t_segmento *segmento0;
+
+t_Kernel_Consola razon;
+t_FS_header respuesta_fs;
+t_entradaTAAP *entradaTAAP;
+//t_Kernel_Memoria respuesta_memoria;

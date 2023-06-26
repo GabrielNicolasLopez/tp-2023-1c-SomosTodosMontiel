@@ -73,17 +73,13 @@ void iniciar_listas_y_semaforos(){
 }
 
 void crear_hilos_kernel(){
-	pthread_t hiloConsola, hiloCPU,hiloFilesystem, hiloMemoria, hiloPlaniCortoPlazo, hiloPlaniLargoPlazo;
+	pthread_t hiloConsola, hiloGeneral, hiloPlaniCortoPlazo, hiloPlaniLargoPlazo;
 
 	//Hilos de modulos
 	pthread_create(&hiloConsola, NULL, (void *)crear_hilo_consola, NULL);
-	pthread_create(&hiloCPU, NULL, (void *)crear_hilo_cpu, NULL);
-	pthread_create(&hiloFilesystem, NULL, (void *)crear_hilo_filesystem, NULL);
-	pthread_create(&hiloMemoria, NULL, (void *)crear_hilo_memoria, NULL);
+	pthread_create(&hiloGeneral, NULL, (void *)hilo_general, NULL);
 	
-	pthread_detach(hiloCPU);
-	pthread_detach(hiloFilesystem);
-	pthread_detach(hiloMemoria);
+	pthread_detach(hiloGeneral);
 
 	//Hilos de planificadores
 	pthread_create(&hiloPlaniCortoPlazo, NULL, (void *)planiCortoPlazo, NULL);

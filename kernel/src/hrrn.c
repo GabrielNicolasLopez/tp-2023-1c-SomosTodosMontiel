@@ -26,8 +26,8 @@ double calcular_HRRN(t_pcb* pcb){
 }
 
 t_pcb* mayorHRRN(t_pcb* unaPCB, t_pcb* otraPCB){
-	double unHRRN   = calcular_HRRN(unaPCB);
-    double otroHRRN = calcular_HRRN(otraPCB);
+	double unHRRN   = calcular_HRRN(unaPCB); //1,24
+    double otroHRRN = calcular_HRRN(otraPCB); //2
     return unHRRN <= otroHRRN
                ? otraPCB //Devuelvo la PCB con el HRRN mayor si se cumple la condicion 
                : unaPCB;
