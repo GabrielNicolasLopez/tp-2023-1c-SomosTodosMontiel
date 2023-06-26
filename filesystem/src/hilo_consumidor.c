@@ -19,12 +19,12 @@ void crear_hilo_consumidor()
 
         log_debug(logger, "Hilo_consumidor: Instruccion recibida: %s", nombresInstrucciones[tipo_inst]);
 
-        if (tipo_inst == F_OPEN) {
+        /*if (tipo_inst == F_OPEN) {
             if (existe_archivo(p_instruccion->cadena)) {
                 t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
                 FCB->nombre_archivo = p_instruccion->cadena;
                 FCB->config = buscar_FCB(p_instruccion->cadena);
-                FCB->FCB_config = levantar_FCB(config);
+                FCB->FCB_config = levantar_FCB(FCB->config);
                 list_add(l_FCBs_abiertos, (void*) FCB);
                 
                 log_info(logger, "Abrir Archivo: <%s>", p_instruccion->cadena);
@@ -33,12 +33,12 @@ void crear_hilo_consumidor()
                 log_debug(logger, "Hilo_consumidor: Archivo inexistente, %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
             }
-        } else
-        if (tipo_inst == F_CREATE) {
+        } else */
+        if (tipo_inst == F_OPEN) { // F_CREATE !!!!!!!!!!!!!
             t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
             FCB->nombre_archivo = p_instruccion->cadena;
             FCB->config = crear_FCB(p_instruccion->cadena);
-            FCB->FCB_config = levantar_FCB(config);
+            FCB->FCB_config = levantar_FCB(FCB->config);
             list_add(l_FCBs_abiertos, (void*) FCB);
 
             log_info(logger, "Crear Archivo: <%s>", p_instruccion->cadena);
