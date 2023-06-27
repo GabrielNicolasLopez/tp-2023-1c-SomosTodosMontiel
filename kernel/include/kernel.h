@@ -66,15 +66,13 @@ typedef struct
 
 typedef struct
 {
-	char* nombreArchivo;
-	uint32_t puntero;
-	uint32_t tamanioArchivo;
+	t_entradaTGAA *entradaTGAA;
 }t_entradaTAAP;
 
 typedef struct
 {
 	char* nombreArchivo;
-	uint32_t puntero;
+	uint32_t posicionPuntero;
 	uint32_t tamanioArchivo;
 	t_list *lista_block_archivo;
 	pthread_mutex_t mutex_lista_block_archivo;
@@ -171,11 +169,10 @@ void enviar_fcreate_a_fs(t_motivoDevolucion *motivoDevolucion);
 
 bool existeEnTGAA(char *nombre_archivo);
 t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo);
-void agregarEnTAAP(t_entradaTAAP *entradaTAAP);
 void agregarEnTGAA(t_entradaTGAA *entradaTGAA);
-void recibir_respuesta_fopen_desde_fs(t_FS_header respuesta_fs);
-void agregarArchivoEnTAAP(char* nombreArchivo, t_entradaTAAP *entradaTAAP, t_entradaTGAA *entradaTGAA);
-void agregarArchivoEnTGAA(char* nombreArchivo, t_entradaTGAA *entradaTGAA);
+void recibir_respuesta_fopen_desde_fs(t_FS_header *respuesta_fs);
+void agregarArchivoEnTAAP(char* nombreArchivo);
+void agregarArchivoEnTGAA(char* nombreArchivo);
 void desbloqueo_del_primer_proceso_de_la_cola_del(char *nombre_archivo);
 
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);

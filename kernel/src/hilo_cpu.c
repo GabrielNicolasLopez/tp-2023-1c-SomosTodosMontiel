@@ -118,13 +118,13 @@ void hilo_general()
 				break;
 
 			case F_SEEK:
-				/*nombreArchivo = motivoDevolucion->cadena;
-				posicionDeseadaPuntero = motivoDevolucion->cant_int; //suponiendo que aca se encuentra la ubicacion donde tiene que estar el puntero
-				entradaTGAA = devolverEntradaTGAA;
-				entradaTGAA->puntero = posicionDeseadaPuntero;
+				/*char* nombreArchivo = motivoDevolucion->cadena;
+				int posicionDeseadaPuntero = motivoDevolucion->cant_int; //suponiendo que aca se encuentra la ubicacion donde tiene que estar el puntero
+				t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
+				entradaTGAA->posicionPuntero = posicionDeseadaPuntero;*/
 				//enviar_fseek_a_fs(motivoDevolucion);
 				//se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);*/
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 			case F_READ:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
@@ -592,8 +592,6 @@ t_pcb *pcb_ejecutando_remove(){
 	return pcb;
 }
 
-
-
 bool existeEnTGAA(char *nombre_archivo)
 {
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
@@ -608,22 +606,16 @@ bool existeEnTGAA(char *nombre_archivo)
 t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
 {
 	int posicion;
+	t_entradaTGAA *entradaTGAA;
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
 	{
-		if (strcmp(LISTA_TGAA, nombre_archivo) == 0)
+		entradaTGAA = list_get(LISTA_TGAA, posicion);
+		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
 			posicion = i;
 	}
 
 	t_entradaTGAA *entradaTGAA = list_get(LISTA_TGAA, posicion);
 	return entradaTGAA;
-}
-
-void agregarEnTAAP(t_entradaTAAP *entradaTAAP)
-{
-	t_pcb *pcb = pcb_ejecutando();
-	pthread_mutex_lock(&pcb->mutex_TAAP);
-	list_add(pcb->taap, entradaTAAP);
-	pthread_mutex_unlock(&pcb->mutex_TAAP);
 }
 
 void agregarEnTGAA(t_entradaTGAA *entradaTGAA)
@@ -642,30 +634,20 @@ void recibir_respuesta_fopen_desde_fs(t_FS_header* respuesta_fs)
 }
 
 void agregarArchivoEnTAAP(char *nombreArchivo){
-	t_entradaTAAP *entradaTAAP = malloc(sizeof(t_entradaTAAP));
-	
-	//Busco el archivo en la TGAA	
-	t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
-	
-
-	//Asigno los valores de la TGAA en la TAAP
-	entradaTAAP->nombreArchivo = malloc(string_length(entradaTGAA->nombreArchivo));
-	entradaTAAP->nombreArchivo = entradaTGAA->nombreArchivo;
-	entradaTAAP->puntero = 0;
-	entradaTAAP->tamanioArchivo = 0;
-	agregarEnTAAP(entradaTAAP);
+	t_pcb *pcb = pcb_ejecutando();
+	t_entradaTAAP *entradaTAAP = devolverEntradaTGAA(nombreArchivo);
+	pthread_mutex_lock(&pcb->mutex_TAAP);
+	list_add(pcb->taap, entradaTAAP);
+	pthread_mutex_unlock(&pcb->mutex_TAAP);
 }
 
 void agregarArchivoEnTGAA(char* nombreArchivo)
-{
-	t_entradaTAAP *entradaTAAP = malloc(sizeof(t_entradaTAAP));
-	
-	//Busco el archivo en la TGAA	
+{	
 	t_entradaTGAA *entradaTGAA = malloc(sizeof(t_entradaTGAA));
 
 	entradaTGAA->nombreArchivo = malloc(sizeof(nombreArchivo));
 	entradaTGAA->nombreArchivo = nombreArchivo;
-	entradaTGAA->puntero = 0;
+	entradaTGAA->posicionPuntero = 0;
 	entradaTGAA->tamanioArchivo = 0;
 	entradaTGAA->lista_block_archivo = list_create();
 	pthread_mutex_init(&entradaTGAA->mutex_lista_block_archivo, NULL);
@@ -675,13 +657,15 @@ void agregarArchivoEnTGAA(char* nombreArchivo)
 void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char* nombre_archivo)
 {
 	int posicion;
+	t_entradaTGAA *entradaTGAA;
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
 	{
+		entradaTGAA = list_get(LISTA_TGAA, posicion);
 		if (strcmp(LISTA_TGAA, nombre_archivo) == 0)
 			posicion = i;
 	}
 
-	t_entradaTGAA *entradaTGAA = list_get(LISTA_TGAA, posicion);
+	entradaTGAA = list_get(LISTA_TGAA, posicion);
 	log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
 	log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombre_archivo);
 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
@@ -692,17 +676,18 @@ void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char* nombre_archi
 void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo)
 {
 	int posicion;
+	t_entradaTAAP *entradaTAAP;
 	for (int i = 0; i < list_size(pcb->taap); i++)
 	{
-		if (strcmp(pcb->taap, nombre_archivo) == 0)
+		entradaTAAP = list_get(pcb->taap, i);
+		if (strcmp(entradaTAAP->entradaTGAA->nombreArchivo, nombre_archivo) == 0)
 			posicion = i;
 	}
 
 	pthread_mutex_lock(&pcb->mutex_TAAP);
 	t_entradaTAAP *entradaTAAP = list_remove(pcb->taap, posicion); // Elimino el archivo de la lista taap
 	pthread_mutex_unlock(&pcb->mutex_TAAP);
-	free(entradaTAAP->nombreArchivo);
-	free(entradaTAAP);
+	free(entradaTAAP); //recordatorio: no hacer free al puntero *entradaTGAA
 }
 
 bool hayProcesosEsperandoAl(char *nombre_archivo)
@@ -723,9 +708,11 @@ void desbloqueo_del_primer_proceso_de_la_cola_del(char *nombre_archivo)
 void quitarArchivoEnTGAA(char *nombre_archivo)
 {
 	int posicion;
+	t_entradaTGAA *entradaTGAA;
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
 	{
-		if (strcmp(LISTA_TGAA, nombre_archivo) == 0)
+		entradaTGAA = list_get(LISTA_TGAA, posicion);
+		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
 			posicion = i;
 	}
 	t_entradaTGAA* entradaTGAA = list_remove(LISTA_TGAA, posicion);
