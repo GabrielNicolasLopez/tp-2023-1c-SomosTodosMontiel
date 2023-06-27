@@ -1,30 +1,26 @@
 #include <algoritmos.h>
 
 
-
 //FirstFit
-uint32_t asignarSegmentoFirstFit(t_list* listaSegmentos, t_list* listaHuecos, uint32_t idProceso, uint32_t tamSegmento) {
+uint32_t algoritmoFirstFit(uint32_t tamSegmento) {
 
     // Buscar el primer hueco que pueda contener el segmento
     for (int i = 0; i < list_size(listaHuecos); i++) {
         t_hueco* hueco = list_get(listaHuecos, i);
+        uint32_t baseEncontrada;
         if (hueco->tamanio >= tamSegmento) {
-            // Asignar el segmento
-            t_segmento* nuevoSegmento = malloc(sizeof(t_segmento));
-            nuevoSegmento->id_segmento= idProceso;
-            nuevoSegmento->base = hueco->base;
-            nuevoSegmento->tamanio = tamSegmento;
+            baseEncontrada = hueco->base;
 
             // Actualizar el hueco libre
-            hueco->base += tamSegmento;
-            hueco->tamanio -= tamSegmento;
+            hueco->base = hueco->base+tamSegmento;
+            hueco->tamanio =hueco->tamanio -tamSegmento;
 
             // Eliminar el hueco si queda vacío
             if (hueco->tamanio == 0) {
                 free(list_remove(listaHuecos, i));
             }
 
-            return nuevoSegmento->base;
+            return baseEncontrada;
         }
     }
 
@@ -32,21 +28,16 @@ uint32_t asignarSegmentoFirstFit(t_list* listaSegmentos, t_list* listaHuecos, ui
 }
 
 //BestFit
-
-void asignarSegmentoBestFit(t_list* listaSegmentos, t_list* listaHuecos, uint32_t idProceso, uint32_t tamSegmento) {
+uint32_t algoritmoBestFit(uint32_t tamSegmento) {
     // Ordenar los huecos por tamaño de forma ascendente
     list_sort(listaHuecos, compararHuecosPorTamanioAscendente);
 
     // Buscar el hueco más pequeño que pueda contener el segmento
     for (int i = 0; i < list_size(listaHuecos); i++) {
         t_hueco* hueco = list_get(listaHuecos, i);
+        uint32_t baseEncontrada;
         if (hueco->tamanio >= tamSegmento) {
-            // Asignar el segmento
-            t_segmento* nuevoSegmento = malloc(sizeof(t_segmento));
-            nuevoSegmento->id_segmento= idProceso;
-            nuevoSegmento->base = hueco->base;
-            nuevoSegmento->tamanio = tamSegmento;
-            //list_add(listaSegmentos, nuevoSegmento);
+            baseEncontrada = hueco->base;
 
             // Actualizar el hueco libre
             hueco->base += tamSegmento;
@@ -57,30 +48,24 @@ void asignarSegmentoBestFit(t_list* listaSegmentos, t_list* listaHuecos, uint32_
                 free(list_remove(listaHuecos, i));
             }
 
-            return nuevoSegmento->base;
+            return baseEncontrada;
         }
     }
 
     
 }
 
-
 //Worts Fit
-
-void asignarSegmentoWorstFit(t_list* listaSegmentos, t_list* listaHuecos, uint32_t idProceso, uint32_t tamSegmento) {
+uint32_t algoritmoWorstFit(uint32_t tamSegmento) {
     // Ordenar los huecos por tamaño de forma descendente
     list_sort(listaHuecos, compararHuecosPorTamanioDescendente);
 
     // Buscar el hueco más grande que pueda contener el segmento
     for (int i = 0; i < list_size(listaHuecos); i++) {
         t_hueco* hueco = list_get(listaHuecos, i);
+        uint32_t baseEncontrada;
         if (hueco->tamanio >= tamSegmento) {
-            // Asignar el segmento
-            t_segmento* nuevoSegmento = malloc(sizeof(t_segmento));
-            nuevoSegmento->id_segmento= idProceso;
-            nuevoSegmento->base = hueco->base;
-            nuevoSegmento->tamanio = tamSegmento;
-            //list_add(listaSegmentos, nuevoSegmento);
+            baseEncontrada = hueco->base;
 
             // Actualizar el hueco libre
             hueco->base += tamSegmento;
@@ -91,9 +76,10 @@ void asignarSegmentoWorstFit(t_list* listaSegmentos, t_list* listaHuecos, uint32
                 free(list_remove(listaHuecos, i));
             }
 
-            return nuevoSegmento->base;
+            return baseEncontrada;
         }
     }
+
     
 }
 
@@ -109,7 +95,6 @@ int compararHuecosPorTamanioAscendente(const void* a, const void* b) {
         return 0;
     }
 }
-
 
 int compararHuecosPorTamanioDescendente(const void* a, const void* b) {
     t_hueco* huecoA = *(t_hueco**)a;

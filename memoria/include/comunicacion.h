@@ -6,9 +6,6 @@
 
 //Definimos las funciones
 
-
-t_segmento* buscarSegmentoPorId(t_list* segmento,uint32_t id);
-
 t_segmento *recibirIDTam(uint32_t id, uint32_t tam);
 
 void mandarLaBase(uint32_t baseMandar);

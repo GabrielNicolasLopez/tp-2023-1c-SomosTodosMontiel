@@ -81,13 +81,6 @@ void recibir_conexiones(int socketEscucha){
 	}
 }
 
-void hilo_kernel(){
-    while(1){
-		//Mensajes recibidos de kernel
-		//switch
-	}
-}
-
 void hilo_cpu(){
     while(1){
 		//Mensajes recibidos de cpu

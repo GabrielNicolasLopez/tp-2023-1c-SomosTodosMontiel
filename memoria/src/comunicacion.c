@@ -12,20 +12,24 @@ void hilo_kernel()
         case CREATE_SEGMENT:
             log_info(logger, "Mi cod de op es: %d", header);
             t_segmento *segmentoACrear=malloc(sizeof(t_segmento));
+            uint32_t baseMandar;
 
-            //-aca recibo el tamanio del segmento, la id, y la base 
+        //-aca recibo el tamanio del segmento, la id
             segmentoACrear =recibirIDTam(segmentoACrear->id_segmento,segmentoACrear->tamanio);
-
-            //-creo el segemnto y lo meto en la lista  
-            uint32_t baseMandar=comprobar_Creacion_de_Seg(listaSegmentos,listaHuecos, segmentoACrear->id_segmento,segmentoACrear->tamanio);
-
-                if(baseMandar!=-1 && baseMandar!=-2){
-                      t_segmento* segmento = segmentoCrear(segmentoACrear->id_segmento,baseMandar,segmentoACrear->tamanio);
-                 // Actualizar tabla de segmentos
+            
+        //compruebo si hay espacio
+            bool espacioDisponible =comprobar_Creacion_de_Seg(segmentoACrear->tamanio);
+            
+        //-creo el segemnto y lo meto en la lista  
+            if(espacioDisponible==1){
+                baseMandar=aplicarAlgoritmo(segmentoACrear->tamanio);
+                t_segmento* segmento = segmentoCrear(segmentoACrear->id_segmento,baseMandar,segmentoACrear->tamanio);
                 list_add(listaSegmentos,segmento);
-                }
-
-            //-devuelvo la base actualizada, 
+            }
+            else{
+                baseMandar=espacioDisponible;
+            }
+        //-devuelvo la base actualizada
             mandarLaBase(baseMandar);
 
             break;
@@ -34,19 +38,24 @@ void hilo_kernel()
 
             log_info(logger, "Mi cod de op es: %d", header);
 
-            //recibo el segmento a eliminar 
+        //recibo el segmento a eliminar 
             uint32_t id;
-            uint32_t id_recivida; recibirID(id);
-            t_segmento *segmentoEncontrado=buscarSegmentoPorId(listaSegmentos,id_recivida);
+            uint32_t id_recivida = recibirID(id);
+        //elimino el segmento
+            t_segmento *segmentoEncontrado;
+            segmentoEncontrado=buscarSegmentoPorId(id_recivida);
+            t_hueco * huecoNuevo=malloc(sizeof(t_hueco));
+            huecoNuevo->base =segmentoEncontrado->base;
+            huecoNuevo->tamanio=segmentoEncontrado->tamanio;
+            list_add(listaHuecos,huecoNuevo);
             list_remove_element(listaSegmentos,segmentoEncontrado);
-
-            //devuelvo la lista nueva con el segemto elimado     
-           // mandarLista(); Falta terminar esto 
+        //devuelvo la lista nueva con el segemto elimado     
+        // mandarLista(); Falta terminar esto 
             
             break;
      
 
-        case 20:
+        case EMPEZA_A_COMPACTAR:
 
             log_info(logger, "Mi cod de op es: %d", header);
 
@@ -63,19 +72,6 @@ void hilo_kernel()
     }
     
 }
-t_segmento* buscarSegmentoPorId(t_list* segmentos, uint32_t id) {
-    for (int i = 0; i < list_size(segmentos); i++) {
-        t_segmento* segmento = (t_segmento*)list_get(segmentos, i);
-        
-        if (segmento->id_segmento == id) {
-            return segmento;
-        }
-    }
-    
-    return NULL;  // Si no se encuentra el segmento, se devuelve NULL
-}
-
-
 
 t_segmento *recibirIDTam(uint32_t id, uint32_t tam){
 
@@ -103,17 +99,17 @@ void mandarLaBase(uint32_t baseMandar){
 
     t_Kernel_Memoria instruccion;
 
-    if(baseMandar !=-1 && baseMandar!=-2){
+    if(baseMandar !=0 && baseMandar!=-1){
         instruccion = BASE;
         buffer_pack(buffer,&instruccion,sizeof(t_Kernel_Memoria));
         buffer_pack(buffer,&baseMandar,sizeof(uint32_t));
     }
-    if(baseMandar ==-1 ){
+    if(baseMandar == 0 ){
         instruccion = SIN_MEMORIA;
         buffer_pack(buffer,&instruccion,sizeof(t_Kernel_Memoria));
         //stream_send_buffer(socketKernel, &instruccion);
     }
-    if(baseMandar ==-2 ){
+    if(baseMandar == -1 ){
         instruccion = NECESITO_COMPACTAR;
         buffer_pack(buffer,&instruccion,sizeof(t_Kernel_Memoria));
         //stream_send_buffer(socketKernel, &instruccion);
