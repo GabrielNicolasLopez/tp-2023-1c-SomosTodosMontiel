@@ -64,10 +64,6 @@ typedef struct
 	t_motivoDevolucion *motivo;
 } t_datosIO;
 
-typedef struct
-{
-	t_entradaTGAA *entradaTGAA;
-}t_entradaTAAP;
 
 typedef struct
 {
@@ -80,6 +76,11 @@ typedef struct
 
 typedef struct
 {
+	t_entradaTGAA *entradaTGAA;
+}t_entradaTAAP;
+
+typedef struct
+{
 	int socket;
 	t_instrucciones* instrucciones;
 } t_datosCrearPCB;
@@ -89,6 +90,23 @@ typedef enum
 	FIFO,
 	HRRN
 } t_tipo_algoritmo;
+
+//Conexion con modulos
+void conectarse_con_cpu();
+void conectarse_con_memoria();
+void conectarse_con_fs();
+
+//Espera de respuestas de FS
+void esperar_respuestas();
+
+//Manejo de archivos
+void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char* nombre_archivo);
+void quitarArchivoEnTGAA(char *nombre_archivo);
+void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo);
+void desbloqueo_al_primer_proceso_de_la_cola_del(char *nombre_archivo);
+bool hayProcesosEsperandoAl(char *nombre_archivo);
+char* recibir_nombre_de_archivo_de_fs();t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo);
+void actualizar_posicicon_puntero(t_motivoDevolucion *motivoDevolucion);
 
 t_kernel_config *leerConfiguracion();
 void crear_pcb(void *datos);
@@ -178,7 +196,7 @@ void desbloqueo_del_primer_proceso_de_la_cola_del(char *nombre_archivo);
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);
 
-extern t_FS_header respuesta_fs;
+extern t_FS_header *respuesta_fs;
 
 extern t_config *config;
 extern t_kernel_config *configuracionKernel;

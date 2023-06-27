@@ -38,6 +38,6 @@ bool se_reenvia_el_contexto = false;
 t_segmento *segmento0;
 
 t_Kernel_Consola razon;
-t_FS_header respuesta_fs;
+t_FS_header *respuesta_fs;
 t_entradaTAAP *entradaTAAP;
 //t_Kernel_Memoria respuesta_memoria;

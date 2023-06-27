@@ -47,7 +47,6 @@ typedef struct
     uint32_t base;
     uint32_t tamanio;
     //int libre;
-    
 }t_segmento;
 
 typedef enum

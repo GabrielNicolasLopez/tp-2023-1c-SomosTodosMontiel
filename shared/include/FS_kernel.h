@@ -12,7 +12,7 @@
         FS_OPEN_OK,
         FS_OPEN_NO_OK,
         FS_CREATE_OK,
-
+        FS_OK,
     } t_FS_header;
 
 #endif
