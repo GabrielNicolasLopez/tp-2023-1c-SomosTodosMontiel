@@ -17,12 +17,12 @@ void hilo_kernel()
             segmentoACrear =recibirIDTam(segmentoACrear->id_segmento,segmentoACrear->tamanio);
 
             //-creo el segemnto y lo meto en la lista  
-            uint32_t baseMandar=comprobar_Creacion_de_Seg(lista_de_segmentos,lista_de_huecos,   segmentoACrear->id_segmento,segmentoACrear->tamanio);
+            uint32_t baseMandar=comprobar_Creacion_de_Seg(listaSegmentos,listaHuecos, segmentoACrear->id_segmento,segmentoACrear->tamanio);
 
                 if(baseMandar!=-1 && baseMandar!=-2){
                       t_segmento* segmento = segmentoCrear(segmentoACrear->id_segmento,baseMandar,segmentoACrear->tamanio);
                  // Actualizar tabla de segmentos
-                list_add(lista_de_segmentos,segmento);
+                list_add(listaSegmentos,segmento);
                 }
 
             //-devuelvo la base actualizada, 
@@ -37,8 +37,8 @@ void hilo_kernel()
             //recibo el segmento a eliminar 
             uint32_t id;
             uint32_t id_recivida; recibirID(id);
-            t_segmento *segmentoEncontrado=buscarSegmentoPorId(lista_de_segmentos,id_recivida);
-            list_remove_element(lista_de_segmentos,segmentoEncontrado);
+            t_segmento *segmentoEncontrado=buscarSegmentoPorId(listaSegmentos,id_recivida);
+            list_remove_element(listaSegmentos,segmentoEncontrado);
 
             //devuelvo la lista nueva con el segemto elimado     
            // mandarLista(); Falta terminar esto 

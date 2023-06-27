@@ -1,7 +1,6 @@
 #include "memoria.h"
+#include "funciones.h"
 
-t_memoria_config* configuracion_memoria; 		//variables globales para no vivir pasando datos por parametro.
-void* espacioUsuario;
 
 int conexion_con_kernel;
 int conexion_con_memoria;
@@ -10,6 +9,7 @@ int conexion_con_cpu;
 char* IP_MEMORIA = "127.0.0.1";
 
 pthread_t hiloFilesystem, hiloKernel, hiloCPU;
+void* espacioUsuario;
 
 int main(int argc, char** argv){
 
@@ -24,8 +24,15 @@ int main(int argc, char** argv){
 
 	log_debug(logger, "INICIANDO MEMORIA...");
 
-    t_memoria_config *configuracionMemoria = leerConfiguracion();
-	espacioUsuario = malloc(configuracion_memoria -> tam_memoria );
+    configuracionMemoria = leerConfiguracion();
+	espacioUsuario = malloc(configuracionMemoria -> tam_memoria );
+
+	segmento_0 = segmentoCrear(0,0,configuracionMemoria->tam_segmento_O);
+	hueco_0->base = (segmento_0->base + segmento_0->tamanio);
+	hueco_0->tamanio = (configuracionMemoria->tam_memoria - segmento_0->tamanio);  
+	list_add(listaSegmentos,segmento_0);
+	list_add(listaHuecos,hueco_0);
+
 
 	int socketEscucha = iniciar_servidor(IP_MEMORIA, configuracionMemoria->puerto_escucha);
 
@@ -102,7 +109,7 @@ t_memoria_config* leerConfiguracion(){
 	t_config* configuracion = config_create(CONFIG_PATH);// nose si poner el path
 
 	//Creo el archivo config
-	t_memoria_config* configuracionMemoria = malloc(sizeof(t_memoria_config));
+	configuracionMemoria = malloc(sizeof(t_memoria_config));
 
 	//Estraer los datos 
 	configuracionMemoria -> puerto_escucha = strdup(config_get_string_value(configuracion, "PUERTO_ESCUCHA"));

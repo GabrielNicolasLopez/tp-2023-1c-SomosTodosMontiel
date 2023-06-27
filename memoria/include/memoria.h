@@ -15,16 +15,24 @@
 
 #define NUMBER_OF_ARGS_REQUIRED 2
 
+
+
+//Variables globales de memoria
+
 extern int conexion_con_kernel;
 extern int conexion_con_memoria;
 extern int conexion_con_cpu;
 
 extern pthread_t hiloFilesystem, hiloKernel, hiloCPU;
 
-//Variables globales de memoria
-t_list* lista_de_segmentos;
+extern void* espacioUsuario;
+
+//Listas
+t_list* listaSegmentos;
+t_list* listaHuecos;
+
 t_segmento* segmento_0;
-t_list* lista_de_huecos;
+t_hueco* hueco_0;
 
 
 //Estruturas 
@@ -39,13 +47,13 @@ typedef struct
     
 } t_memoria_config;
 
-
-typedef struct 
+typedef enum
 {
- uint32_t base;
- u_int32_t tamanio;
-}t_hueco;
+    BEST,
+    FIRST,
+    WORST
 
+}t_tipo_algoritmo;
 
 t_memoria_config* leerConfiguracion();
 
