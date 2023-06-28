@@ -2,7 +2,7 @@
 
 char *razonFinConsola[] = {"INSTRUCCIONES", "FIN", "OUT_OF_MEMORY", "SIGNAL", "WAIT"};
 char *nombresCodigoOperaciones[] = {"MENSAJE", "PAQUETE", "NEW"};
-char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT", "IO", "WAIT", "SIGNAL", "F_OPEN", "F_CLOSE", "DELETE_SEGMENT", "YIELD", "EXIT"};
+char *nombresInstrucciones[] = {"F_READ", "F_WRITE", "SET", "MOV_IN", "MOV_OUT", "F_TRUNCATE", "F_SEEK", "CREATE_SEGMENT", "IO", "WAIT", "SIGNAL", "F_OPEN", "F_CREATE", "F_CLOSE", "DELETE_SEGMENT", "YIELD", "EXIT"};
     
 char *nombresRegistros[] = 
 {

@@ -19,7 +19,7 @@ void crear_hilo_consumidor()
 
         log_debug(logger, "Hilo_consumidor: Instruccion recibida: %s", nombresInstrucciones[tipo_inst]);
 
-        /*if (tipo_inst == F_OPEN) {
+        if (tipo_inst == F_OPEN) {
             if (existe_archivo(p_instruccion->cadena)) {
                 t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
                 FCB->nombre_archivo = p_instruccion->cadena;
@@ -33,7 +33,7 @@ void crear_hilo_consumidor()
                 log_debug(logger, "Hilo_consumidor: Archivo inexistente, %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
             }
-        } else */
+        } else
         if (tipo_inst == F_OPEN) { // F_CREATE !!!!!!!!!!!!!
             t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
             FCB->nombre_archivo = p_instruccion->cadena;
@@ -43,6 +43,7 @@ void crear_hilo_consumidor()
 
             log_info(logger, "Crear Archivo: <%s>", p_instruccion->cadena);
             respuesta_a_kernel(FS_CREATE_OK, p_instruccion);
+
         } else
         if (tipo_inst == F_TRUNCATE) {
             t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
@@ -52,18 +53,25 @@ void crear_hilo_consumidor()
             
             if (tamanio_nuevo > tamanio_anterior) {
                 // Asignar bloques: 
-                asignar_bloques(FCB, p_instruccion->paramIntA);
+                asignar_bloques(FCB, tamanio_nuevo);
             } else {
                 // Liberar bloques:
-                
+                liberar_bloques(FCB, tamanio_nuevo);
             }
             
         } else
         if (tipo_inst == F_READ) {
+            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
             
+
+
+
         } else
         if (tipo_inst == F_WRITE) {
             
+
+
+
         } else
         if (tipo_inst == EXIT) {
             break;

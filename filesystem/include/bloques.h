@@ -9,6 +9,14 @@
     void crear_archivo_de_bloques();
     void levantar_bloques();
 
-    void escribir_bloque(uint32_t bloque, off_t offset, void* stream, size_t tamanio);
+    /*  Prametros: Bloque a escribir | Desplazamiento del bloque donde empezar a escribir | registro a escribir | tamaño del registro 
+        Retorno: Cantidad de bytes escritos
+    */
+    int escribir_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio);
+    
+    /*  Prametros: Bloque a leer | Desplazamiento del bloque donde empezar a leer | registro donde guardar lo leido | tamaño del registro
+        Retorno: Cantidad de bytes leidos 
+    */
+    int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio);
 
 #endif

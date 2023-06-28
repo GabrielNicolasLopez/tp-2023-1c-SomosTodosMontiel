@@ -22,6 +22,8 @@ int levantar_volumen()
     levantar_bitmap();
     levantar_bloques();
     
+    bitarray_set_bit(bitA_bitmap, 0);
+
     return 0;
 }
 

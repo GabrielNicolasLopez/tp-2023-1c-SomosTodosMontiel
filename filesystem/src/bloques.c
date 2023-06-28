@@ -31,10 +31,37 @@ void levantar_bloques()
     close(fd_bloques);
 }
 
-void escribir_bloque(uint32_t bloque, off_t offset, void* stream, size_t tamanio)
+int escribir_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 {
+    if (offset > config_SupBloque->BLOCK_SIZE) {
+        log_error(logger, "ESCRITURA DE BLOQUE: Offset en el bloque %u SOBREPASA EL TAMAÑO", bloque);
+        return -1;
+    }
+    
+    if (tamanio > config_SupBloque->BLOCK_SIZE) {
+        tamanio = config_SupBloque->BLOCK_SIZE;
+    }
+
     // BYTE 0 DEL BLOQUE DONDE VAMOS A ESCRIBIR
     off_t inicio_bloque = bloque * config_SupBloque->BLOCK_SIZE;
-    
-    memcpy(p_bloques + inicio_bloque + offset, stream, tamanio);
+
+    memcpy(p_bloques + inicio_bloque + offset, reg, tamanio);
+
+
+    return tamanio;
+}
+
+int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
+{
+    if (offset + tamanio > config_SupBloque->BLOCK_SIZE) {
+        log_error(logger, "LECTURA DE BLOQUE %u SOBREPASA EL TAMAÑO", bloque);
+        return -1;
+    }
+
+    // BYTE 0 DEL BLOQUE DONDE VAMOS A LEER
+    off_t inicio_bloque = bloque * config_SupBloque->BLOCK_SIZE;
+
+    memcpy(reg, p_bloques + inicio_bloque + offset, tamanio);
+
+    return 0;
 }

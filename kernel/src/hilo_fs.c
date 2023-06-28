@@ -26,9 +26,9 @@ void crear_hilo_filesystem(){
 	log_debug(logger, "KERNEL SE CONECTO CON FS");
 	//t_buffer* buffer = buffer_create();
 	//t_instruccion* p_instruccion;
-
+	/*
 	while (1){
-		/*
+		
 		uint8_t fsResponse = stream_recv_header(conexion_con_fs);
 		switch(fsResponse){
 			case FS_OPEN_OK:
@@ -62,8 +62,8 @@ void crear_hilo_filesystem(){
 			case :
 			break;
 		}
-	*/	
 	}
+	*/	
 }
 /*
 void agregarEnTGAA(t_entradaTGAA *entradaTGAA)

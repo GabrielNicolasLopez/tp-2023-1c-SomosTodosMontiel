@@ -12,6 +12,9 @@
         FS_OPEN_OK,
         FS_OPEN_NO_OK,
         FS_CREATE_OK,
+        FS_READ_OK,
+        FS_WRITE_OK,
+        FS_TRUNCATE_OK
 
     } t_FS_header;
 

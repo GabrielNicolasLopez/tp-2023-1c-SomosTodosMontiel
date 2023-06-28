@@ -187,12 +187,11 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case F_TRUNCATE: // F_TRUNCATE (Nombre Archivo, Tamaño): 
 						 // Esta instrucción solicita al Kernel que se modifique el tamaño del archivo al indicado por parámetro.
 			
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %u", 
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena,
-				instruccion->paramIntA,
-				instruccion->paramIntB);
+				instruccion->paramIntA);
 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_TRUNCATE;
