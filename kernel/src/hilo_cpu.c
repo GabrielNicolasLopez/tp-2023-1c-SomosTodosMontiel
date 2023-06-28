@@ -560,19 +560,7 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 		case NECESITO_COMPACTAR:
 			//Espero a que sea posible compactar
 			log_debug(logger, "Kernel está esperando para poder compactar");
-
-
-			/*--------VERIFICAR QUE LO ESTÉ CONTROLANDO BIEN AL SEMAFORO--------*/
 			sem_wait(&esPosibleCompactar);
-			/*--------VERIFICAR QUE LO ESTÉ CONTROLANDO BIEN AL SEMAFORO--------*/
-
-
-			//sem_getvalue(&esPosibleCompactar, &valor_esPosibleCompactar);
-			//Si valor==1 significa que se completaron todos los F_READ y F_WRITE.
-			//El valor inicial del semáforo es 1. Cuando se empieza una instruccion se resta 1.
-			//if(valor_esPosibleCompactar == 1)
-
-
 			pedir_a_memoria_que_compacte();
 			log_debug(logger, "Compactación: <Se solicitó compactación / Esperando Fin de Operaciones de FS>");
 			esperar_respuesta_compactacion(CREATE_SEGMENT, id, tamanio);
