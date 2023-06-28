@@ -18,4 +18,12 @@
 
     } t_FS_header;
 
+    typedef struct
+    {
+        t_tipoInstruccion tipo; 
+        uint32_t longitud_cadena;
+        char *cadena;     
+        uint32_t paramIntA, paramIntB, paramIntC;
+    } t_instruccion_FS;
+
 #endif

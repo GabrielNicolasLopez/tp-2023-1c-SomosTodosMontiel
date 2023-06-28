@@ -4,7 +4,7 @@
     #include "filesystem.h"
 
     void crear_hilo_consumidor();
-    void respuesta_a_kernel(int operacion, t_instruccion* instruccion); 
+    void respuesta_a_kernel(int operacion, t_instruccion_FS* instruccion); 
  
 
 #endif

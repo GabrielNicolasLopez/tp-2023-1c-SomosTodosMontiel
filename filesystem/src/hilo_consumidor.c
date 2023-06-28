@@ -2,12 +2,12 @@
 
 void crear_hilo_consumidor()
 {
-    t_instruccion* p_instruccion;
+    t_instruccion_FS* p_instruccion;
     while(1){
         
         sem_wait(&cant_inst);
         pthread_mutex_lock(&mutex_lista);
-        p_instruccion = (t_instruccion*) list_remove(lista_inst, 0);
+        p_instruccion = (t_instruccion_FS*) list_remove(lista_inst, 0);
         pthread_mutex_unlock(&mutex_lista);
 
 
@@ -34,7 +34,7 @@ void crear_hilo_consumidor()
                 respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
             }
         } else
-        if (tipo_inst == F_OPEN) { // F_CREATE !!!!!!!!!!!!!
+        if (tipo_inst == F_CREATE) {
             t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
             FCB->nombre_archivo = p_instruccion->cadena;
             FCB->config = crear_FCB(p_instruccion->cadena);
@@ -63,12 +63,13 @@ void crear_hilo_consumidor()
         if (tipo_inst == F_READ) {
             t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
             
+            leer_bloques(FCB, p_instruccion->paramIntA, p_instruccion->paramIntB, p_instruccion->paramIntC);
 
 
 
         } else
         if (tipo_inst == F_WRITE) {
-            
+            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
 
 
 
@@ -79,7 +80,7 @@ void crear_hilo_consumidor()
     }
 }
 
-void respuesta_a_kernel(int operacion, t_instruccion* instruccion) 
+void respuesta_a_kernel(int operacion, t_instruccion_FS* instruccion) 
 {
     uint8_t header = operacion;
     t_buffer* buffer = buffer_create();

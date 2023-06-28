@@ -5,7 +5,7 @@
 
     void crear_hilo_productor();
 
-    t_instruccion* recibir_instruccion(int socket);
+    t_instruccion_FS* recibir_instruccion(int socket);
 
 
 #endif
