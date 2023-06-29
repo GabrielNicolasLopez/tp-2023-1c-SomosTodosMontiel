@@ -43,7 +43,11 @@
 			"stdlib.h": "c",
 			"configfs.h": "c",
 			"superbloque.h": "c",
-			"math.h": "c"
+			"math.h": "c",
+			"bitarray.h": "c",
+			"fcb.h": "c",
+			"bitmap.h": "c",
+			"bloques.h": "c"
 		}
 	}
 }

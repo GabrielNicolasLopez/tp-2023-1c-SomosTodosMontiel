@@ -16,6 +16,7 @@
         char* nombre_archivo;
         t_config* config;
         t_FCB_config* FCB_config;
+        
     } t_lista_FCB_config;
 
     

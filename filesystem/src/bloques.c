@@ -84,13 +84,14 @@ int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t
         }
     }
     
-    // ESCRIBO RESTANTE
+    // ESCRIBO SOBRANTE
     if (sobrante) {
         bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo + enteros + 1, FCB);
         escribir_bloque(bloque_a_escribir, 0, cadena_bytes + bytes_escritos, sobrante);
-        bytes_escritos += block_size; 
+        bytes_escritos += sobrante; 
     }
 
+    msync(p_bloques, stats_fd_bloques.st_size, MS_SYNC);
     return bytes_escritos;
 }
 
@@ -111,7 +112,46 @@ int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 
 uint8_t* leer_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t cant_bytes)
 {
+    // VER ESQUEMA DE MI CUADERNO PARA ENTENER LA LÓGICA
     
+    //CONSTANTES:
+    int block_size = config_SupBloque->BLOCK_SIZE;
+
+    //VARIABLES:
+    int bloque_contiene_p_archivo = ceil((double) cant_bytes / block_size);
+    int offset = (((double) cant_bytes / block_size) - bloque_contiene_p_archivo) * block_size;
+    int restante = (cant_bytes > block_size - offset)
+                    ? block_size - offset
+                    : cant_bytes;
+    int enteros = floor((double) (cant_bytes - restante) / block_size);
+    int sobrante = cant_bytes - restante - enteros;
+    
+    uint8_t* cadena_bytes = malloc(cant_bytes);
+    uint32_t bytes_leidos = 0;
+    uint32_t bloque_a_leer;
+
+    // LEO RESTANTE
+    bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo, FCB);
+    leer_bloque(bloque_a_leer, offset, cadena_bytes + bytes_leidos, restante);
+    bytes_leidos += restante;
+
+    // LEO ENTEROS
+    if (enteros) {
+        for (int i = 1; i <= enteros; i++) {
+            bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo + i, FCB);
+            escribir_bloque(bloque_a_leer, 0, cadena_bytes + bytes_leidos, block_size);
+            bytes_leidos += block_size;
+        }
+    }
+
+    // LEO SOBRANTE
+    if (sobrante) {
+        bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo + enteros + 1, FCB);
+        escribir_bloque(bloque_a_leer, 0, cadena_bytes + bytes_leidos, sobrante);
+        bytes_leidos += sobrante; 
+    }
+
+    return cadena_bytes;
 }
 
 

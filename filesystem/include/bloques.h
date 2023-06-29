@@ -26,8 +26,12 @@
 
     /*  Prametros: FCB del archivo a leer | Puntero de posición del archivo | Cant. Bytes a leer
         Retorno_OK: Cadena de bytes leidos
-        ERROR: NULL
     */
     uint8_t* leer_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t cant_bytes);
+
+    /*  Prametros: Indice de bloque | FCB donde buscar el puntero a bloque
+        Retorno_OK: Puntero a bloque
+    */
+    uint32_t buscar_bloque(int numero_bloque, t_lista_FCB_config* FCB);
 
 #endif

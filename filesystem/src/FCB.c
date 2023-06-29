@@ -192,8 +192,6 @@ int liberar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
         uint32_t tam_bloque = config_SupBloque->BLOCK_SIZE;
         // TAMAÑO DEL PUNTERO
         uint32_t tam_puntero = sizeof(uint32_t);
-        // CANTIDAD DE PUNTEROS POR BLOQUE
-        uint32_t cant_punt_x_bloque = tam_bloque / tam_puntero;
         // TAMAÑO MAXIMO REAL DEL ARCHIVO
         uint32_t tam_min_arch = 0;
 

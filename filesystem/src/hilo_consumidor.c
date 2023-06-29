@@ -72,14 +72,25 @@ void crear_hilo_consumidor()
         if (tipo_inst == F_READ) {
             t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
             
-            uint8_t* cadena_bytes = leer_bloques(FCB, p_instruccion->paramIntA, p_instruccion->paramIntB); // DESARROLLAR!!
-            if (!cadena_bytes) {
-                log_error(logger, "Hilo_consumidor (F_READ): Error al leer los bloques del archivo %s", p_instruccion->cadena);
+            uint32_t puntero_archivo = p_instruccion->paramIntA;
+            uint32_t cant_bytes = p_instruccion->paramIntB;
+            uint32_t dir_fisica = p_instruccion->paramIntC;
+            
+            if (cant_bytes == 0) {
+                log_debug(logger, "Hilo_consumidor (F_READ): La lectura es de 0 BYTES. Archivo %s", p_instruccion->cadena);
+                respuesta_a_kernel(FS_OK, p_instruccion);
+                continue;
+            }
+            
+            if (puntero_archivo + cant_bytes > FCB->FCB_config->TAMANIO_ARCHIVO) {
+                log_error(logger, "Hilo_consumidor (F_READ): La lectura supera el tamaño del archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 continue;
             }
+            
+            uint8_t* cadena_bytes = leer_bloques(FCB, puntero_archivo, cant_bytes);
 
-            pedido_escritura_mem(p_instruccion->paramIntB, cadena_bytes, p_instruccion->paramIntC);
+            pedido_escritura_mem(cant_bytes, cadena_bytes, dir_fisica);
             uint8_t header = stream_recv_header(socketMemoria);
             stream_recv_empty_buffer(socketMemoria);
             if (header != FS_M_WRITE_OK) {
@@ -89,6 +100,7 @@ void crear_hilo_consumidor()
             }
             
             respuesta_a_kernel(FS_OK, p_instruccion);
+            free(cadena_bytes);
 
         } else
         
@@ -105,8 +117,7 @@ void crear_hilo_consumidor()
                 respuesta_a_kernel(FS_OK, p_instruccion);
                 continue;
             }
-            
-            // Puntero Cant. Bytes a escribir > TAM ARCHIVO
+
             if (puntero_archivo + cant_bytes > FCB->FCB_config->TAMANIO_ARCHIVO) {
                 log_error(logger, "Hilo_consumidor (F_WRITE): La escritura supera el tamaño del archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
@@ -123,7 +134,7 @@ void crear_hilo_consumidor()
                 continue;
             }
 
-            int bloques_escritos = escribir_bloques(FCB, puntero_archivo, cant_bytes, cadena_bytes); // DESARROLLAR!!
+            int bloques_escritos = escribir_bloques(FCB, puntero_archivo, cant_bytes, cadena_bytes);
             if (bloques_escritos != cant_bytes) {
                 log_error(logger, "Hilo_consumidor (F_WRITE): Solo se pudieron escribir en los bloques %u bytes", cant_bytes);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
