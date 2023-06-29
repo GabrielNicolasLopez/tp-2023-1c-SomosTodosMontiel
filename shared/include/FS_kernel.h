@@ -12,9 +12,8 @@
         FS_OPEN_OK,
         FS_OPEN_NO_OK,
         FS_CREATE_OK,
-        FS_READ_OK,
-        FS_WRITE_OK,
-        FS_TRUNCATE_OK
+        FS_OK,
+        FS_ERROR
 
     } t_FS_header;
 
@@ -23,7 +22,10 @@
         t_tipoInstruccion tipo; 
         uint32_t longitud_cadena;
         char *cadena;     
-        uint32_t paramIntA, paramIntB, paramIntC;
+        uint32_t paramIntA;  // Puntero del archivo
+        uint32_t paramIntB;  // Cant. Bytes
+        uint32_t paramIntC;  // Dir. Memoria Física
+
     } t_instruccion_FS;
 
 #endif

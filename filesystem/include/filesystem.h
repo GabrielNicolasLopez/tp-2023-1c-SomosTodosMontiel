@@ -17,6 +17,7 @@
     #include "shared_utils.h"
     #include "stream.h"
     #include "FS_kernel.h"
+    #include "FS_memoria.h"
    
     #include "configFS.h"
     #include "superbloque.h"

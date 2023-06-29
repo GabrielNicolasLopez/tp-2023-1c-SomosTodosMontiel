@@ -51,6 +51,49 @@ int escribir_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
     return tamanio;
 }
 
+int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t cant_bytes, uint8_t* cadena_bytes)
+{
+    // VER ESQUEMA DE MI CUADERNO PARA ENTENER LA LÓGICA
+    
+    //CONSTANTES:
+    int block_size = config_SupBloque->BLOCK_SIZE;
+
+    //VARIABLES:
+    int bloque_contiene_p_archivo = ceil((double) cant_bytes / block_size);
+    int offset = (((double) cant_bytes / block_size) - bloque_contiene_p_archivo) * block_size;
+    int restante = (cant_bytes > block_size - offset)
+                    ? block_size - offset
+                    : cant_bytes;
+    int enteros = floor((double) (cant_bytes - restante) / block_size);
+    int sobrante = cant_bytes - restante - enteros;
+    uint32_t bytes_escritos = 0;
+    uint32_t bloque_a_escribir;
+    
+
+    // ESCRIBO RESTANTE
+    bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo, FCB);
+    escribir_bloque(bloque_a_escribir, offset, cadena_bytes + bytes_escritos, restante);
+    bytes_escritos += restante;
+
+    // ESCRIBO ENTEROS
+    if (enteros) {
+        for (int i = 1; i <= enteros; i++) {
+            bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo + i, FCB);
+            escribir_bloque(bloque_a_escribir, 0, cadena_bytes + bytes_escritos, block_size);
+            bytes_escritos += block_size; 
+        }
+    }
+    
+    // ESCRIBO RESTANTE
+    if (sobrante) {
+        bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo + enteros + 1, FCB);
+        escribir_bloque(bloque_a_escribir, 0, cadena_bytes + bytes_escritos, sobrante);
+        bytes_escritos += block_size; 
+    }
+
+    return bytes_escritos;
+}
+
 int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 {
     if (offset + tamanio > config_SupBloque->BLOCK_SIZE) {
@@ -64,4 +107,24 @@ int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
     memcpy(reg, p_bloques + inicio_bloque + offset, tamanio);
 
     return 0;
+}
+
+uint8_t* leer_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t cant_bytes)
+{
+    
+}
+
+
+uint32_t buscar_bloque(int numero_bloque, t_lista_FCB_config* FCB)
+{
+    if (numero_bloque == 1) {
+        return FCB->FCB_config->PUNTERO_DIRECTO;
+    }
+    
+    uint32_t puntero;
+    int tamanio_puntero = sizeof(puntero);
+    off_t offset = (numero_bloque - 2) * tamanio_puntero;
+    
+    leer_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, offset, &puntero, tamanio_puntero);
+    return puntero;
 }
