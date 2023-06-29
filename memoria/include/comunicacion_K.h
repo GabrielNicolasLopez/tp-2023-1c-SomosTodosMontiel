@@ -1,5 +1,5 @@
-#ifndef COMUNICACION.H
-#define COMUNICACION.H
+#ifndef COMUNICACION_K.H
+#define COMUNICACION_K.H
 
 #include <memoria.h>
 #include <funciones.h>

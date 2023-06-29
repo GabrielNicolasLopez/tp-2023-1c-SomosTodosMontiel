@@ -1,4 +1,4 @@
-#include <comunicacion.h>
+#include <comunicacion_K.h>
 
 
 void hilo_kernel()
@@ -18,7 +18,7 @@ void hilo_kernel()
             segmentoACrear =recibirIDTam(segmentoACrear->id_segmento,segmentoACrear->tamanio);
             
         //compruebo si hay espacio
-            bool espacioDisponible =comprobar_Creacion_de_Seg(segmentoACrear->tamanio);
+            uint32_t espacioDisponible =comprobar_Creacion_de_Seg(segmentoACrear->tamanio);
             
         //-creo el segemnto y lo meto en la lista  
             if(espacioDisponible==1){
@@ -58,7 +58,7 @@ void hilo_kernel()
         case EMPEZA_A_COMPACTAR:
 
             log_info(logger, "Mi cod de op es: %d", header);
-
+            compactar();
             //Recibo el header.#pragma endregionCompacto y devuelvo la lista actualizada    
             
             

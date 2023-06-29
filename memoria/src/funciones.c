@@ -103,3 +103,43 @@ t_segmento* buscarSegmentoPorId(uint32_t id) {
     }
     return NULL;  // Si no se encuentra el segmento, se devuelve NULL
 }
+
+uint32_t compararPorBase(const void* a, const void* b) {
+    const t_segmento* segA = (const t_segmento*)a;
+    const t_segmento* segB = (const t_segmento*)b;
+    
+    if (segA->base < segB->base)
+        return -1;
+    if (segA->base > segB->base)
+        return 1;
+    return 0;
+}
+
+
+//Compactar 
+
+void compactar(){
+
+    list_sort(listaSegmentos,compararPorBase);
+    list_sort(listaHuecos,compararPorBase);
+    uint32_t desplazamiento = 0;
+
+    for(int i=0;i<list_size(listaSegmentos);i++){
+
+        t_segmento* segmento=list_get(listaSegmentos,i);
+        segmento->base = desplazamiento;
+        desplazamiento += segmento->tamanio;
+
+    }
+
+    int final =list_size(listaSegmentos);
+    t_segmento* seg=list_get(listaSegmentos,final);
+    desplazamiento = seg->tamanio;
+
+    for(int i=0;i<list_size(listaHuecos);i++){
+
+    }
+
+
+}
+

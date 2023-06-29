@@ -44,7 +44,8 @@
 			"configfs.h": "c",
 			"superbloque.h": "c",
 			"math.h": "c",
-			"comunicacion.h": "c"
+			"comunicacion.h": "c",
+			"comunicacion-k.h": "c"
 		}
 	}
 }
