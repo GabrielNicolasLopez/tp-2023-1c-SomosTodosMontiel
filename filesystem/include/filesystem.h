@@ -18,6 +18,8 @@
     #include "stream.h"
     #include "FS_kernel.h"
     #include "FS_memoria.h"
+
+    #include "estructuras.h"
    
     #include "configFS.h"
     #include "superbloque.h"

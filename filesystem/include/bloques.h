@@ -34,4 +34,12 @@
     */
     uint32_t buscar_bloque(int numero_bloque, t_lista_FCB_config* FCB);
 
+    
+    int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes);
+    int liberar_bloques(t_lista_FCB_config* FCB, uint32_t bytes);
+
+
+    uint32_t minimum(uint32_t x, uint32_t y);
+    int max(int x, int y);
+
 #endif

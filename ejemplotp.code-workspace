@@ -47,7 +47,8 @@
 			"bitarray.h": "c",
 			"fcb.h": "c",
 			"bitmap.h": "c",
-			"bloques.h": "c"
+			"bloques.h": "c",
+			"stat.h": "c"
 		}
 	}
 }

@@ -126,11 +126,12 @@ void crear_hilo_consumidor()
             
             pedido_lectura_mem(cant_bytes, dir_fisica);
             uint32_t cant_bytes_memoria;
-            uint8_t* cadena_bytes; // dsp liberar
+            uint8_t* cadena_bytes = NULL;
             recibir_cadena_bytes_mem(&cant_bytes_memoria, cadena_bytes);
             if (cant_bytes_memoria != cant_bytes) {
                 log_error(logger, "Hilo_consumidor (F_WRITE): Memoria pudo leer solo %u bytes", cant_bytes_memoria);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
+                free(cadena_bytes);
                 continue;
             }
 
@@ -138,6 +139,7 @@ void crear_hilo_consumidor()
             if (bloques_escritos != cant_bytes) {
                 log_error(logger, "Hilo_consumidor (F_WRITE): Solo se pudieron escribir en los bloques %u bytes", cant_bytes);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
+                free(cadena_bytes);
                 continue;
             }
     
