@@ -2,5 +2,5 @@
 FILE=filesystem
 make ./bin/$FILE.out
 if test -f "./bin/$FILE.out"; then
-    ./bin/$FILE.out ./cfg/$FILE.cfg 
+    valgrind --tool=helgrind ./bin/$FILE.out ./cfg/$FILE.cfg 
 fi
