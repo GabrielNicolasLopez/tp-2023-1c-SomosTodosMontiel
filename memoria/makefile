@@ -1,36 +1,142 @@
-PROCESS_NAME=memoria
-IDIR =./include
-SHARED_IDIR = ../shared/include
-CC=gcc
-CFLAGS=-I$(IDIR) -I$(SHARED_IDIR) -g -Wall
+include settings.mk
 
-ODIR=./obj
-SRCDIR =./src
-LIBS=-lcommons -lpthread -lreadline -lcunit -lrt 
+################################################################################
 
-SHARED_SRCDIR = ../shared/src
-SHARED_ODIR = ../shared/obj
+filename = $(1).out
 
-DEPS = $(wildcard $(IDIR)/*.h)
+define compile_bin
+gcc $(CFLAGS) -o "$@" $^ $(IDIRS:%=-I%) $(LIBDIRS:%=-L%) $(RUNDIRS:%=-Wl,-rpath,%) $(LIBS:%=-l%)
+endef
 
-SRC = $(wildcard $(SRCDIR)/*.c)
-OBJ = $(patsubst $(SRCDIR)/%.c,$(ODIR)/%.o,$(SRC))
+define compile_objs
+gcc $(CFLAGS) -c -o "$@" $< $(IDIRS:%=-I%)
+endef
 
-$(ODIR)/%.o: $(SRCDIR)/%.c $(DEPS) $(SHARED_DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+################################################################################
 
-$(SHARED_ODIR)/%.o: $(SHARED_SRCDIR)/%.c $(SHARED_DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+# Check if tests folder exists
+ifneq ($(wildcard tests/*),)
+TESTS_ENABLED=1
+endif
 
-SHARED_DEPS = $(wildcard $(SHARED_IDIR)/*.h)
+# Set prerrequisites
+SRCS_C += $(shell find src/ -iname "*.c")
+SRCS_H += $(shell find include/ -iname "*.h")
+DEPS = $(foreach SHL,$(SHARED_LIBPATHS),$(SHL:%=%/bin/lib$(notdir $(SHL)).so)) \
+	$(foreach STL,$(STATIC_LIBPATHS),$(STL:%=%/bin/lib$(notdir $(STL)).a))
 
-SHARED_SRC = $(wildcard $(SHARED_SRCDIR)/*.c)
-SHARED_OBJ = $(patsubst $(SHARED_SRCDIR)/%.c,$(SHARED_ODIR)/%.o,$(SHARED_SRC))
+# Set test prerrequisites
+ifeq ($(TESTS_ENABLED),1)
+TESTS_C += $(shell find tests/ -iname "*.c")
+TESTS_H += $(shell find tests/ -iname "*.h")
+endif
 
-$(PROCESS_NAME): $(OBJ) $(SHARED_OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+# Set header paths to (-I)nclude
+IDIRS += $(addsuffix /include,$(SHARED_LIBPATHS) $(STATIC_LIBPATHS) .)
+
+# Set library paths to (-L)ook
+LIBDIRS = $(addsuffix /bin,$(SHARED_LIBPATHS) $(STATIC_LIBPATHS))
+
+# Set shared library paths to be found in runtime (-rpath)
+RUNDIRS = $(SHARED_LIBPATHS:%=$(shell cd . && pwd)/%/bin)
+
+# Set intermediate objects
+OBJS = $(patsubst src/%.c,obj/%.o,$(SRCS_C))
+
+# Set test intermediate objects
+ifeq ($(TESTS_ENABLED),1)
+TEST_OBJS = $(TESTS_C) $(filter-out $(TEST_EXCLUDE), $(SRCS_C))
+endif
+
+# Set binary targets
+BIN = bin/$(call filename,$(shell cd . && pwd | xargs basename))
+
+# Set test binary targets
+ifeq ($(TESTS_ENABLED),1)
+TEST = bin/$(shell cd . && pwd | xargs basename)_tests.out
+endif
+
+.PHONY: all
+all: CFLAGS = $(CDEBUG)
+all: $(BIN) $(TEST)
+
+.PHONY: release
+release: CFLAGS = $(CRELEASE)
+release: clean $(BIN) $(TEST)
 
 .PHONY: clean
-
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(PROCESS_NAME) $(SHARED_ODIR)/*.o 
+	-rm -rfv obj bin
+
+.PHONY: watch
+watch:
+	@test $(shell which entr) || entr
+	while sleep 0.1; do \
+		find src/ | entr -d make all --no-print-directory; \
+	done
+
+$(BIN): $(OBJS) | $(dir $(BIN))
+	$(call compile_bin)
+
+obj/%.o: src/%.c $(SRCS_H) $(DEPS) | $(dir $(OBJS))
+	$(call compile_objs)
+
+ifeq ($(TESTS_ENABLED),1)
+$(TEST): $(TEST_OBJS) | $(dir $(TEST))
+	gcc $(CFLAGS) -o "$@" $^ $(IDIRS:%=-I%) $(LIBDIRS:%=-L%) $(RUNDIRS:%=-Wl,-rpath,%) $(LIBS:%=-l%) -lcspecs
+endif
+
+.SECONDEXPANSION:
+$(DEPS): $$(shell find $$(patsubst %bin/,%src/,$$(dir $$@)) -iname "*.c") \
+	$$(shell find $$(patsubst %bin/,%src/,$$(dir $$@)) -iname "*.h")
+	make --no-print-directory -C $(patsubst %bin/,%,$(dir $@))
+
+$(sort $(dir $(BIN) $(OBJS))):
+	mkdir -pv $@
+
+
+################################################################################
+
+.PHONY: start
+start: $(BIN)
+	valgrind --tool=none ./$(BIN) $(ARGS)
+
+.PHONY: daemon
+daemon:
+	@test $(shell which entr) || entr
+	while sleep 0.1; do \
+		find src/ | entr -d make start --no-print-directory; \
+	done
+
+.PHONY: memcheck
+memcheck: $(BIN)
+	valgrind --leak-check=full $(MEMCHECK_FLAGS) ./$(BIN) $(ARGS)
+
+.PHONY: helgrind
+helgrind: $(BIN)
+	valgrind --tool=helgrind $(HELGRIND_FLAGS) ./$(BIN) $(ARGS)
+
+
+################################################################################
+
+ifeq ($(TESTS_ENABLED),1)
+.PHONY: test
+test: all
+	valgrind --tool=none ./$(TEST)
+
+.PHONY: test-daemon
+test-daemon:
+	@test $(shell which entr) || entr
+	while sleep 0.1; do \
+		find tests/ src/ | entr -d make test --no-print-directory; \
+	done
+
+.PHONY: test-memcheck
+test-memcheck: all
+	valgrind --leak-check=full $(MEMCHECK_FLAGS) ./$(TEST)
+
+.PHONY: test-helgrind
+test-helgrind: all
+	valgrind --tool=helgrind $(HELGRIND_FLAGS) ./$(TEST)
+endif
+

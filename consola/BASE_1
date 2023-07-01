@@ -1,6 +1,0 @@
-#!/bin/bash
-FILE=consola
-make $FILE
-if test -f "./$FILE"; then
-    ./$FILE ./cfg/consola.cfg ./cfg/BASE_1.pse
-fi

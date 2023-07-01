@@ -1,6 +1,13 @@
 #!/bin/bash
+
+FILE=cpu
+make ./bin/$FILE.out
+if test -f "./bin/$FILE.out"; then
+    ./bin/$FILE.out ./cfg/$FILE.cfg
+fi
+
 FILE=filesystem
-make $FILE
-if test -f "./$FILE"; then
-    ./$FILE ./cfg/filesystem.cfg
+make ./bin/$FILE.out
+if test -f "./bin/$FILE.out"; then
+    ./bin/$FILE.out ./cfg/$FILE.cfg 
 fi
