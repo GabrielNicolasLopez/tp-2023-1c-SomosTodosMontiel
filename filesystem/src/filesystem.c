@@ -23,7 +23,7 @@ int main(int argc, char ** argv){
     // CONFIG
     config = config_create(CONFIG_PATH);
     configFS = leerConfiguracion(config);
-    /*
+    
     // CONEXION COMO CLIENTE CON MEMORIA
     int error_memoria = crear_conexion_con_memoria();
     if (error_memoria == -1) {
@@ -31,7 +31,7 @@ int main(int argc, char ** argv){
 	    free(configFS);
         exit(-1);
     }
-    */
+    
     // LEVANTO ARCHIVOS DEL VOLUMEN (CARPETA FS)
     if (levantar_volumen() == -1) {
         config_destroy(config);
