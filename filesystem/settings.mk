@@ -1,5 +1,5 @@
 # Libraries
-LIBS= shared m commons pthread readline cunit rt
+LIBS= cspecs shared m commons pthread readline cunit rt
 
 # Custom libraries' paths
 SHARED_LIBPATHS=
@@ -10,11 +10,11 @@ CDEBUG=-g -Wall -DDEBUG
 CRELEASE=-O3 -Wall -DNDEBUG
 
 # Arguments when executing with start, memcheck or helgrind
-ARGS=
+ARGS=./cfg/filesystem.cfg
 
 # Valgrind flags
 MEMCHECK_FLAGS=--track-origins=yes --log-file="memcheck.log"
 HELGRIND_FLAGS=
 
 # Source files (*.c) to be excluded from tests compilation
-TEST_EXCLUDE=src/main.c
+TEST_EXCLUDE=#src/filesystem.c

@@ -1,5 +1,5 @@
 #Libraries
-LIBS= commons pthread readline cunit rt
+LIBS= commons pthread readline cspecs cunit rt
 
 # Custom libraries' paths
 SHARED_LIBPATHS=

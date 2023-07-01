@@ -5,6 +5,7 @@
     {
       "name": "Linux",
       "includePath": [
+        "/usr/include/cspecs",
         "${workspaceFolder}/../shared/include",
         "${workspaceFolder}/include"
         // TODO: Agregar los directorios de las bibliotecas a utilizar
