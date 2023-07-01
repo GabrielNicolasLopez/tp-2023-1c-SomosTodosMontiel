@@ -73,7 +73,9 @@ typedef enum
     FIN_COMPACTACION,
     INSTRUCCION, 
     BASE,
-    LISTA
+    LISTA,
+    NUEVO_PROCESO,
+    TAMANIO
 } t_Kernel_Memoria;
 
 /*typedef enum

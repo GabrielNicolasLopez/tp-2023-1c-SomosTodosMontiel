@@ -10,6 +10,9 @@ int conexion_con_memoria;
 int conexion_con_cpu;
 int conexion_con_fs;
 
+int instruccion_en_fs = 0;
+bool hayQueCompactar = false;
+
 t_list *LISTA_NEW;
 t_list *LISTA_READY;
 t_list *LISTA_EXEC;
@@ -25,6 +28,9 @@ pthread_mutex_t listaBlocked;
 pthread_mutex_t listaExit;
 pthread_mutex_t listaTGAA;
 pthread_mutex_t mutexFS;
+pthread_mutex_t mx_hayQueCompactar;
+pthread_mutex_t mx_instruccion_en_fs;
+
 
 sem_t esPosibleCompactar;
 sem_t CantPCBNew;
@@ -32,10 +38,14 @@ sem_t cantPCBReady;
 sem_t multiprogramacion;
 sem_t CPUVacia;
 sem_t pasar_pcb_a_CPU;
+sem_t espera_instrucciones;
+sem_t espera_instrucciones;
+
+
 
 bool se_reenvia_el_contexto = false;
 
-t_segmento *segmento0;
+//t_segmento *segmento0;
 
 t_Kernel_Consola razon;
 t_FS_header *respuesta_fs;

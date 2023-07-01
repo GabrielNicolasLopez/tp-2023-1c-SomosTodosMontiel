@@ -17,11 +17,14 @@
     #include "shared_utils.h"
     #include "stream.h"
     #include "FS_kernel.h"
+    #include "FS_memoria.h"
+
+    #include "estructuras.h"
    
     #include "configFS.h"
     #include "superbloque.h"
-    #include "bitmap.h"
     #include "FCB.h"
+    #include "bitmap.h"
     #include "bloques.h"
     #include "hilo_productor.h"
     #include "hilo_consumidor.h"

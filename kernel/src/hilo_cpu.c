@@ -5,7 +5,7 @@ void hilo_general()
 
 	//Me conecto con los módulos
 	conectarse_con_cpu();
-	conectarse_con_memoria();
+	//conectarse_con_memoria();
 	conectarse_con_fs();
 
 	t_motivoDevolucion *motivoDevolucion = malloc(sizeof(t_motivoDevolucion));
@@ -66,9 +66,6 @@ void hilo_general()
 				if(existeEnTGAA(motivoDevolucion->cadena)) //Nombre del archivo
 				{
 					agregarArchivoEnTAAP(motivoDevolucion->cadena); //Le pasamos el nombre del archivo
-					//t_pcb* pcb_a_blocked = pcb_ejecutando_remove();
-					//log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
-					//log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombreArchivo);
 					pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena); //Le pasamos el nombre del archivo
 					//Como se va a blocked no se reenvia
 					se_reenvia_el_contexto = false;
@@ -76,32 +73,9 @@ void hilo_general()
 					sem_post(&CPUVacia);
 				}
 				else
-				{					
-					pthread_mutex_lock(&mutexFS);
+				{
 					enviar_fopen_a_fs(motivoDevolucion);
-					recibir_respuesta_fopen_desde_fs(respuesta_fs);
-					pthread_mutex_unlock(&mutexFS);
-					switch (*respuesta_fs)
-					{
-						case FS_OPEN_OK:
-							agregarArchivoEnTGAA(motivoDevolucion->cadena); //Revisar
-							agregarArchivoEnTAAP(motivoDevolucion->cadena); //Revisar
-							break;
-						case FS_OPEN_NO_OK: 
-							pthread_mutex_lock(&mutexFS);
-							enviar_fcreate_a_fs(motivoDevolucion);
-							recibir_respuesta_fopen_desde_fs(respuesta_fs);
-							pthread_mutex_unlock(&mutexFS);
-							if(*respuesta_fs != FS_CREATE_OK){
-								log_error(logger, "FS no pudo crear el archivo correctamente.");
-							}
-							agregarArchivoEnTGAA(motivoDevolucion->cadena); //Revisar
-							agregarArchivoEnTAAP(motivoDevolucion->cadena); //Revisar
-							break;
-						default:
-							log_error(logger, "KERNEL NO RECIBIO EL HEADER CORRESPONDIENTE EN F_OPEN");
-							break;
-					}
+					sem_wait(&FS_Continue);
 					se_reenvia_el_contexto = true;
 					devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				}
@@ -118,7 +92,6 @@ void hilo_general()
 				}
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
-			
 				break;
 
 			case F_SEEK:
@@ -126,12 +99,19 @@ void hilo_general()
 				actualizar_posicicon_puntero(motivoDevolucion);
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
-			
 				break;
+
 			case F_READ:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				//sem_wait(&esPosibleCompactar);
+				
+				pthread_mutex_lock(&mx_instruccion_en_fs);
+				instruccion_en_fs++;
+				pthread_mutex_unlock(&mx_instruccion_en_fs);
+
 				enviar_fread_a_fs(motivoDevolucion);
+
+				//HACER UN FSEEK ACTUALIZANDO EL PUNTERO LUEGO DE LEER
+
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está leyendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
@@ -142,8 +122,15 @@ void hilo_general()
 
 			case F_WRITE:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				//sem_wait(&esPosibleCompactar);
+				
+				pthread_mutex_lock(&mx_instruccion_en_fs);
+				instruccion_en_fs++;
+				pthread_mutex_unlock(&mx_instruccion_en_fs);
+
 				enviar_fwrite_a_fs(motivoDevolucion);
+
+				//HACER UN FSEEK ACTUALIZANDO EL PUNTERO LUEGO DE ESCRIBIR
+
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
@@ -153,9 +140,19 @@ void hilo_general()
 				break;
 
 			case F_TRUNCATE:
+				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
+				
+				pthread_mutex_lock(&mx_instruccion_en_fs);
+				instruccion_en_fs++;
+				pthread_mutex_unlock(&mx_instruccion_en_fs);
+
 				enviar_ftruncate_a_fs(motivoDevolucion);
-				se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
+				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
+				//No se reenvia porque se fue a blocked
+				se_reenvia_el_contexto = false;
+				//Liberamos la CPU
+				sem_post(&CPUVacia);
 				break;
 
 			case WAIT:
@@ -217,7 +214,7 @@ void hilo_general()
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
-			case CREATE_SEGMENT:
+			/*case CREATE_SEGMENT:
 				
 				log_debug(logger, "PID: <%d> - Crear Segmento - Id: <%d> - Tamaño: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
@@ -237,21 +234,20 @@ void hilo_general()
 				recibir_respuesta_create_segment(nuevo_segmento->base, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 
 				//TAMAÑO
-				nuevo_segmento->tamanio     = motivoDevolucion->cant_intB;
+				nuevo_segmento->tamanio = motivoDevolucion->cant_intB;
 
 				agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 				break;
 
-			/*case DELETE_SEGMENT:
+			case DELETE_SEGMENT:
 				log_debug(logger, "PID: <PID> - Eliminar Segmento - Id Segmento: <ID SEGMENTO>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 
-				eliminar_segmento(DELETE_SEGMENT, motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
+				eliminar_segmento(motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
 				respuesta = recibir_respuesta_delete_segment();
 				recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
 
 				//Devolver el contexto de ejecucion a CPU
-
-				break;*/		
+				break;	*/
 
 			case YIELD:
 				//Sacamos a la PCB de ejecutando
@@ -363,20 +359,57 @@ void conectarse_con_fs(){
 
 void esperar_respuestas(){
 
+	bool compacto;
+
 	while(1){
 		
 		log_debug(logger, "KERNEL ESPERANDO RESPUESTAS DE FS...");
 
 		t_FS_header header = stream_recv_header(conexion_con_fs);
-		stream_recv_empty_buffer(conexion_con_fs);
+		//stream_recv_empty_buffer(conexion_con_fs);
 
-		if(header != FS_OK){
-			log_error(logger, "KERNEL NO RECIBIO DE FS EL HEADER CORRECTO AL ESPERAR UNA RESPUESTA POR EL HILO FS: %d (esperado = %d)", header, FS_OK);
+		char* nombreArchivo = recibir_nombre_de_archivo_de_fs();
+
+		switch (header)
+		{
+		//INSTRUCCIONES BLOQUEANTES FREAD, FWRITE, FTRUNCATE SE MANEJAN CON FS_OK + NOMBRE ARCHIVO
+		//CUANDO LLEGA EL FS_OK + ARCHIVO, SACAMOS AL PROCESO DE LA LISTA DE BLOCKED
+		case FS_OK:
+			//Recibimos el nombre del archivo y sacamos al proceso de la lista de blocked
+			t_pcb* pcb_a_ready = sacar_de_blocked_de_archivo_de_TGAA(nombreArchivo);
+			pthread_mutex_lock(&mx_instruccion_en_fs);
+			instruccion_en_fs--;
+			pthread_mutex_unlock(&mx_instruccion_en_fs);
+			pthread_mutex_lock(&mx_hayQueCompactar);
+			compacto = hayQueCompactar;
+			pthread_mutex_unlock(&mx_hayQueCompactar);
+			if(compacto){
+				sem_post(&espera_instrucciones);
+			}
+			log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_a_ready->contexto->pid);
+			//Lo pasamos a ready
+			pasar_a_ready(pcb_a_ready);
+			break;
+		
+		case FS_CREATE_OK:
+		case FS_OPEN_OK:
+			//Si el archivo se pudo abrir correctamente
+			agregarArchivoEnTGAA(nombreArchivo); //Revisar
+			agregarArchivoEnTAAP(nombreArchivo); //Revisar
+			sem_post(&FS_Continue);
+			break;
+
+		case FS_OPEN_NO_OK:
+			//Si no está abierto lo tenemos que crear
+			enviar_fcreate_a_fs(nombreArchivo);
+			break;
+
+		default:
+			log_error(logger, "FS ENVIO UN HEADER CUALQUIERAAAA");
+			break;
 		}
 
-		t_pcb* pcb_a_ready = sacar_de_blocked_de_archivo_de_TGAA(recibir_nombre_de_archivo_de_fs());
-		log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_a_ready->contexto->pid);
-		pasar_a_ready(pcb_a_ready);
+		
 	}
 }
 
@@ -430,7 +463,7 @@ void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion){
 	buffer_pack(buffer_ftruncate, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
     //Cadena
     buffer_pack(buffer_ftruncate, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
-	//Dirección Lógica
+	//Tamaño del archivo
 	buffer_pack(buffer_ftruncate, &motivoDevolucion->cant_int, sizeof(uint32_t));
 	
 	stream_send_buffer(conexion_con_fs, 0, buffer_ftruncate);
@@ -439,24 +472,25 @@ void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion){
 	buffer_destroy(buffer_ftruncate);
 }
 
-void enviar_fcreate_a_fs(t_motivoDevolucion *motivoDevolucion)
+void enviar_fcreate_a_fs(char *nombreArchivo)
 {
 	
-	t_buffer* buffer_ftruncate = buffer_create();
+	t_buffer* buffer_fcreate = buffer_create();
+
+	t_tipoInstruccion tipoInstruccion = F_CREATE;
+	uint32_t longitudCadena = string_length(nombreArchivo)+1;
 
 	//Tipo de instruccion
-	buffer_pack(buffer_ftruncate, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
+	buffer_pack(buffer_fcreate, &tipoInstruccion, sizeof(t_tipoInstruccion));
 	//Tamaño de la cadena
-	buffer_pack(buffer_ftruncate, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
+	buffer_pack(buffer_fcreate, &longitudCadena, sizeof(uint32_t));
     //Cadena
-    buffer_pack(buffer_ftruncate, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
-	//Dirección Lógica
-	buffer_pack(buffer_ftruncate, &motivoDevolucion->cant_int, sizeof(uint32_t));
+    buffer_pack(buffer_fcreate, nombreArchivo, longitudCadena);
 	
-	stream_send_buffer(conexion_con_fs, 0, buffer_ftruncate);
-	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_ftruncate->size);
+	stream_send_buffer(conexion_con_fs, (uint8_t) FS_INSTRUCCION, buffer_fcreate);
+	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fcreate->size);
 
-	buffer_destroy(buffer_ftruncate);
+	buffer_destroy(buffer_fcreate);
 }
 
 void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion){
@@ -519,22 +553,24 @@ void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion){ 			//	F_SEEK (Nomb
 	buffer_destroy(buffer_fseek);
 }
 
-void enviar_fopen_a_fs(t_motivoDevolucion *motivoDevolucion){
-
+void enviar_fopen_a_fs(char *nombreArchivo){
+	
 	t_buffer* buffer_fopen = buffer_create();
 
-	//Tipo de instruccion
-	buffer_pack(buffer_fopen, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
-	//Tamaño de la cadena
-	buffer_pack(buffer_fopen, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
-    //Cadena
-    buffer_pack(buffer_fopen, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+	t_tipoInstruccion tipoInstruccion = F_OPEN;
+	uint32_t longitudCadena = string_length(nombreArchivo)+1;
 
-	stream_send_buffer(conexion_con_fs, 0, buffer_fopen);
+	//Tipo de instruccion
+	buffer_pack(buffer_fopen, &tipoInstruccion, sizeof(t_tipoInstruccion));
+	//Tamaño de la cadena
+	buffer_pack(buffer_fopen, &longitudCadena, sizeof(uint32_t));
+    //Cadena
+    buffer_pack(buffer_fopen, nombreArchivo, longitudCadena);
+	
+	stream_send_buffer(conexion_con_fs, (uint8_t) FS_INSTRUCCION, buffer_fopen);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fopen->size);
 
 	buffer_destroy(buffer_fopen);
-
 }
 
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
@@ -561,6 +597,7 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 			//Espero a que sea posible compactar
 			log_debug(logger, "Kernel está esperando para poder compactar");
 			sem_wait(&esPosibleCompactar);
+			esperandoParaCompactar();
 			pedir_a_memoria_que_compacte();
 			log_debug(logger, "Compactación: <Se solicitó compactación / Esperando Fin de Operaciones de FS>");
 			esperar_respuesta_compactacion(CREATE_SEGMENT, id, tamanio);
@@ -573,6 +610,23 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 	}
 
 	buffer_destroy(respuesta_crear_segmento);
+}
+
+void esperandoParaCompactar(){
+
+	if(instruccion_en_fs > 0){ 
+		pthread_mutex_lock(&mx_hayQueCompactar);
+		hayQueCompactar = true;
+		pthread_mutex_lock(&mx_instruccion_en_fs);
+		sem_init(&espera_instrucciones, 0, -instruccion_en_fs+1);
+		pthread_mutex_unlock(&mx_instruccion_en_fs);
+		pthread_mutex_unlock(&mx_hayQueCompactar);
+		sem_wait(&espera_instrucciones);
+		sem_destroy(&espera_instrucciones);
+	}
+	pthread_mutex_lock(&mx_hayQueCompactar);
+	hayQueCompactar = false;
+	pthread_mutex_unlock(&mx_hayQueCompactar);
 }
 
 void esperar_respuesta_compactacion(){
@@ -604,7 +658,7 @@ void crear_segmento(uint32_t id, uint32_t tamanio){
 	t_buffer* crear_segmento = buffer_create();
 	t_tipoInstruccion instruccion = CREATE_SEGMENT;
 
-	//ID del segmento a crear
+	//Tipo de instruccion: crear/borrar
 	buffer_pack(crear_segmento, &instruccion, sizeof(t_tipoInstruccion));
 
 	//ID del segmento a crear
@@ -620,18 +674,33 @@ void crear_segmento(uint32_t id, uint32_t tamanio){
 
 void eliminar_segmento(uint32_t id){
 	
-	t_buffer* crear_segmento = buffer_create();
+	t_buffer* eliminar_segmento = buffer_create();
 	t_tipoInstruccion instruccion = DELETE_SEGMENT;
 
-	//ID del segmento a crear
-	buffer_pack(crear_segmento, &instruccion, sizeof(t_instruccion));
+	//Tipo de instruccion: crear/borrar
+	buffer_pack(eliminar_segmento, &instruccion, sizeof(t_tipoInstruccion));
 
-	//ID del segmento a crear
-	buffer_pack(crear_segmento, &id, sizeof(uint32_t));
+	//ID del segmento a borrar
+	buffer_pack(eliminar_segmento, &id, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_con_memoria, INSTRUCCION, crear_segmento);
+	stream_send_buffer(conexion_con_memoria, INSTRUCCION, eliminar_segmento);
 
-	buffer_destroy(crear_segmento);
+	buffer_destroy(eliminar_segmento);
+}
+
+void recibir_respuesta_delete_segment(){
+
+	t_buffer* respuesta_eliminar_segmento = buffer_create();
+	t_tipoInstruccion instruccion = DELETE_SEGMENT;
+
+	stream_recv_buffer(conexion_con_memoria, respuesta_eliminar_segmento);
+
+	//Tipo de instruccion: crear/borrar
+	//buffer_unpack(eliminar_segmento, &instruccion, sizeof(t_tipoInstruccion));
+
+
+	buffer_destroy(eliminar_segmento);
+
 }
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion)

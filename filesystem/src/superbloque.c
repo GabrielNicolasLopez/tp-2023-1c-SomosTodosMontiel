@@ -21,9 +21,9 @@ int levantar_volumen()
 
     levantar_bitmap();
     levantar_bloques();
-
-    crear_FCB("Hola.txt");
     
+    bitarray_set_bit(bitA_bitmap, 0);
+
     return 0;
 }
 

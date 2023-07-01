@@ -37,7 +37,7 @@ uint32_t get_free_block()
 {
     uint32_t block = 0;
     uint32_t MAX = bitarray_get_max_bit(bitA_bitmap);
-    while (block <= MAX && !bitarray_test_bit(bitA_bitmap, block)) {
+    while (block <= MAX && bitarray_test_bit(bitA_bitmap, block)) {
         block++;
     }
 

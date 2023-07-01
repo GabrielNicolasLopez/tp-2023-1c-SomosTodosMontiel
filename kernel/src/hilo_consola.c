@@ -219,9 +219,20 @@ void crear_pcb(void *datos){
 	pcb->real_anterior       = 0;
 
 	//Tabla de segmentos del proceso
-	//crear_tabla_de_segmentos(pcb);
+	crear_tabla_de_segmentos(pcb);
+	
+	//Le pido a memoria el segmento 0
+	pedir_a_memoria_el_segmento0(pcb->contexto->pid);
+	
+	t_segmento *segmento0 = malloc(sizeof(t_segmento));
+
+	segmento0->id_segmento =  0;
+	segmento0->base = 0;
+	//Recibo la respuesta
+	segmento0->tamanio = recibir_el_segmento0_de_memoria();
+
 	//Agrego el segmento 0 al proceso
-	//agregar_segmento_0_a_pcb(pcb); 
+	agregar_segmento_0_a_pcb(pcb, segmento0); 
 
 	//Tabla de archivos abiertos del proceso
 	//crear_tabla_de_archivos_proceso(pcb);
@@ -233,11 +244,42 @@ void crear_pcb(void *datos){
 	sem_post(&CantPCBNew);
 }
 
+void pedir_a_memoria_el_segmento0(int pid){
+	t_buffer *pedir_segmento0 = buffer_create();
+
+	//Empaqueto el PID
+	buffer_pack(pedir_segmento0, &pid, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_con_memoria, NUEVO_PROCESO, pedir_segmento0);
+
+	buffer_destroy(pedir_segmento0);
+}
+
+uint32_t recibir_el_segmento0_de_memoria(){
+	t_buffer *recibir_segmento0 = buffer_create();
+	uint32_t tamanio;
+
+	t_Kernel_Memoria header = stream_recv_header(conexion_con_memoria);
+
+	if(header != NUEVO_PROCESO){
+		log_error(logger, "no se recibió el header correcto al crear un proceso");
+	}
+
+	stream_recv_buffer(conexion_con_memoria, recibir_segmento0);
+
+	//Desempaqueto la tamanio
+	buffer_unpack(recibir_segmento0, &tamanio, sizeof(uint32_t));
+
+	buffer_destroy(recibir_segmento0);
+
+	return tamanio;
+}
+
 void crear_tabla_de_archivos_proceso(t_pcb *pcb){
 	pcb->taap = list_create();
 }
 
-void agregar_segmento_0_a_pcb(t_pcb *pcb){
+void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0){
 	agregar_segmento(pcb, segmento0);
 }
 

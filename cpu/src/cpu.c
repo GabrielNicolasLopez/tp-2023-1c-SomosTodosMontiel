@@ -465,6 +465,8 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 	log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 
+	sem_trywait
+
     buffer_destroy(ce_recibido);
 
     return contextoEjecucion;

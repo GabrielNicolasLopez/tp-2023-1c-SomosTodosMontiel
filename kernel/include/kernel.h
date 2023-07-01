@@ -16,6 +16,9 @@ extern int conexion_con_memoria;
 extern int conexion_con_cpu;
 extern int conexion_con_fs;
 
+extern int instruccion_en_fs = 0;
+extern bool hayQueCompactar = false;
+
 extern t_Kernel_Consola razon;
 
 typedef struct
@@ -178,12 +181,12 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 void inicializar_registro_cpu(t_pcb *pcb);
 
 //---------------------------------FS---------------------------------
-void enviar_fopen_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fopen_a_fs(char *nombreArchivo);
 void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
-void enviar_fcreate_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fcreate_a_fs(char *nombreArchivo);
 
 bool existeEnTGAA(char *nombre_archivo);
 t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo);
@@ -222,6 +225,11 @@ extern pthread_mutex_t listaBlocked;
 extern pthread_mutex_t listaExit;
 extern pthread_mutex_t listaTGAA;
 extern pthread_mutex_t mutexFS;
+extern pthread_mutex_t mx_hayQueCompactar;
+extern pthread_mutex_t mx_instruccion_en_fs;
+
+
+
 
 //Semaforos
 extern sem_t CantPCBNew;
@@ -230,6 +238,10 @@ extern sem_t multiprogramacion;
 extern sem_t CPUVacia;
 extern sem_t pasar_pcb_a_CPU;
 extern sem_t esPosibleCompactar;
+extern sem_t FS_Continue;
+extern sem_t espera_instrucciones;
+
+
 
 
 extern char *nombresCodigoOperaciones[];
@@ -237,6 +249,6 @@ extern char *nombresInstrucciones[];
 
 extern bool se_reenvia_el_contexto;
 
-extern t_segmento *segmento0;
+//extern t_segmento *segmento0;
 
 #endif
