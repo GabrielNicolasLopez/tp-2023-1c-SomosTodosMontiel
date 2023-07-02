@@ -11,29 +11,7 @@
 //#define LOG_PATH "./cfg/memoria.log" LOG QUE PERSISTE EN EL REPO REMOTO
 #define LOG_PATH "./cfg/memoriaPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Memoria"
-
-
 #define NUMBER_OF_ARGS_REQUIRED 2
-
-
-
-//Variables globales de memoria
-
-extern int conexion_con_kernel;
-extern int conexion_con_memoria;
-extern int conexion_con_cpu;
-
-extern pthread_t hiloFilesystem, hiloKernel, hiloCPU;
-
-extern void* espacioUsuario;
-
-//Listas
-t_list* listaSegmentos;
-t_list* listaHuecos;
-
-t_segmento* segmento_0;
-t_hueco* hueco_0;
-
 
 //Estruturas 
 typedef struct
@@ -57,11 +35,25 @@ typedef enum
 
 t_memoria_config* leerConfiguracion();
 
-t_memoria_config* configuracionMemoria;
-
 void crear_hilos_memoria();
 void hilo_cpu();
 void hilo_filesystem();
 void hilo_kernel();
+
+extern t_memoria_config* configuracionMemoria;
+
+//Variables globales de memoria
+extern int conexion_con_kernel;
+extern int conexion_con_memoria;
+extern int conexion_con_cpu;
+extern pthread_t hiloFilesystem, hiloKernel, hiloCPU;
+extern void* espacioUsuario;
+
+//Listas
+extern t_list* listaSegmentos;
+extern t_list* listaHuecos;
+
+extern t_segmento* segmento_0;
+extern t_hueco* hueco_0;
 
 #endif
