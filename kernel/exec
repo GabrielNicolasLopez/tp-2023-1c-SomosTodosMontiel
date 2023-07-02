@@ -1,0 +1,6 @@
+#!/bin/bash
+FILE=kernel
+make ./bin/$FILE.out
+if test -f "./bin/$FILE.out"; then
+    ./bin/$FILE.out ./cfg/$FILE.cfg 
+fi
