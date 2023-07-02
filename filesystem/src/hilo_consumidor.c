@@ -110,7 +110,8 @@ void crear_hilo_consumidor()
         
         // *** F_WRITE ***
         if (tipo_inst == F_WRITE) {
-            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
+            log_error(logger, "entre al f_write");
+            /*t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
 
             uint32_t puntero_archivo = p_instruccion->paramIntA;
             uint32_t cant_bytes = p_instruccion->paramIntB;
@@ -128,10 +129,10 @@ void crear_hilo_consumidor()
                 continue;
             }
             
-            pedido_lectura_mem(cant_bytes, dir_fisica);
+            //pedido_lectura_mem(cant_bytes, dir_fisica);
             uint32_t cant_bytes_memoria;
             uint8_t* cadena_bytes = NULL;
-            recibir_cadena_bytes_mem(&cant_bytes_memoria, cadena_bytes);
+            //recibir_cadena_bytes_mem(&cant_bytes_memoria, cadena_bytes);
             if (cant_bytes_memoria != cant_bytes) {
                 log_error(logger, "Hilo_consumidor (F_WRITE): Memoria pudo leer solo %u bytes", cant_bytes_memoria);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
@@ -145,10 +146,9 @@ void crear_hilo_consumidor()
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 free(cadena_bytes);
                 continue;
-            }
-    
+            }*/
             respuesta_a_kernel(FS_OK, p_instruccion);
-            free(cadena_bytes);
+            //free(cadena_bytes);
 
         } else
         
@@ -171,7 +171,7 @@ void respuesta_a_kernel(int operacion, t_instruccion_FS* instruccion)
     buffer_pack(buffer, &instruccion->longitud_cadena, sizeof(instruccion->longitud_cadena));
 	// CADENA_ARCHIVO
     buffer_pack(buffer, instruccion->cadena, instruccion->longitud_cadena);
-
+    log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer->size);
     stream_send_buffer(socketKernel, header, buffer);
     buffer_destroy(buffer);
 }

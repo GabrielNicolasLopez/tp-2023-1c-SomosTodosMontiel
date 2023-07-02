@@ -130,16 +130,17 @@ void hilo_general()
 
 			case F_WRITE:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				
+				log_debug(logger, "entre a f_write");
 				pthread_mutex_lock(&mx_instruccion_en_fs);
 				instruccion_en_fs++;
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
 
-				enviar_fwrite_a_fs(motivoDevolucion);
-
+				enviar_fwrite_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena));
+				log_debug(logger, "fwrite enviado a fs, bloqueando proceso");
 				//HACER UN FSEEK ACTUALIZANDO EL PUNTERO LUEGO DE ESCRIBIR
 
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
+				log_debug(logger, "bloqueando pcb...");
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
 				se_reenvia_el_contexto = false;
@@ -153,7 +154,7 @@ void hilo_general()
 				pthread_mutex_lock(&mx_instruccion_en_fs);
 				instruccion_en_fs++;
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
-
+				
 				enviar_ftruncate_a_fs(motivoDevolucion);
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
@@ -288,6 +289,22 @@ void actualizar_posicicon_puntero(t_motivoDevolucion *motivoDevolucion){
 	t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(motivoDevolucion->cadena);
 	//Modifico el valor del puntero
 	entradaTGAA->posicionPuntero = motivoDevolucion->cant_int;
+}
+
+uint32_t devolver_puntero_archivo(char *nombreArchivo){
+	int posicion;
+	// t_entradaTAAP *entradaTAAP = malloc(sizeof(t_entradaTAAP));
+	// entradaTAAP->entradaTGAA = malloc(sizeof(t_entradaTGAA));
+	t_entradaTAAP *entradaTAAP;
+	t_pcb *pcb = pcb_ejecutando();
+
+	//log_error(logger, "cantidad de archivos en TAAP: %d", list_size(pcb->taap));
+	for (int i = 0; i < list_size(pcb->taap); i++)
+	{
+		entradaTAAP = list_get(pcb->taap, i);
+		if (strcmp(entradaTAAP->entradaTGAA->nombreArchivo, nombreArchivo) == 0)
+			return entradaTAAP->entradaTGAA->posicionPuntero;
+	}
 }
 
 
@@ -425,29 +442,6 @@ void esperar_respuestas(){
 	}
 }
 
-// t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
-// {
-// 	t_pcb* pcb_a_ready;
-
-// 	int posicion;
-// 	t_entradaTGAA *entradaTGAA;
-// 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
-// 	{
-// 		entradaTGAA = list_get(LISTA_TGAA, posicion);
-// 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
-// 			posicion = i;
-// 	}
-
-// 	//Obtengo la entrada
-// 	entradaTGAA = list_get(LISTA_TGAA, posicion);	
-// 	//Saco la pcb de blocked
-// 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
-// 	pcb_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0); //Saco la pcb que estaba bloqueada
-// 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
-
-// 	return pcb_a_ready;
-// }
-
 t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
 {
 	t_pcb* pcb_a_ready;
@@ -464,6 +458,7 @@ t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
 	//Obtengo la entrada
 	//entradaTGAA = list_get(LISTA_TGAA, posicion);	
 	//Saco la pcb de blocked
+	log_error(logger, "cantidad de pcbs en blocked archivo: %d", list_size(entradaTGAA->lista_block_archivo)),
 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
 	pcb_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0); //Saco la pcb que estaba bloqueada
 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
@@ -477,6 +472,7 @@ char* recibir_nombre_de_archivo_de_fs()
 	int longitud_nombreArchivo;
 
 	stream_recv_buffer(conexion_con_fs, buffer_respuesta);
+	log_error(logger, "Tamaño de la instruccion recibida de FS %d", buffer_respuesta->size);
 
 	//Longitud cadena
 	buffer_unpack(buffer_respuesta, &longitud_nombreArchivo, sizeof(uint32_t));
@@ -503,7 +499,7 @@ void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion){
 	//Tamaño del archivo
 	buffer_pack(buffer_ftruncate, &motivoDevolucion->cant_int, sizeof(uint32_t));
 	
-	stream_send_buffer(conexion_con_fs, 0, buffer_ftruncate);
+	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_ftruncate);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_ftruncate->size);
 
 	buffer_destroy(buffer_ftruncate);
@@ -524,28 +520,30 @@ void enviar_fcreate_a_fs(char *nombreArchivo)
     //Cadena
     buffer_pack(buffer_fcreate, nombreArchivo, longitudCadena);
 	
-	stream_send_buffer(conexion_con_fs, (uint8_t) FS_INSTRUCCION, buffer_fcreate);
+	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fcreate);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fcreate->size);
 
 	buffer_destroy(buffer_fcreate);
 }
 
-void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion){
+void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo){
 	
 	t_buffer* buffer_fwrite = buffer_create();
 
 	//Tipo de instruccion
 	buffer_pack(buffer_fwrite, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
-	//Tamaño de la cadena
+	//Longitud cadena
 	buffer_pack(buffer_fwrite, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
-    //Cadena
-    buffer_pack(buffer_fwrite, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
-	//Dirección Lógica
-	buffer_pack(buffer_fwrite, &motivoDevolucion->cant_int, sizeof(uint32_t));
-	//Cantidad de Bytes
+	//Cadena
+	buffer_pack(buffer_fwrite, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+	//Parametro A <------- Puntero del archivo
+	buffer_pack(buffer_fwrite, &puntero_archivo, sizeof(uint32_t));
+	//Parametro B <------- Cant. Bytes a escribir
 	buffer_pack(buffer_fwrite, &motivoDevolucion->cant_intB, sizeof(uint32_t));
-
-	stream_send_buffer(conexion_con_fs, 0, buffer_fwrite);
+	//Parametro C <------- Dir. Memoria Física
+	buffer_pack(buffer_fwrite, &motivoDevolucion->cant_int, sizeof(uint32_t));
+	
+	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fwrite);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fwrite->size);
 
 	buffer_destroy(buffer_fwrite);
@@ -565,7 +563,7 @@ void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion){
 	//Cantidad de Bytes
 	buffer_pack(buffer_fread, &motivoDevolucion->cant_intB, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_con_fs, 0, buffer_fread);
+	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fread);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fread->size);
 
 	buffer_destroy(buffer_fread);
@@ -584,7 +582,8 @@ void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion){ 			//	F_SEEK (Nomb
 	//Posicion del fseek
 	buffer_pack(buffer_fseek, &motivoDevolucion->cant_int, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_con_fs, 0, buffer_fseek);
+	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fseek);
+	
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fseek->size);
 
 	buffer_destroy(buffer_fseek);
@@ -796,31 +795,11 @@ bool existeEnTGAA(char *nombre_archivo)
 			return true;
 	}
 	return false;
-}    
-
-// t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
-// {
-// 	int posicion;
-// 	t_entradaTGAA *entradaTGAA = malloc(sizeof(t_entradaTGAA));
-
-// 	log_error(logger, "cantidad de archivos en TGAA (al devolver): %d", list_size(LISTA_TGAA));
-	
-// 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
-// 	{
-// 		entradaTGAA = list_get(LISTA_TGAA, posicion);
-// 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
-// 			posicion = i;
-// 	}
-
-// 	entradaTGAA = list_get(LISTA_TGAA, posicion);
-// 	return entradaTGAA;
-// }
+}  
 
 t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
 {
-	t_entradaTGAA *entradaTGAA;// = malloc(sizeof(t_entradaTGAA));
-
-	log_error(logger, "cantidad de archivos en TGAA (al devolver): %d", list_size(LISTA_TGAA));
+	t_entradaTGAA *entradaTGAA;
 	
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
 	{
@@ -881,25 +860,6 @@ void agregarArchivoEnTGAA(char* nombreArchivo)
 	agregarEnTGAA(entradaTGAA);
 }
 
-// void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char* nombre_archivo)
-// {
-// 	int posicion;
-// 	t_entradaTGAA *entradaTGAA;
-// 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
-// 	{
-// 		entradaTGAA = list_get(LISTA_TGAA, posicion);
-// 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
-// 			posicion = i;
-// 	}
-
-// 	entradaTGAA = list_get(LISTA_TGAA, posicion);
-// 	log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
-// 	log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombre_archivo);
-// 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
-// 	list_add(entradaTGAA->lista_block_archivo, pcb_a_blocked);
-// 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
-// }
-
 void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char* nombre_archivo)
 {
 	t_entradaTGAA *entradaTGAA;
@@ -916,24 +876,9 @@ void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char* nombre_archi
 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
 	list_add(entradaTGAA->lista_block_archivo, pcb_a_blocked);
 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
+	log_error(logger, "cantidad de pcbs en blocked archivo: %d", list_size(entradaTGAA->lista_block_archivo));
+	
 }
-
-// void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo)
-// {
-// 	int posicion;
-// 	t_entradaTAAP *entradaTAAP;
-// 	for (int i = 0; i < list_size(pcb->taap); i++)
-// 	{
-// 		entradaTAAP = list_get(pcb->taap, i);
-// 		if (strcmp(entradaTAAP->entradaTGAA->nombreArchivo, nombre_archivo) == 0)
-// 			posicion = i;
-// 	}
-
-// 	pthread_mutex_lock(&pcb->mutex_TAAP);
-// 	entradaTAAP = list_remove(pcb->taap, posicion); // Elimino el archivo de la lista taap
-// 	pthread_mutex_unlock(&pcb->mutex_TAAP);
-// 	free(entradaTAAP); //recordatorio: no hacer free al puntero *entradaTGAA
-// }
 
 void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo)
 {

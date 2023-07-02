@@ -186,9 +186,10 @@ void inicializar_registro_cpu(t_pcb *pcb);
 void enviar_fopen_a_fs(char *nombreArchivo);
 void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion);
-void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo);
 void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fcreate_a_fs(char *nombreArchivo);
+uint32_t devolver_puntero_archivo(char *nombreArchivo);
 
 bool existeEnTGAA(char *nombre_archivo);
 t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo);

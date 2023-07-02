@@ -101,6 +101,7 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 			buffer_unpack(bufferInstrucciones, &instruccionRecibida->paramIntA, sizeof(uint32_t));
 			//Parametro B
 			buffer_unpack(bufferInstrucciones, &instruccionRecibida->paramIntB, sizeof(uint32_t));
+			//log_debug(logger, "paramB: %d", instruccionRecibida->paramIntB);
 		}
 		if(instruccion == F_READ){
 			//Longitud cadena

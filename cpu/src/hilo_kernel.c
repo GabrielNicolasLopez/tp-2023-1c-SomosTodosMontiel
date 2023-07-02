@@ -11,6 +11,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		.longitud_cadena = 0,
 		.cadena = "",
 		.cant_int = 0,
+		.cant_intB = 0,
 	};
 	switch(instruccion -> tipo){
 		// 3 PARAMETROS
@@ -49,7 +50,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			motivo.tipo = F_WRITE;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
 			strcpy(&motivo.cadena, instruccion->cadena);
-			motivo.cant_int = instruccion->paramIntA;
+			motivo.cant_int = instruccion->paramIntA; //Aca se usa la MMU. ParamA es la dir logica, se devuelve la fisica
 			motivo.cant_intB = instruccion->paramIntB;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
@@ -187,12 +188,11 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case F_TRUNCATE: // F_TRUNCATE (Nombre Archivo, Tamaño): 
 						 // Esta instrucción solicita al Kernel que se modifique el tamaño del archivo al indicado por parámetro.
 			
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %u", 
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena,
-				instruccion->paramIntA,
-				instruccion->paramIntB);
+				instruccion->paramIntA);
 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_TRUNCATE;
