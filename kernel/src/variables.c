@@ -40,8 +40,7 @@ sem_t CPUVacia;
 sem_t pasar_pcb_a_CPU;
 sem_t espera_instrucciones;
 sem_t espera_instrucciones;
-
-
+sem_t FS_Continue;
 
 bool se_reenvia_el_contexto = false;
 
