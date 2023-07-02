@@ -12,7 +12,7 @@ int main(int argc, char** argv){
 	verificacionDeConfiguracion(argc);
 
 	//Creo el config para leer IP y PUERTO
-	t_config* config = config_create(CONFIG_PATH);
+	t_config* config = config_create(argv[1]);
 
 	//Leo la configuracion y la muestro
 	t_consola_config consola_config = leerConfiguracion(config);

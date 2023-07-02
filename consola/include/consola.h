@@ -10,7 +10,6 @@
 #include "buffer.h"
 #include "stream.h"
 #include "tests.h"
-#include "consola_serializer.h"
 
 #define CONFIG_PATH "./cfg/consola.cfg"
 //#define LOG_PATH "./cfg/consola.log" LOG QUE PERSISTE EN EL REPO REMOTO

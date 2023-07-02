@@ -178,8 +178,8 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 uint32_t recibir_el_segmento0_de_memoria();
 void pedir_a_memoria_el_segmento0(int pid);
 void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0);
+void crear_tabla_de_archivos_proceso(t_pcb *pcb);
 void esperandoParaCompactar();
-
 void inicializar_registro_cpu(t_pcb *pcb);
 
 //---------------------------------FS---------------------------------

@@ -1,6 +1,7 @@
 #!/bin/bash
 FILE=consola
+PSEUDOCODIGO=BASE_1
 make ./bin/$FILE.out
 if test -f "./bin/$FILE.out"; then
-    ./bin/$FILE.out ./cfg/$FILE.cfg 
+    ./bin/$FILE.out ./cfg/$FILE.cfg ./cfg/$PSEUDOCODIGO.pse
 fi

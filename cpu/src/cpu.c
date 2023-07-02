@@ -63,7 +63,8 @@ void hilo_kernel(){
 
 	uint8_t handshake = stream_recv_header(cliente_fd_kernel);
 	stream_recv_empty_buffer(cliente_fd_kernel);
-	log_info(logger, "handshake kernel = 3: %d", handshake);
+	log_info(logger, "handshake(3): %d", handshake);
+	
 	if (handshake == HANDSHAKE_kernel) {
 		log_info(logger, "Se envia handshake ok continue a kernel");
 		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);
@@ -277,8 +278,9 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	
 	
-	uint8_t header = CYM;
-	stream_send_buffer(cliente_fd_kernel, header, cym_a_enviar);
+	//uint8_t header = CYM;
+	//stream_send_buffer(cliente_fd_kernel, header, cym_a_enviar);
+	stream_send_buffer(cliente_fd_kernel, CYM, cym_a_enviar);
 	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
 
     buffer_destroy(cym_a_enviar);
@@ -288,9 +290,9 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
 	log_debug(logger, "Esperando ce de kernel");
 
-	uint8_t handshake = stream_recv_header(cliente_fd_kernel);
+	uint8_t header = stream_recv_header(cliente_fd_kernel);
 
-	log_debug(logger, "header: %d", handshake);
+	log_debug(logger, "header(0): %d", header);
 
     t_buffer* ce_recibido = buffer_create();
 	t_contextoEjecucion* contextoEjecucion = malloc(sizeof(t_contextoEjecucion));

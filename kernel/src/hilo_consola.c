@@ -220,6 +220,9 @@ void crear_pcb(void *datos){
 
 	//Tabla de segmentos del proceso
 	crear_tabla_de_segmentos(pcb);
+
+	//Inicializo el semaforo de TAAP
+	pthread_mutex_init(&pcb->mutex_TAAP, NULL);
 	
 	//Le pido a memoria el segmento 0
 	//pedir_a_memoria_el_segmento0(pcb->contexto->pid);
@@ -235,7 +238,7 @@ void crear_pcb(void *datos){
 	//agregar_segmento_0_a_pcb(pcb, segmento0); 
 
 	//Tabla de archivos abiertos del proceso
-	//crear_tabla_de_archivos_proceso(pcb);
+	crear_tabla_de_archivos_proceso(pcb);
 
 	//Una vez inicializada la PCB, la pasamos a NEW
 	pasar_a_new(pcb);
