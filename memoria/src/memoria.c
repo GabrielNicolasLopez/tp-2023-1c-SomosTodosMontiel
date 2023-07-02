@@ -11,6 +11,15 @@ char* IP_MEMORIA = "127.0.0.1";
 pthread_t hiloFilesystem, hiloKernel, hiloCPU;
 void* espacioUsuario;
 
+t_memoria_config* configuracionMemoria;
+
+//Listas
+t_list* listaSegmentos;
+t_list* listaHuecos;
+
+t_segmento* segmento_0;
+t_hueco* hueco_0;
+
 int main(int argc, char** argv){
 
     //Creo logger para info
@@ -123,6 +132,3 @@ t_memoria_config* leerConfiguracion(){
 
 	return configuracionMemoria;
 }
-
-
-
