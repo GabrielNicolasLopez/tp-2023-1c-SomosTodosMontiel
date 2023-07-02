@@ -63,8 +63,10 @@ void hilo_general()
 				break;
 
 			case F_OPEN:
+			log_debug(logger, "entre a f_open");
 				if(existeEnTGAA(motivoDevolucion->cadena)) //Nombre del archivo
 				{
+					log_debug(logger, "el archivo existe en tgaa");
 					agregarArchivoEnTAAP(motivoDevolucion->cadena); //Le pasamos el nombre del archivo
 					pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena); //Le pasamos el nombre del archivo
 					//Como se va a blocked no se reenvia
@@ -74,10 +76,14 @@ void hilo_general()
 				}
 				else
 				{
-					enviar_fopen_a_fs(motivoDevolucion);
+					log_debug(logger, "el archivo no existe en tgaa");
+					enviar_fopen_a_fs(motivoDevolucion->cadena);
+					log_debug(logger, "mensaje enviado a fs, esperando respuesta...");
 					sem_wait(&FS_Continue);
+					log_debug(logger, "recibi la respuesta de fs, continuando...");
 					se_reenvia_el_contexto = true;
 					devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+					log_debug(logger, "se devolvio el ce a cpu");
 				}
 				break;
 
@@ -369,6 +375,7 @@ void esperar_respuestas(){
 		//stream_recv_empty_buffer(conexion_con_fs);
 
 		char* nombreArchivo = recibir_nombre_de_archivo_de_fs();
+		log_error(logger, "nombre del archivo recibido: %s", nombreArchivo);
 
 		switch (header)
 		{
@@ -393,6 +400,7 @@ void esperar_respuestas(){
 		
 		case FS_CREATE_OK:
 		case FS_OPEN_OK:
+			log_debug(logger, "el archivo ya está abierto, continuando...");
 			//Si el archivo se pudo abrir correctamente
 			agregarArchivoEnTGAA(nombreArchivo); //Revisar
 			agregarArchivoEnTAAP(nombreArchivo); //Revisar
@@ -401,6 +409,7 @@ void esperar_respuestas(){
 
 		case FS_OPEN_NO_OK:
 			//Si no está abierto lo tenemos que crear
+			log_error(logger, "reenvio el nombre del archivo como fcreate a fs: %s", nombreArchivo);
 			enviar_fcreate_a_fs(nombreArchivo);
 			break;
 
@@ -438,9 +447,11 @@ t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
 
 char* recibir_nombre_de_archivo_de_fs()
 {
-	
 	t_buffer* buffer_respuesta = buffer_create();
 	int longitud_nombreArchivo;
+
+	stream_recv_buffer(conexion_con_fs, buffer_respuesta);
+
 	//Longitud cadena
 	buffer_unpack(buffer_respuesta, &longitud_nombreArchivo, sizeof(uint32_t));
 	char* nombreArchivo = malloc(longitud_nombreArchivo);
@@ -691,7 +702,7 @@ void eliminar_segmento(uint32_t id){
 void recibir_respuesta_delete_segment(){
 
 	t_buffer* respuesta_eliminar_segmento = buffer_create();
-	t_tipoInstruccion instruccion = DELETE_SEGMENT;
+	//t_tipoInstruccion instruccion = DELETE_SEGMENT;
 
 	stream_recv_buffer(conexion_con_memoria, respuesta_eliminar_segmento);
 
@@ -699,7 +710,7 @@ void recibir_respuesta_delete_segment(){
 	//buffer_unpack(eliminar_segmento, &instruccion, sizeof(t_tipoInstruccion));
 
 
-	buffer_destroy(eliminar_segmento);
+	buffer_destroy(respuesta_eliminar_segmento);
 
 }
 
@@ -761,19 +772,37 @@ bool existeEnTGAA(char *nombre_archivo)
 	return false;
 }    
 
+// t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
+// {
+// 	int posicion;
+// 	t_entradaTGAA *entradaTGAA = malloc(sizeof(t_entradaTGAA));
+
+// 	log_error(logger, "cantidad de archivos en TGAA (al devolver): %d", list_size(LISTA_TGAA));
+	
+// 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
+// 	{
+// 		entradaTGAA = list_get(LISTA_TGAA, posicion);
+// 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
+// 			posicion = i;
+// 	}
+
+// 	entradaTGAA = list_get(LISTA_TGAA, posicion);
+// 	return entradaTGAA;
+// }
+
 t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
 {
 	int posicion;
-	t_entradaTGAA *entradaTGAA;
+	t_entradaTGAA *entradaTGAA = malloc(sizeof(t_entradaTGAA));
+
+	log_error(logger, "cantidad de archivos en TGAA (al devolver): %d", list_size(LISTA_TGAA));
+	
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
 	{
 		entradaTGAA = list_get(LISTA_TGAA, posicion);
 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
-			posicion = i;
+			return entradaTGAA;
 	}
-
-	entradaTGAA = list_get(LISTA_TGAA, posicion);
-	return entradaTGAA;
 }
 
 void agregarEnTGAA(t_entradaTGAA *entradaTGAA)
@@ -781,6 +810,7 @@ void agregarEnTGAA(t_entradaTGAA *entradaTGAA)
 	pthread_mutex_lock(&listaTGAA);
 	list_add(LISTA_TGAA, entradaTGAA);
 	pthread_mutex_unlock(&listaTGAA);
+	log_error(logger, "cantidad de archivos en TGAA: %d", list_size(LISTA_TGAA));
 }
 
 void recibir_respuesta_fopen_desde_fs(t_FS_header* respuesta_fs)
@@ -794,6 +824,7 @@ void recibir_respuesta_fopen_desde_fs(t_FS_header* respuesta_fs)
 void agregarArchivoEnTAAP(char *nombreArchivo){
 	t_pcb *pcb = pcb_ejecutando();
 	t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
+
 	pthread_mutex_lock(&pcb->mutex_TAAP);
 	list_add(pcb->taap, entradaTGAA);
 	pthread_mutex_unlock(&pcb->mutex_TAAP);
@@ -802,8 +833,8 @@ void agregarArchivoEnTAAP(char *nombreArchivo){
 void agregarArchivoEnTGAA(char* nombreArchivo)
 {	
 	t_entradaTGAA *entradaTGAA = malloc(sizeof(t_entradaTGAA));
+	entradaTGAA->nombreArchivo = malloc(string_length(nombreArchivo)+1);
 
-	entradaTGAA->nombreArchivo = malloc(sizeof(nombreArchivo));
 	entradaTGAA->nombreArchivo = nombreArchivo;
 	entradaTGAA->posicionPuntero = 0;
 	entradaTGAA->tamanioArchivo = 0;

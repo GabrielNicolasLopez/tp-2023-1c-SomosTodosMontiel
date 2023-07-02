@@ -16,8 +16,8 @@ extern int conexion_con_memoria;
 extern int conexion_con_cpu;
 extern int conexion_con_fs;
 
-extern int instruccion_en_fs = 0;
-extern bool hayQueCompactar = false;
+extern int instruccion_en_fs;
+extern bool hayQueCompactar;
 
 extern t_Kernel_Consola razon;
 
@@ -175,8 +175,10 @@ void crear_segmento(uint32_t id, uint32_t tamanio);
 void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar);
 void eliminar_segmento(uint32_t id);
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio);
-
-
+uint32_t recibir_el_segmento0_de_memoria();
+void pedir_a_memoria_el_segmento0(int pid);
+void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0);
+void esperandoParaCompactar();
 
 void inicializar_registro_cpu(t_pcb *pcb);
 
