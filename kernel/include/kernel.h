@@ -185,7 +185,7 @@ void inicializar_registro_cpu(t_pcb *pcb);
 //---------------------------------FS---------------------------------
 void enviar_fopen_a_fs(char *nombreArchivo);
 void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion);
-void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion);
+void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo);
 void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo);
 void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fcreate_a_fs(char *nombreArchivo);
@@ -243,6 +243,8 @@ extern sem_t pasar_pcb_a_CPU;
 extern sem_t esPosibleCompactar;
 extern sem_t FS_Continue;
 extern sem_t espera_instrucciones;
+extern sem_t archivo_PCB_bloqueada;
+
 
 
 

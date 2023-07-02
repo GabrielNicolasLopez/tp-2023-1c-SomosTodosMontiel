@@ -54,7 +54,7 @@ void crear_hilo_consumidor()
         } else
         
         if (tipo_inst == F_TRUNCATE) {
-            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
+            /*t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
 
             uint32_t tamanio_anterior = FCB->FCB_config->TAMANIO_ARCHIVO;
             uint32_t tamanio_nuevo = p_instruccion->paramIntA;
@@ -65,7 +65,7 @@ void crear_hilo_consumidor()
             } else {
                 // Liberar bloques:
                 liberar_bloques(FCB, tamanio_nuevo);
-            }
+            }*/
 
             respuesta_a_kernel(FS_OK, p_instruccion);
             log_info(logger, "le respondi a kernel f_truncate");
@@ -74,7 +74,7 @@ void crear_hilo_consumidor()
         
         // *** F_READ ***
         if (tipo_inst == F_READ) {
-            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
+            /*t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
             
             uint32_t puntero_archivo = p_instruccion->paramIntA;
             uint32_t cant_bytes = p_instruccion->paramIntB;
@@ -101,10 +101,11 @@ void crear_hilo_consumidor()
                 log_error(logger, "Hilo_consumidor (F_READ): Respuesta de escritura en memoria erronea. Archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 continue;
-            }
+            }*/
             
             respuesta_a_kernel(FS_OK, p_instruccion);
-            free(cadena_bytes);
+            log_info(logger, "le respondi a kernel f_read");
+            //free(cadena_bytes);
 
         } else
         
@@ -148,6 +149,7 @@ void crear_hilo_consumidor()
                 continue;
             }*/
             respuesta_a_kernel(FS_OK, p_instruccion);
+            log_info(logger, "le respondi a kernel f_write");
             //free(cadena_bytes);
 
         } else

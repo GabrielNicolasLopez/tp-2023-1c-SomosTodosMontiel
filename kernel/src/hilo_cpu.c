@@ -103,20 +103,21 @@ void hilo_general()
 				break;
 
 			case F_SEEK:
-
-				actualizar_posicicon_puntero(motivoDevolucion);
+				log_debug(logger, "entre a f_seek");
+				actualizar_posicicon_puntero(motivoDevolucion); //Cambiar la funcion para que reciba el puntero final asi la reutilizamos
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
 			case F_READ:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				
+				log_debug(logger, "entre a f_read");
 				pthread_mutex_lock(&mx_instruccion_en_fs);
 				instruccion_en_fs++;
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
 
-				enviar_fread_a_fs(motivoDevolucion);
+				enviar_fread_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena));
+				log_debug(logger, "fread enviado a fs, bloqueando proceso");
 
 				//HACER UN FSEEK ACTUALIZANDO EL PUNTERO LUEGO DE LEER
 
@@ -134,13 +135,14 @@ void hilo_general()
 				pthread_mutex_lock(&mx_instruccion_en_fs);
 				instruccion_en_fs++;
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
-
+				
+				
 				enviar_fwrite_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena));
 				log_debug(logger, "fwrite enviado a fs, bloqueando proceso");
+				
 				//HACER UN FSEEK ACTUALIZANDO EL PUNTERO LUEGO DE ESCRIBIR
 
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
-				log_debug(logger, "bloqueando pcb...");
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
 				se_reenvia_el_contexto = false;
@@ -156,6 +158,7 @@ void hilo_general()
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
 				
 				enviar_ftruncate_a_fs(motivoDevolucion);
+				log_debug(logger, "ftruncate enviado a fs, bloqueando proceso");
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
@@ -401,7 +404,7 @@ void esperar_respuestas(){
 		//INSTRUCCIONES BLOQUEANTES FREAD, FWRITE, FTRUNCATE SE MANEJAN CON FS_OK + NOMBRE ARCHIVO
 		//CUANDO LLEGA EL FS_OK + ARCHIVO, SACAMOS AL PROCESO DE LA LISTA DE BLOCKED
 		case FS_OK:
-			log_error(logger, "entro a desbloquear una pcb");
+			log_info(logger, "entro a desbloquear una pcb");
 			//Recibimos el nombre del archivo y sacamos al proceso de la lista de blocked
 			t_pcb* pcb_a_ready = sacar_de_blocked_de_archivo_de_TGAA(nombreArchivo);
 			pthread_mutex_lock(&mx_instruccion_en_fs);
@@ -458,7 +461,8 @@ t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
 	//Obtengo la entrada
 	//entradaTGAA = list_get(LISTA_TGAA, posicion);	
 	//Saco la pcb de blocked
-	log_error(logger, "cantidad de pcbs en blocked archivo: %d", list_size(entradaTGAA->lista_block_archivo)),
+	log_error(logger, "a punto de sacar pcb de blocked: %d", list_size(entradaTGAA->lista_block_archivo)),
+	sem_wait(&archivo_PCB_bloqueada);
 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
 	pcb_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0); //Saco la pcb que estaba bloqueada
 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
@@ -549,20 +553,22 @@ void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_a
 	buffer_destroy(buffer_fwrite);
 }
 
-void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion){
+void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo){
 	t_buffer* buffer_fread = buffer_create();
 
 	//Tipo de instruccion
 	buffer_pack(buffer_fread, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
-	//Tamaño de la cadena
+	//Longitud cadena
 	buffer_pack(buffer_fread, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
-    //Cadena
-    buffer_pack(buffer_fread, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
-	//Dirección Lógica
-	buffer_pack(buffer_fread, &motivoDevolucion->cant_int, sizeof(uint32_t));
-	//Cantidad de Bytes
+	//Cadena
+	buffer_pack(buffer_fread, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
+	//Parametro A <------- Puntero del archivo
+	buffer_pack(buffer_fread, &puntero_archivo, sizeof(uint32_t));
+	//Parametro B <------- Cant. Bytes a escribir
 	buffer_pack(buffer_fread, &motivoDevolucion->cant_intB, sizeof(uint32_t));
-
+	//Parametro C <------- Dir. Memoria Física
+	buffer_pack(buffer_fread, &motivoDevolucion->cant_int, sizeof(uint32_t));
+	
 	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fread);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fread->size);
 
@@ -870,14 +876,14 @@ void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char* nombre_archi
 			break;
 	}
 
-	//entradaTGAA = list_get(LISTA_TGAA, posicion);
+	log_error(logger, "apunto de agregar una pcb a blocked archivo");
 	log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
 	log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombre_archivo);
 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
 	list_add(entradaTGAA->lista_block_archivo, pcb_a_blocked);
 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
-	log_error(logger, "cantidad de pcbs en blocked archivo: %d", list_size(entradaTGAA->lista_block_archivo));
-	
+	log_error(logger, "agrego pcb a blocked: %d", list_size(entradaTGAA->lista_block_archivo));
+	sem_post(&archivo_PCB_bloqueada);
 }
 
 void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo)
@@ -904,15 +910,21 @@ void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo)
 bool hayProcesosEsperandoAl(char *nombre_archivo)
 {
 	t_entradaTGAA* entradaTGAA = devolverEntradaTGAA(nombre_archivo);
-	if(list_size(entradaTGAA->lista_block_archivo) > 0)
+	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
+	if(list_size(entradaTGAA->lista_block_archivo) > 0){
+		pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
 		return true;
+	}
+	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
 	return false;
 }
 
 void desbloqueo_al_primer_proceso_de_la_cola_del(char *nombre_archivo)
 {
 	t_entradaTGAA* entradaTGAA = devolverEntradaTGAA(nombre_archivo);
+	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
 	t_pcb *pcb_blocked_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0);
+	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
 	//Y lo mandamos a la cola de ready
 	log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_blocked_a_ready->contexto->pid);
 	pasar_a_ready(pcb_blocked_a_ready);
