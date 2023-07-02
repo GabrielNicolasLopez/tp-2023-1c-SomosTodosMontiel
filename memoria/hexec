@@ -1,0 +1,6 @@
+#!/bin/bash
+FILE=memoria
+make ./bin/$FILE.out
+if test -f "./bin/$FILE.out"; then
+    valgrind --tool=helgrind ./bin/$FILE.out ./cfg/$FILE.cfg 
+fi
