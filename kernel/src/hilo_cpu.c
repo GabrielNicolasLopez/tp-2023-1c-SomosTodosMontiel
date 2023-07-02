@@ -88,7 +88,7 @@ void hilo_general()
 				break;
 
 			case F_CLOSE:
-				
+				log_debug(logger, "entre a f_close");
 				quitarArchivoEnTAAP(pcb_ejecutando(), motivoDevolucion->cadena);
 				if(hayProcesosEsperandoAl(motivoDevolucion->cadena))
 				{
@@ -96,6 +96,8 @@ void hilo_general()
 				}else{
 					quitarArchivoEnTGAA(motivoDevolucion->cadena);
 				}
+				//t_pcb* pcb = pcb_ejecutando();
+				//log_debug(logger, "archivos en taap de la pcb: %d", list_size(pcb->taap));
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
@@ -147,7 +149,7 @@ void hilo_general()
 
 			case F_TRUNCATE:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				
+				log_debug(logger, "entre a f_truncate");
 				pthread_mutex_lock(&mx_instruccion_en_fs);
 				instruccion_en_fs++;
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
@@ -382,6 +384,7 @@ void esperar_respuestas(){
 		//INSTRUCCIONES BLOQUEANTES FREAD, FWRITE, FTRUNCATE SE MANEJAN CON FS_OK + NOMBRE ARCHIVO
 		//CUANDO LLEGA EL FS_OK + ARCHIVO, SACAMOS AL PROCESO DE LA LISTA DE BLOCKED
 		case FS_OK:
+			log_error(logger, "entro a desbloquear una pcb");
 			//Recibimos el nombre del archivo y sacamos al proceso de la lista de blocked
 			t_pcb* pcb_a_ready = sacar_de_blocked_de_archivo_de_TGAA(nombreArchivo);
 			pthread_mutex_lock(&mx_instruccion_en_fs);
@@ -422,6 +425,29 @@ void esperar_respuestas(){
 	}
 }
 
+// t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
+// {
+// 	t_pcb* pcb_a_ready;
+
+// 	int posicion;
+// 	t_entradaTGAA *entradaTGAA;
+// 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
+// 	{
+// 		entradaTGAA = list_get(LISTA_TGAA, posicion);
+// 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
+// 			posicion = i;
+// 	}
+
+// 	//Obtengo la entrada
+// 	entradaTGAA = list_get(LISTA_TGAA, posicion);	
+// 	//Saco la pcb de blocked
+// 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
+// 	pcb_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0); //Saco la pcb que estaba bloqueada
+// 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
+
+// 	return pcb_a_ready;
+// }
+
 t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
 {
 	t_pcb* pcb_a_ready;
@@ -430,13 +456,13 @@ t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
 	t_entradaTGAA *entradaTGAA;
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
 	{
-		entradaTGAA = list_get(LISTA_TGAA, posicion);
+		entradaTGAA = list_get(LISTA_TGAA, i);
 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
-			posicion = i;
+			break;
 	}
 
 	//Obtengo la entrada
-	entradaTGAA = list_get(LISTA_TGAA, posicion);	
+	//entradaTGAA = list_get(LISTA_TGAA, posicion);	
 	//Saco la pcb de blocked
 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
 	pcb_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0); //Saco la pcb que estaba bloqueada
@@ -953,7 +979,7 @@ void quitarArchivoEnTGAA(char *nombre_archivo)
 	t_entradaTGAA* entradaTGAA;
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
 	{
-		entradaTGAA = list_get(LISTA_TGAA, posicion);
+		entradaTGAA = list_get(LISTA_TGAA, i);
 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
 			posicion = i;
 	}

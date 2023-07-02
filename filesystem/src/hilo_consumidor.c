@@ -30,9 +30,11 @@ void crear_hilo_consumidor()
                 
                 log_info(logger, "Abrir Archivo: <%s>", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_OK, p_instruccion);
+                log_info(logger, "le respondi a kernel f_open ok");
             } else {
                 log_debug(logger, "Hilo_consumidor: Archivo inexistente, %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
+                log_info(logger, "le respondi a kernel f_open no_ok");
             }
 
         } else
@@ -47,6 +49,7 @@ void crear_hilo_consumidor()
 
             log_info(logger, "Crear Archivo: <%s>", p_instruccion->cadena);
             respuesta_a_kernel(FS_CREATE_OK, p_instruccion);
+            log_info(logger, "le respondi a kernel f_create");
 
         } else
         
@@ -65,6 +68,7 @@ void crear_hilo_consumidor()
             }
 
             respuesta_a_kernel(FS_OK, p_instruccion);
+            log_info(logger, "le respondi a kernel f_truncate");
 
         } else
         
