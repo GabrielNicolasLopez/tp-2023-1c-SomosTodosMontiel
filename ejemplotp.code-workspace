@@ -46,7 +46,8 @@
 			"math.h": "c",
 			"comunicacion.h": "c",
 			"comunicacion-k.h": "c",
-			"hilo_productor.h": "c"
+			"hilo_productor.h": "c",
+			"fs_memoria.h": "c"
 		}
 	}
 }

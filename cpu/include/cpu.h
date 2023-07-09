@@ -16,6 +16,7 @@
 		char* ip_memoria;
 		char* puerto_memoria;
 		int retardo_instruccion;
+		uint32_t tam_max_segmento;
 	}t_cpu_config;
 
 	extern t_cpu_config *configuracion_cpu;

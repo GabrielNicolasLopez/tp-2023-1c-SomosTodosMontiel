@@ -1,10 +1,11 @@
 #include "memoria.h"
 #include "funciones.h"
-
+#include "comunicacion.h"
 
 int conexion_con_kernel;
-int conexion_con_memoria;
+int conexion_con_FileSystem;
 int conexion_con_cpu;
+int conexion_con_memoria;
 
 char* IP_MEMORIA = "127.0.0.1";
 
@@ -27,7 +28,7 @@ int main(int argc, char** argv){
     configuracionMemoria = leerConfiguracion();
 	espacioUsuario = malloc(configuracionMemoria -> tam_memoria );
 
-	segmento_0 = segmentoCrear(0,0,configuracionMemoria->tam_segmento_O);
+	segmento_0 = segmentoCrear(-1,0,0,configuracionMemoria->tam_segmento_O);
 	hueco_0->base = (segmento_0->base + segmento_0->tamanio);
 	hueco_0->tamanio = (configuracionMemoria->tam_memoria - segmento_0->tamanio);  
 	list_add(listaSegmentos,segmento_0);
@@ -86,13 +87,6 @@ void hilo_cpu(){
 		//Mensajes recibidos de cpu
 		//switch
 	}
-}
-
-void hilo_filesystem(){
-    while(1){
-		//Mensajes recibidos de fs
-		//switch
-	}	
 }
 
 

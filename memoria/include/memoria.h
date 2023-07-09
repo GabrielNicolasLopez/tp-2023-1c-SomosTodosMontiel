@@ -18,10 +18,10 @@
 
 
 //Variables globales de memoria
-
 extern int conexion_con_kernel;
-extern int conexion_con_memoria;
+extern int conexion_con_FileSystem;
 extern int conexion_con_cpu;
+extern int conexion_con_memoria;
 
 extern pthread_t hiloFilesystem, hiloKernel, hiloCPU;
 
@@ -60,8 +60,5 @@ t_memoria_config* leerConfiguracion();
 t_memoria_config* configuracionMemoria;
 
 void crear_hilos_memoria();
-void hilo_cpu();
-void hilo_filesystem();
-void hilo_kernel();
 
 #endif

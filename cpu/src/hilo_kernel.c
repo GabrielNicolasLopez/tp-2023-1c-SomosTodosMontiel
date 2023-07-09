@@ -28,7 +28,10 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			motivo.tipo = F_READ;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
 			strcpy(&motivo.cadena, instruccion->cadena);
-			motivo.cant_int = instruccion->paramIntA;
+			motivo.cant_int = usarMMU(instruccion->paramIntA,instruccion->paramIntB);
+			if (motivo.cant_int == 0){
+				//error ponerlo y enviar de vuelta el contexto de ejecucion con el motivo  Error: Segmentation Fault (SEG_FAULT)
+			}
 			motivo.cant_intB = instruccion->paramIntB;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
@@ -49,7 +52,10 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			motivo.tipo = F_WRITE;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
 			strcpy(&motivo.cadena, instruccion->cadena);
-			motivo.cant_int = instruccion->paramIntA;
+			motivo.cant_int = usarMMU(instruccion->paramIntA,instruccion->paramIntB);
+			if (motivo.cant_int == 0){
+				//error ponerlo y enviar de vuelta el contexto de ejecucion con el motivo  Error: Segmentation Fault (SEG_FAULT)
+			}
 			motivo.cant_intB = instruccion->paramIntB;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
@@ -110,7 +116,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 				break;
 			}
 			break;
-		/*case MOV_IN: 	// MOV_IN (Registro, Dirección Lógica): 
+		case MOV_IN: 	// MOV_IN (Registro, Dirección Lógica): 
 						// Lee el valor de memoria correspondiente a la Dirección Lógica y lo almacena en el Registro.
 			
 			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %s - %u", 
@@ -119,7 +125,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 				nombresRegistros[instruccion->registro],
 				instruccion->paramIntA);
 			
-			enviar_mov_in_a_memoria(MOV_IN, instruccion -> paramIntA);
+			enviar_mov_in_a_memoria(MOV_IN, usarMMU(instruccion->paramIntA,instruccion->paramIntB));
 
 			char* cadena = esperar_respuesta_mov_in();
 
@@ -177,13 +183,13 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 				instruccion->paramIntA,
 				nombresRegistros[instruccion->registro]);
 
-			enviar_mov_out_a_memoria(MOV_OUT, valor_registro(contexto_ejecucion, instruccion -> registro), instruccion -> paramIntA);
+			enviar_mov_out_a_memoria(MOV_OUT, valor_registro(contexto_ejecucion, instruccion -> registro), usarMMU(instruccion->paramIntA));
 
 			esperar_respuesta_mov_out();
 
 			contexto_ejecucion -> program_counter++;
 
-			break;*/
+			break;
 		case F_TRUNCATE: // F_TRUNCATE (Nombre Archivo, Tamaño): 
 						 // Esta instrucción solicita al Kernel que se modifique el tamaño del archivo al indicado por parámetro.
 			
@@ -347,14 +353,15 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 	return contexto_ejecucion;
 }
 
-/*
+
 void enviar_mov_in_a_memoria(t_tipoInstruccion tipo, uint32_t direccion_logica){
 	t_buffer* buffer_MOV_IN = buffer_create();
 
+	
 	buffer_pack(buffer_MOV_IN, &tipo, sizeof(t_tipoInstruccion));
 	buffer_pack(buffer_MOV_IN, &direccion_logica, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_memoria, buffer_MOV_IN);
+	stream_send_buffer(conexion_memoria,tipo,buffer_MOV_IN);
 
 	buffer_destroy(buffer_MOV_IN);
 }
@@ -386,7 +393,7 @@ void enviar_mov_out_a_memoria(t_tipoInstruccion tipo, char* valor_registro, uint
 	buffer_pack(buffer_MOV_OUT, valor_registro, size);
 	buffer_pack(buffer_MOV_OUT, &direccion_logica, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_memoria, buffer_MOV_OUT);
+	stream_send_buffer(conexion_memoria,MOV_OUT,buffer_MOV_OUT);
 
 	buffer_destroy(buffer_MOV_OUT);	
 }
@@ -394,11 +401,11 @@ void enviar_mov_out_a_memoria(t_tipoInstruccion tipo, char* valor_registro, uint
 void esperar_respuesta_mov_out(){
 	t_buffer* buffer_MOV_OUT = buffer_create();
 
-	cpu_memoria respuesta;
+	t_CPU_memoria respuesta;
 
 	stream_recv_buffer(conexion_memoria, buffer_MOV_OUT);
 
-	buffer_unpack(buffer_MOV_OUT, &respuesta, sizeof(cpu_memoria));
+	buffer_unpack(buffer_MOV_OUT, &respuesta, sizeof(t_instruccion));
 
 	buffer_destroy(buffer_MOV_OUT);
 
@@ -438,4 +445,4 @@ char* valor_registro(t_contextoEjecucion* contexto_ejecucion, t_registro registr
 				case RDX: return contexto_ejecucion -> registrosCPU -> registroR -> rdx; 
 				break;
 			}
-}*/
+}
