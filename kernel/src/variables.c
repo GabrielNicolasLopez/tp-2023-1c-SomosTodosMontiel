@@ -30,7 +30,7 @@ pthread_mutex_t listaTGAA;
 pthread_mutex_t mutexFS;
 pthread_mutex_t mx_hayQueCompactar;
 pthread_mutex_t mx_instruccion_en_fs;
-
+pthread_mutex_t mutexTablaSegmentos;
 
 sem_t esPosibleCompactar;
 sem_t CantPCBNew;

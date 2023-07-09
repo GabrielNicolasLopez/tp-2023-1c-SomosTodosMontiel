@@ -96,7 +96,7 @@ void hilo_kernel()
             //devuelvo la lista nueva con el segemto elimado    
             t_list* listaMandar=malloc(sizeof(t_list));
             listaMandar = buscarSegmentoPorPID(pid);
-             mandarListaProceso(listaMandar); //Falta terminar esto 
+            mandarListaProceso(listaMandar);
             
             break;
     
@@ -231,22 +231,21 @@ void mandarListaProceso(t_list *lista){
         t_segmento * segmento =list_get(lista,i);
         buffer_pack(buffer,segmento,(sizeof(t_segmento)));
     }
-
-
+    stream_send_buffer(conexion_con_kernel, LISTA, buffer);
+    buffer_destroy(buffer);
 }
-
-
 
 void mandarListaGlobal(){
 
     t_buffer* buffer = buffer_create();
     uint32_t tam =list_size(listaSegmentos);
-    buffer_pack(buffer,LISTA,sizeof(t_Kernel_Memoria));
-    buffer_pack(buffer,tam,sizeof(uint32_t));
+    buffer_pack(buffer,LISTA,sizeof(t_Kernel_Memoria)); // tipo de instruccion
+    buffer_pack(buffer,tam,sizeof(uint32_t)); // tamaño de la lista de segmentos
     for (int i = 0; i < tam; i++)
     {   
-        t_segmento * segmento =list_get(listaSegmentos,i);
-        buffer_pack(buffer,segmento,(sizeof(t_segmento)));
+        t_segmento * segmento =list_get(listaSegmentos,i);  // saco el segmento de la posicion i
+        buffer_pack(buffer,segmento,(sizeof(t_segmento)));  
     }
-
+    stream_send_buffer(conexion_con_kernel, LISTA, buffer);
+    buffer_destroy(buffer);
 };

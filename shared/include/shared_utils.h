@@ -46,7 +46,7 @@ typedef struct
     uint32_t id_segmento;
     uint32_t base;
     uint32_t tamanio;
-     uint32_t pid;
+    uint32_t pid;
 }t_segmento;
 
 typedef enum

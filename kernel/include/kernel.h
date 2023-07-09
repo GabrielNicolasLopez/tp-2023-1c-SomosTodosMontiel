@@ -227,7 +227,7 @@ extern pthread_mutex_t listaTGAA;
 extern pthread_mutex_t mutexFS;
 extern pthread_mutex_t mx_hayQueCompactar;
 extern pthread_mutex_t mx_instruccion_en_fs;
-
+extern pthread_mutex_t mutexTablaSegmentos;
 
 
 
@@ -250,5 +250,7 @@ extern char *nombresInstrucciones[];
 extern bool se_reenvia_el_contexto;
 
 //extern t_segmento *segmento0;
+
+extern t_list *LISTA_TABLA_SEGMENTOS;
 
 #endif

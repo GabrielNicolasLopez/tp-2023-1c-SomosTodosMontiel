@@ -63,6 +63,7 @@ void iniciar_listas_y_semaforos(){
 	LISTA_BLOCKED = list_create();
 	LISTA_EXIT  = list_create();
 	LISTA_TGAA = list_create();
+	LISTA_TABLA_SEGMENTOS = list_create();
 
 	sem_init(&CantPCBNew, 0, 0);
 	sem_init(&CPUVacia, 0, 1);
@@ -70,9 +71,7 @@ void iniciar_listas_y_semaforos(){
 	sem_init(&multiprogramacion, 0, configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);	
 	sem_init(&esPosibleCompactar, 0, 1);
 	sem_init(&FS_Continue, 0, 1);
-	sem_clockwait
-	
-	
+	sem_clockwait;		
 }
 
 void crear_hilos_kernel(){

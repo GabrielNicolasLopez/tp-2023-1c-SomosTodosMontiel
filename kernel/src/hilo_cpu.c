@@ -214,7 +214,7 @@ void hilo_general()
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
-			/*case CREATE_SEGMENT:
+			case CREATE_SEGMENT:
 				
 				log_debug(logger, "PID: <%d> - Crear Segmento - Id: <%d> - Tamaño: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
@@ -244,10 +244,11 @@ void hilo_general()
 
 				eliminar_segmento(motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
 				respuesta = recibir_respuesta_delete_segment();
-				recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
-
+				if(respuesta == LISTA){
+					recibir_tabla_de_segmentos(); //tabla de segmentos del proceso actualizada
+				}
 				//Devolver el contexto de ejecucion a CPU
-				break;	*/
+				break;	
 
 			case YIELD:
 				//Sacamos a la PCB de ejecutando
@@ -601,6 +602,7 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 			pedir_a_memoria_que_compacte();
 			log_debug(logger, "Compactación: <Se solicitó compactación / Esperando Fin de Operaciones de FS>");
 			esperar_respuesta_compactacion(CREATE_SEGMENT, id, tamanio);
+			actualizar_lista_segmentos();
 			log_debug(logger, "Se finalizó el proceso de compactación");
 			crear_segmento(id, tamanio);
 			recibir_respuesta_create_segment(base_segmento, -1, -1);
@@ -631,24 +633,78 @@ void esperandoParaCompactar(){
 
 void esperar_respuesta_compactacion(){
 
-	t_Kernel_Memoria respuesta_compactacion = stream_recv_header(conexion_con_memoria);
-
-	if(respuesta_compactacion != FIN_COMPACTACION)
+	if(respuesta_compactacion != LISTA)
 		log_error(logger, "Memoria no compactó correctamente");
+
+	t_buffer * buffer_respuesta_compactacion = buffer_create();
+	t_Kernel_Memoria header_respuesta_compactacion = stream_recv_header(conexion_con_memoria);
+	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_compactacion);
+	uint32_t tam;
+	buffer_unpack(buffer_respuesta_compactacion, &tam, sizeof(uint32_t));
+	list_clean_and_destroy_elements(LISTA_TABLA_SEGMENTOS, free());
+	t_segmento *segmento;
+    for (int i = 0; i < tam; i++)
+    {   
+		segmento = malloc(t_segmento); 
+		buffer_unpack(buffer_respuesta_compactacion, segmento, (sizeof(t_segmento)));
+		pthread_mutex_lock(&mutexTablaSegmentos);  
+        list_add(LISTA_TABLA_SEGMENTOS, segmento);
+		pthread_mutex_unlock(&mutexTablaSegmentos);
+    }
+
+	buffer_destroy(buffer_respuesta_compactacion);
+}
+
+
+void recibir_tabla_de_segmentos(){
+	t_buffer *buffer_respuesta_tabla_segmentos = buffer_create();
+	t_Kernel_Memoria header_respuesta_tabla_segmentos = stream_recv_header(conexion_con_memoria);
+	if(respuesta_compactacion != LISTA)
+	{
+	log_error(logger, "Memoria no envio correctamente la tabla de segmentos del proceso");
+	}
+	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_tabla_segmentos);
+	buffer_unpack(buffer_respuesta_tabla_segmentos, &pcb->tamanio_tabla, sizeof(uint32_t));
+	t_pcb *pcb = pcb_ejecutando();
+	list_clean_and_destroy_elements(pcb->tablaDeSegmentos, free());
+	t_segmento *segmento;
+    for (int i = 0; i < pcb->tamanio_tabla; i++)
+    {   
+		segmento = malloc(t_segmento); 
+		buffer_unpack(buffer_respuesta_tabla_segmentos, segmento, (sizeof(t_segmento)));
+		//pthread_mutex_lock(&mutexTablaSegmentos);  
+        list_add(pcb->tablaDeSegmentos, segmento);
+		//pthread_mutex_unlock(&mutexTablaSegmentos);
+    }
+
+	buffer_destroy(buffer_respuesta_tabla_segmentos);
+}
+
+
+void actualizar_lista_segmentos(){
+	for (int i = 0; i < tam; i++)
+    {   
+		segmento = malloc(t_segmento); 
+		buffer_unpack(buffer_respuesta_compactacion, segmento, (sizeof(t_segmento)));
+		pthread_mutex_lock(&mutexTablaSegmentos);  
+        list_add(LISTA_TABLA_SEGMENTOS, segmento);
+		pthread_mutex_unlock(&mutexTablaSegmentos);
+    }
 
 }
 
+
 void pedir_a_memoria_que_compacte(){
 	
-	// t_buffer* empezar_compactacion = buffer_create();
-	// t_Kernel_Memoria mensaje = EMPEZA_A_COMPACTAR;
+	t_buffer* empezar_compactacion = buffer_create();
+	t_Kernel_Memoria mensaje = EMPEZA_A_COMPACTAR;
 
 	//Peticion a memoria
-	// buffer_pack(empezar_compactacion, &mensaje, sizeof(t_Kernel_Memoria));
+	buffer_pack(empezar_compactacion, &mensaje, sizeof(t_Kernel_Memoria));
 
-	// stream_send_buffer(conexion_con_memoria, EMPEZA_A_COMPACTAR, empezar_compactacion);
+	stream_send_buffer(conexion_con_memoria, EMPEZA_A_COMPACTAR, empezar_compactacion);
 
-	//buffer_destroy(empezar_compactacion);
+	buffer_destroy(empezar_compactacion);
 
 	stream_send_empty_buffer(conexion_con_memoria, EMPEZA_A_COMPACTAR);
 }
