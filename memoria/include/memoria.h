@@ -34,7 +34,7 @@ extern t_hueco* hueco_0;
 
 //Estruturas 
 typedef struct
-{   char* puerto_escucha;//(Este es el generico )
+{   char* puerto_escucha;
     uint32_t tam_memoria;
     uint32_t tam_segmento_O;
     uint32_t cant_segmentos;

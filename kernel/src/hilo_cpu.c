@@ -238,20 +238,26 @@ void hilo_general()
 				//ID - El ID del segmento viene dado por parámetro
 				nuevo_segmento->id_segmento = motivoDevolucion->cant_int;
 				
+				//TAMAÑO
+				nuevo_segmento->tamanio = motivoDevolucion->cant_intB;
+
+
 				//BASE - La base del segmento se la pregunto a memoria
 				//Creo el paquete y se lo envío a memoria con: instruccion, id, tamaño
 				crear_segmento(motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				
 				//Espero la respuesta de memoria y pueden pasar 3 cosas: OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
-				recibir_respuesta_create_segment(nuevo_segmento->base, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
+				recibir_respuesta_create_segment(nuevo_segmento, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 
-				//TAMAÑO
-				nuevo_segmento->tamanio = motivoDevolucion->cant_intB;
 
-				agregar_segmento(pcb_ejecutando(), nuevo_segmento);
+				/*agregar_segmento(pcb_ejecutando(), nuevo_segmento);
+
+				//Reenviamos el contexto			
+				se_reenvia_el_contexto = true;
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);*/
 				break;
 
-			/*case DELETE_SEGMENT:
+			case DELETE_SEGMENT:
 				log_debug(logger, "PID: <PID> - Eliminar Segmento - Id Segmento: <ID SEGMENTO>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 
 				eliminar_segmento(motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
@@ -259,7 +265,7 @@ void hilo_general()
 				recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
 
 				//Devolver el contexto de ejecucion a CPU
-				break;*/
+				break;
 
 			case YIELD:
 				//Sacamos a la PCB de ejecutando
@@ -611,17 +617,19 @@ void enviar_fopen_a_fs(char *nombreArchivo){
 	buffer_destroy(buffer_fopen);
 }
 
-void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
+void recibir_respuesta_create_segment(t_segmento *nuevo_segmento, uint32_t id, uint32_t tamanio){
 
 	t_buffer* respuesta_crear_segmento = buffer_create();
-
 	t_Kernel_Memoria respuesta_memoria = stream_recv_header(conexion_con_memoria);
-
 	stream_recv_buffer(conexion_con_memoria, respuesta_crear_segmento);
 
 	switch (respuesta_memoria){
 		case BASE: //Si puede crear el segmento, tengo que recibir la base del segmento asignado
-			buffer_unpack(respuesta_crear_segmento, &base_segmento, sizeof(uint32_t));
+			buffer_unpack(respuesta_crear_segmento, &(nuevo_segmento->base_segmento), sizeof(uint32_t));
+			agregar_segmento(pcb_ejecutando(), nuevo_segmento);
+			//Reenviamos el contexto			
+			se_reenvia_el_contexto = true;
+			devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 			break;
 		case SIN_MEMORIA:
 			//Si no hay memoria no se reenvia la PCB. Se la finaliza y libera la CPU ya que no hay memoria.
@@ -641,6 +649,7 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 			log_debug(logger, "Se finalizó el proceso de compactación");
 			crear_segmento(id, tamanio);
 			recibir_respuesta_create_segment(base_segmento, -1, -1);
+			break;
 		default:
 			log_error(logger, "Mensaje de memoria no valido en la creacion de un segmento");
 			break;

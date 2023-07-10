@@ -31,15 +31,23 @@ int main(int argc, char** argv){
 
 	log_debug(logger, "INICIANDO MEMORIA...");
 
-    configuracionMemoria = leerConfiguracion();
+    //Creo el archivo config
+	configuracionMemoria = malloc(sizeof(t_memoria_config));
+	configuracionMemoria = leerConfiguracion();
 	espacioUsuario = malloc(configuracionMemoria -> tam_memoria );
+
+	segmento_0 = malloc(sizeof(t_segmento));
+	hueco_0 = malloc(sizeof(t_hueco));
 
 	segmento_0 = segmentoCrear(-1,0,0,configuracionMemoria->tam_segmento_O);
 	hueco_0->base = (segmento_0->base + segmento_0->tamanio);
 	hueco_0->tamanio = (configuracionMemoria->tam_memoria - segmento_0->tamanio);  
+	
+	listaSegmentos = list_create();
+	listaHuecos = list_create();
+	
 	list_add(listaSegmentos,segmento_0);
 	list_add(listaHuecos,hueco_0);
-
 
 	int socketEscucha = iniciar_servidor(IP_MEMORIA, configuracionMemoria->puerto_escucha);
 
@@ -95,13 +103,12 @@ t_memoria_config* leerConfiguracion(){
 	t_config* configuracion = config_create(CONFIG_PATH);// nose si poner el path
 
 	//Creo el archivo config
-	configuracionMemoria = malloc(sizeof(t_memoria_config));
+	//configuracionMemoria = malloc(sizeof(t_memoria_config));
 
 	//Estraer los datos 
-	configuracionMemoria -> puerto_escucha       = strdup(config_get_string_value(configuracion, "PUERTO_ESCUCHA"));
+	configuracionMemoria -> puerto_escucha       = config_get_string_value(configuracion, "PUERTO_ESCUCHA");
 	configuracionMemoria -> tam_memoria          = config_get_int_value(configuracion, "TAM_MEMORIA");
-	configuracionMemoria -> tam_memoria          = config_get_int_value(configuracion, "TAM_MEMORIA");
-	configuracionMemoria -> tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEMENTO_0");
+//	configuracionMemoria -> tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEMENTO_0");
 	configuracionMemoria -> cant_segmentos       = config_get_int_value(configuracion, "CANT_SEGMENTOS");
 	configuracionMemoria -> retardo_memoria      = config_get_int_value(configuracion, "RETARDO_MEMORIA");
 	configuracionMemoria -> retardo_compatacion  = config_get_int_value(configuracion, "RETARDO_COMPACTACION");
@@ -111,7 +118,7 @@ t_memoria_config* leerConfiguracion(){
 	//log_info(logger, "Me conecté a la IP: %s", configuracionConsola.ip);
 	//log_info(logger, "Me conecté al PUERTO: %s", configuracionConsola.puerto);
 
-	config_destroy(configuracion);
+	//config_destroy(configuracion);
 
 	return configuracionMemoria;
 }
