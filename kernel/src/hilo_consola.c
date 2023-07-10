@@ -254,7 +254,7 @@ void pedir_a_memoria_el_segmento0(int pid){
 	//Empaqueto el PID
 	buffer_pack(pedir_segmento0, &pid, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_con_memoria, NUEVO_PROCESO, pedir_segmento0);
+	stream_send_buffer(conexion_con_memoria, INICIAR_PROCESO, pedir_segmento0);
 
 	buffer_destroy(pedir_segmento0);
 }
@@ -265,9 +265,8 @@ uint32_t recibir_el_segmento0_de_memoria(){
 
 	t_Kernel_Memoria header = stream_recv_header(conexion_con_memoria);
 
-	if(header != NUEVO_PROCESO){
+	if(header != TAMANIO)
 		log_error(logger, "no se recibió el header correcto al crear un proceso");
-	}
 
 	stream_recv_buffer(conexion_con_memoria, recibir_segmento0);
 

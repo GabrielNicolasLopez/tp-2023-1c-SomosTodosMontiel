@@ -618,8 +618,6 @@ void enviar_fopen_a_fs(char *nombreArchivo){
 void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio){
 
 	t_buffer* respuesta_crear_segmento = buffer_create();
-	
-	//int valor_esPosibleCompactar;
 
 	t_Kernel_Memoria respuesta_memoria = stream_recv_header(conexion_con_memoria);
 
@@ -637,12 +635,13 @@ void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint3
 			break;
 		case NECESITO_COMPACTAR:
 			//Espero a que sea posible compactar
-			log_debug(logger, "Kernel está esperando para poder compactar");
-			sem_wait(&esPosibleCompactar);
+			log_debug(logger, "Compactación: <Esperando Fin de Operaciones de FS>");
+			//sem_wait(&esPosibleCompactar);
 			esperandoParaCompactar();
 			pedir_a_memoria_que_compacte();
-			log_debug(logger, "Compactación: <Se solicitó compactación / Esperando Fin de Operaciones de FS>");
+			log_debug(logger, "Compactación: <Se solicitó compactación>");
 			esperar_respuesta_compactacion(CREATE_SEGMENT, id, tamanio);
+			actualizar_lista_segmentos();
 			log_debug(logger, "Se finalizó el proceso de compactación");
 			crear_segmento(id, tamanio);
 			recibir_respuesta_create_segment(base_segmento, -1, -1);
@@ -672,12 +671,88 @@ void esperandoParaCompactar(){
 }
 
 void esperar_respuesta_compactacion(){
+	t_buffer * buffer_respuesta_compactacion = buffer_create();
+	t_Kernel_Memoria header_respuesta_compactacion = stream_recv_header(conexion_con_memoria);
+	if(header_respuesta_compactacion != LISTA)
+		log_error(logger, "Memoria no envio correctamente el header: %d (=6)", header_respuesta_compactacion);
 
-	t_Kernel_Memoria respuesta_compactacion = stream_recv_header(conexion_con_memoria);
+	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_compactacion);
+	uint32_t cantidad_de_segmentos;
+	buffer_unpack(buffer_respuesta_compactacion, &cantidad_de_segmentos, sizeof(uint32_t));
+	list_clean_and_destroy_elements(LISTA_TABLA_SEGMENTOS, free);
+	t_segmento *segmento;
+    for (int i = 0; i < cantidad_de_segmentos; i++)
+    {   
+		segmento = malloc(sizeof(t_segmento)); 
+		buffer_unpack(buffer_respuesta_compactacion, segmento, (sizeof(t_segmento)));
+		pthread_mutex_lock(&mutexTablaSegmentos);  
+        list_add(LISTA_TABLA_SEGMENTOS, segmento);
+		pthread_mutex_unlock(&mutexTablaSegmentos);
+    }
 
-	if(respuesta_compactacion != FIN_COMPACTACION)
-		log_error(logger, "Memoria no compactó correctamente");
+	buffer_destroy(buffer_respuesta_compactacion);
+}
 
+void recibir_tabla_de_segmentos(){
+	t_buffer *buffer_respuesta_tabla_segmentos = buffer_create();
+	t_Kernel_Memoria header_respuesta_tabla_segmentos = stream_recv_header(conexion_con_memoria);
+	if(header_respuesta_tabla_segmentos != LISTA)
+		log_error(logger, "Memoria no envio correctamente el header: %d (=6)", header_respuesta_tabla_segmentos);
+
+	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_tabla_segmentos);
+	t_pcb *pcb = pcb_ejecutando();
+	buffer_unpack(buffer_respuesta_tabla_segmentos, &pcb->tamanio_tabla, sizeof(uint32_t));
+	//Borramos los segmentos viejos para cargar los nuevos
+	list_clean_and_destroy_elements(pcb->tablaDeSegmentos, free);
+	t_segmento *segmento;
+    for (int i = 0; i < pcb->tamanio_tabla; i++)
+    {   
+		segmento = malloc(sizeof(t_segmento)); 
+		buffer_unpack(buffer_respuesta_tabla_segmentos, segmento, (sizeof(t_segmento)));
+		//pthread_mutex_lock(&mutexTablaSegmentos);  
+        list_add(pcb->tablaDeSegmentos, segmento);
+		//pthread_mutex_unlock(&mutexTablaSegmentos);
+    }
+	buffer_destroy(buffer_respuesta_tabla_segmentos);
+}
+
+void actualizar_lista_segmentos(){
+
+	agregar_pcbs_a_lista_global();
+	limpiar_todas_las_listas_individuales();
+
+	t_segmento *segmento_a_actualizar;
+	t_pcb *pcb_a_actualizar;
+
+	for (int i = 0; i < list_size(LISTA_TABLA_SEGMENTOS); i++)
+    {   
+		segmento_a_actualizar = malloc(sizeof(t_segmento));
+		segmento_a_actualizar = list_get(LISTA_TABLA_SEGMENTOS, i);
+		for(int j=0; j<list_size(LISTA_PCBS_EN_RAM); j++){
+			pcb_a_actualizar = list_get(LISTA_PCBS_EN_RAM, j);
+			if(pcb_a_actualizar->contexto->pid == segmento_a_actualizar->pid){
+				list_add(pcb_a_actualizar->tablaDeSegmentos, segmento_a_actualizar);
+			}
+		}
+    }
+}
+
+void agregar_pcbs_a_lista_global(){
+	//Primero limpio la lista porque puede que tenga pcb viejas
+	list_clean_and_destroy_elements(LISTA_PCBS_EN_RAM, free);
+	//Agrego las pcbs actuales
+	list_add_all(LISTA_PCBS_EN_RAM,LISTA_READY);
+	list_add_all(LISTA_PCBS_EN_RAM,LISTA_EXEC);
+	list_add_all(LISTA_PCBS_EN_RAM,LISTA_BLOCKED);
+}
+
+void limpiar_todas_las_listas_individuales(){
+	//Borrar las listas de segmentos de todos los procesos
+	for (int i = 0; i < list_size(LISTA_PCBS_EN_RAM); i++)
+    {   
+		t_pcb *pcb_a_borrar = list_get(LISTA_PCBS_EN_RAM, i);
+		list_clean_and_destroy_elements(pcb_a_borrar->tablaDeSegmentos, free);
+    }
 }
 
 void pedir_a_memoria_que_compacte(){
@@ -733,16 +808,13 @@ void eliminar_segmento(uint32_t id){
 void recibir_respuesta_delete_segment(){
 
 	t_buffer* respuesta_eliminar_segmento = buffer_create();
-	//t_tipoInstruccion instruccion = DELETE_SEGMENT;
 
 	stream_recv_buffer(conexion_con_memoria, respuesta_eliminar_segmento);
 
 	//Tipo de instruccion: crear/borrar
 	//buffer_unpack(eliminar_segmento, &instruccion, sizeof(t_tipoInstruccion));
 
-
 	buffer_destroy(respuesta_eliminar_segmento);
-
 }
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion)

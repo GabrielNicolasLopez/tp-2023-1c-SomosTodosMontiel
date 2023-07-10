@@ -57,20 +57,23 @@ t_kernel_config *leerConfiguracion(){
 }
 
 void iniciar_listas_y_semaforos(){
+
 	LISTA_NEW = list_create();
 	LISTA_READY = list_create();
 	LISTA_EXEC = list_create();
 	LISTA_BLOCKED = list_create();
 	LISTA_EXIT  = list_create();
 	LISTA_TGAA = list_create();
+	LISTA_TABLA_SEGMENTOS = list_create();
+	LISTA_PCBS_EN_RAM = list_create();
 
 	sem_init(&CantPCBNew, 0, 0);
 	sem_init(&CPUVacia, 0, 1);
 	sem_init(&pasar_pcb_a_CPU, 0, 0);
 	sem_init(&multiprogramacion, 0, configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);	
 	sem_init(&esPosibleCompactar, 0, 1);
-	sem_init(&FS_Continue, 0, 0);
-	sem_init(&archivo_PCB_bloqueada, 0, 0);
+	sem_init(&FS_Continue, 0, 1);	
+
 }
 
 void crear_hilos_kernel(){
