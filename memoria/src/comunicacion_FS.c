@@ -12,9 +12,10 @@ void hilo_filesystem(){
                 uint32_t *cantBytes = NULL;
                 uint32_t *dir_fisica = NULL;
                 uint32_t *dato = NULL;
-                pedidoLectura_FS(cantBytes,dir_fisica);
+                uint32_t *pid = NULL;
+                pedidoLectura_FS(cantBytes,dir_fisica,pid);
                 sleep((configuracionMemoria->retardo_memoria/1000));
-                leer_FS(dato, *dir_fisica, *cantBytes);
+                leer_FS(dato, *dir_fisica, *cantBytes,*pid);
                 enviarDato_FS(*dato);
             }
 
@@ -23,10 +24,11 @@ void hilo_filesystem(){
                 log_info(logger, "Mi cod de op es: %d", header);
                 uint32_t *cantBytes = NULL;
                 uint32_t *dir_fisica = NULL;
+                uint32_t *pid = NULL;
                 uint32_t *dato = NULL;
-                pedidoEscritura_FS(cantBytes,dir_fisica,dato);
+                pedidoEscritura_FS(cantBytes,dir_fisica,dato,pid);
                 sleep((configuracionMemoria->retardo_memoria/1000));
-                escribir_FS(dato,*dir_fisica,*cantBytes);
+                escribir_FS(dato,*dir_fisica,*cantBytes,*pid);
                 ok_FS();
             }
 
@@ -35,23 +37,23 @@ void hilo_filesystem(){
     }	
 }
 
-void leer_FS(uint32_t* dato, uint32_t dirF, uint32_t cantBytes){
+void leer_FS(uint32_t* dato, uint32_t dirF, uint32_t cantBytes,uint32_t pid){
 	
     memcpy(dato,espacioUsuario+dirF,cantBytes);
 
-    log_debug(logger, "PID: - Acción: LEER - Dirección física: %d - Tamaño: %d - Origen: FS",dirF,cantBytes);
+    log_debug(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %d - Origen: FS",pid,dirF,cantBytes);
 
 }
 
-void escribir_FS(uint32_t* dato, uint32_t dirF,uint32_t cantBytes){
+void escribir_FS(uint32_t* dato, uint32_t dirF,uint32_t cantBytes,uint32_t pid){
 
     memcpy(espacioUsuario+dirF, dato, cantBytes);
 
-    log_debug(logger, "PID: - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: FS",dirF,cantBytes);
+    log_debug(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: FS",pid,dirF,cantBytes);
 }
 
 
-void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica)
+void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t *pid)
 {
     
     t_buffer* buffer = buffer_create();
@@ -62,12 +64,13 @@ void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica)
     buffer_unpack(buffer, dir_fisica, sizeof(uint32_t));
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(uint32_t));
-
+    //PID
+    buffer_unpack(buffer,pid,sizeof(uint32_t));
     
     buffer_destroy(buffer);
 }
 
-void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t* dato){
+void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t* dato,uint32_t *pid){
 
     t_buffer* buffer = buffer_create();
 
@@ -78,7 +81,9 @@ void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t* dato
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(uint32_t));
     // DATO
-    buffer_pack(buffer,dato,*cantBytes);
+    buffer_unpack(buffer,dato,*cantBytes);
+    //PID
+    buffer_unpack(buffer,pid,sizeof(uint32_t));
 
     buffer_destroy(buffer);
     

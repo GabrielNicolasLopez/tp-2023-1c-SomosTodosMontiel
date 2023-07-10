@@ -10,9 +10,10 @@ void hilo_cpu(){
             log_info(logger, "Mi cod de op es: %d", header);
             uint32_t *dir_fisica = NULL;
             uint32_t *dato = NULL;
-            pedidoLectura_CPU(dir_fisica);
+            uint32_t *pid = NULL;
+            pedidoLectura_CPU(dir_fisica,pid);
             sleep((configuracionMemoria->retardo_memoria/1000));
-            leer_CPU(dato, *dir_fisica);
+            leer_CPU(dato, *dir_fisica,*pid);
             enviarDato_CPU(*dato);
         }
         else if (header==MOV_OUT)
@@ -20,10 +21,11 @@ void hilo_cpu(){
             log_info(logger, "Mi cod de op es: %d", header);
             uint32_t *cantBytes = NULL;
             uint32_t *dato = NULL;
+            uint32_t *pid = NULL;
             uint32_t *dir_fisica = NULL;
-            pedidoEscritura_CPU(cantBytes,dir_fisica,dato);
+            pedidoEscritura_CPU(cantBytes,dir_fisica,dato,pid);
             sleep((configuracionMemoria->retardo_memoria/1000));
-            escribir_CPU(dato,*dir_fisica,*cantBytes);
+            escribir_CPU(dato,*dir_fisica,*cantBytes,*pid);
             ok_CPU();
         }
         else
@@ -32,23 +34,23 @@ void hilo_cpu(){
 }
 
 
-void leer_CPU(uint32_t* dato, uint32_t dirF){
+void leer_CPU(uint32_t* dato, uint32_t dirF, uint32_t pid){
 	
 
     memcpy(dato, espacioUsuario+dirF, sizeof(uint32_t));
 
-    log_debug(logger, "PID: - Acción: LEER - Dirección física: %d - Tamaño: %ld - Origen: CPU",dirF,sizeof(dato));
+    log_debug(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %ld - Origen: CPU",pid,dirF,sizeof(dato));
 
 }
 
-void escribir_CPU(uint32_t* dato , uint32_t dirF,uint32_t cantBytes){
+void escribir_CPU(uint32_t* dato , uint32_t dirF,uint32_t cantBytes,uint32_t pid){
 
     memcpy(espacioUsuario+dirF,dato,cantBytes);
 
-    log_debug(logger, "PID: - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: CPU",dirF,cantBytes);
+    log_debug(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: CPU",pid,dirF,cantBytes);
 }
 
-void pedidoLectura_CPU(uint32_t *dir_fisica)
+void pedidoLectura_CPU(uint32_t *dir_fisica,uint32_t *pid)
 {
     
     t_buffer* buffer = buffer_create();
@@ -59,11 +61,13 @@ void pedidoLectura_CPU(uint32_t *dir_fisica)
     buffer_unpack(buffer, dir_fisica, sizeof(uint32_t));
     // CANTIDAD DE BYTES
     //buffer_unpack(buffer, cantBytes, sizeof(uint32_t));
-
+    //PID
+    buffer_unpack(buffer,pid,sizeof(uint32_t));
+    
     buffer_destroy(buffer);
 }
 
-void pedidoEscritura_CPU(uint32_t* cantBytes ,uint32_t *dir_fisica,uint32_t* dato){
+void pedidoEscritura_CPU(uint32_t* cantBytes ,uint32_t *dir_fisica,uint32_t* dato,uint32_t *pid){
 
     t_buffer* buffer = buffer_create();
 
@@ -74,6 +78,8 @@ void pedidoEscritura_CPU(uint32_t* cantBytes ,uint32_t *dir_fisica,uint32_t* dat
     buffer_unpack(buffer, dato, *cantBytes);
     // DIRECCION FISICA DONDE ESCRIBIR
     buffer_unpack(buffer, dir_fisica, sizeof(uint32_t));
+    //PID
+    buffer_unpack(buffer,pid,sizeof(uint32_t));
 
 
     buffer_destroy(buffer);
