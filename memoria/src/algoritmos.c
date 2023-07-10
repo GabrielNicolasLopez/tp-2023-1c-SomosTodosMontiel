@@ -2,7 +2,7 @@
 
 
 //FirstFit
-uint32_t algoritmoFirstFit(uint32_t tamSegmento) {
+uint32_t algoritmoFirstFit(uint32_t tamSegmento){
 
     // Buscar el primer hueco que pueda contener el segmento
     for (int i = 0; i < list_size(listaHuecos); i++) {
@@ -75,12 +75,9 @@ uint32_t algoritmoWorstFit(uint32_t tamSegmento) {
             if (hueco->tamanio == 0) {
                 free(list_remove(listaHuecos, i));
             }
-
             return baseEncontrada;
         }
     }
-
-    
 }
 
 int compararHuecosPorTamanioAscendente(const void* a, const void* b) {

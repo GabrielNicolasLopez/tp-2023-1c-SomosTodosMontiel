@@ -1,20 +1,18 @@
 #include "memoria.h"
 #include "funciones.h"
-
+#include "comunicacion.h"
 
 int conexion_con_kernel;
-int conexion_con_memoria;
+int conexion_con_FileSystem;
 int conexion_con_cpu;
+int conexion_con_memoria;
 
 char* IP_MEMORIA = "127.0.0.1";
 
 pthread_t hiloFilesystem, hiloKernel, hiloCPU;
 void* espacioUsuario;
-
-t_memoria_config* configuracionMemoria;
-
-//Listas
 t_list* listaSegmentos;
+t_memoria_config* configuracionMemoria;
 t_list* listaHuecos;
 
 t_segmento* segmento_0;
@@ -36,7 +34,7 @@ int main(int argc, char** argv){
     configuracionMemoria = leerConfiguracion();
 	espacioUsuario = malloc(configuracionMemoria -> tam_memoria );
 
-	segmento_0 = segmentoCrear(0,0,configuracionMemoria->tam_segmento_O);
+	segmento_0 = segmentoCrear(-1,0,0,configuracionMemoria->tam_segmento_O);
 	hueco_0->base = (segmento_0->base + segmento_0->tamanio);
 	hueco_0->tamanio = (configuracionMemoria->tam_memoria - segmento_0->tamanio);  
 	list_add(listaSegmentos,segmento_0);
@@ -90,20 +88,6 @@ void recibir_conexiones(int socketEscucha){
 	}
 }
 
-void hilo_cpu(){
-    while(1){
-		//Mensajes recibidos de cpu
-		//switch
-	}
-}
-
-void hilo_filesystem(){
-    while(1){
-		//Mensajes recibidos de fs
-		//switch
-	}	
-}
-
 
 t_memoria_config* leerConfiguracion(){
 
@@ -114,15 +98,14 @@ t_memoria_config* leerConfiguracion(){
 	configuracionMemoria = malloc(sizeof(t_memoria_config));
 
 	//Estraer los datos 
-	configuracionMemoria -> puerto_escucha = strdup(config_get_string_value(configuracion, "PUERTO_ESCUCHA"));
-	configuracionMemoria -> tam_memoria = config_get_int_value(configuracion, "TAM_MEMORIA");
-
-	configuracionMemoria -> tam_memoria = config_get_int_value(configuracion, "TAM_MEMORIA");
-	configuracionMemoria -> tam_segmento_O = config_get_int_value(configuracion, "TAM_SEMENTO_0");
-	configuracionMemoria -> cant_segmentos = config_get_int_value(configuracion, "CANT_SEGMENTOS");
-	configuracionMemoria -> retardo_memoria = config_get_int_value(configuracion, "RETARDO_MEMORIA");
-	configuracionMemoria -> retardo_compatacion = config_get_int_value(configuracion, "RETARDO_COMPACTACION");
-	configuracionMemoria -> algoritmo_asignacion = strdup(config_get_int_value(configuracion, "ALGORITMO_ASIGNACION"));
+	configuracionMemoria -> puerto_escucha       = strdup(config_get_string_value(configuracion, "PUERTO_ESCUCHA"));
+	configuracionMemoria -> tam_memoria          = config_get_int_value(configuracion, "TAM_MEMORIA");
+	configuracionMemoria -> tam_memoria          = config_get_int_value(configuracion, "TAM_MEMORIA");
+	configuracionMemoria -> tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEMENTO_0");
+	configuracionMemoria -> cant_segmentos       = config_get_int_value(configuracion, "CANT_SEGMENTOS");
+	configuracionMemoria -> retardo_memoria      = config_get_int_value(configuracion, "RETARDO_MEMORIA");
+	configuracionMemoria -> retardo_compatacion  = config_get_int_value(configuracion, "RETARDO_COMPACTACION");
+	configuracionMemoria -> algoritmo_asignacion = config_get_string_value(configuracion, "ALGORITMO_ASIGNACION");
 
 	//Loggeo los datos leidos del config
 	//log_info(logger, "Me conecté a la IP: %s", configuracionConsola.ip);
@@ -132,3 +115,6 @@ t_memoria_config* leerConfiguracion(){
 
 	return configuracionMemoria;
 }
+
+
+

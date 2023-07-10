@@ -199,6 +199,13 @@ void agregarArchivoEnTAAP(char* nombreArchivo);
 void agregarArchivoEnTGAA(char* nombreArchivo);
 void desbloqueo_del_primer_proceso_de_la_cola_del(char *nombre_archivo);
 
+
+
+void actualizar_lista_segmentos();
+void limpiar_todas_las_listas_individuales();
+void agregar_pcbs_a_lista_global();
+
+
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);
 
@@ -217,6 +224,12 @@ extern t_list *LISTA_EXEC;
 extern t_list *LISTA_BLOCKED;
 extern t_list *LISTA_EXIT;
 
+
+extern t_list *LISTA_PCBS_EN_RAM;
+extern t_list *LISTA_TABLA_SEGMENTOS;
+
+
+
 //MUTEX's
 extern pthread_mutex_t PID;
 
@@ -230,9 +243,7 @@ extern pthread_mutex_t listaTGAA;
 extern pthread_mutex_t mutexFS;
 extern pthread_mutex_t mx_hayQueCompactar;
 extern pthread_mutex_t mx_instruccion_en_fs;
-
-
-
+extern pthread_mutex_t mutexTablaSegmentos;
 
 //Semaforos
 extern sem_t CantPCBNew;

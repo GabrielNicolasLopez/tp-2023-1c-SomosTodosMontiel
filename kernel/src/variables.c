@@ -42,8 +42,7 @@ sem_t CPUVacia;
 sem_t pasar_pcb_a_CPU;
 sem_t espera_instrucciones;
 sem_t FS_Continue;
-
-
+sem_t archivo_PCB_bloqueada;
 
 bool se_reenvia_el_contexto = false;
 

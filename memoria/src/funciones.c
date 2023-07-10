@@ -3,9 +3,10 @@
 
 //Creación de Segmento
 
-t_segmento* segmentoCrear(int id, int base, int tam){
+t_segmento* segmentoCrear(int pid,int id, int base, int tam){
 
     t_segmento* segmento=malloc(sizeof(t_segmento));
+    segmento ->pid = pid;
     segmento ->id_segmento = id;
     segmento ->base = base;
     segmento ->tamanio = tam;
@@ -13,17 +14,24 @@ t_segmento* segmentoCrear(int id, int base, int tam){
     return segmento;
 }
 
-uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio) {
+t_hueco* huecoCrear(t_segmento* segmento){
+
+    t_hueco* hueco;
+    hueco->base = segmento->base;
+    hueco->tamanio= segmento->tamanio;
+
+    return hueco;
+}
+
+uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
     // Verificar disponibilidad de espacio contiguo
-    bool espacioDisponible = 0;
     
     for (int i = 0; i < list_size(listaHuecos); i++) {
         t_hueco* hueco = list_get(listaHuecos,i);
         
         if (hueco->tamanio>=tamanio) {
-
-            espacioDisponible = 1;
-            return espacioDisponible;
+            
+            return 1;
         }
     }
     
@@ -39,10 +47,9 @@ uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio) {
         }
                 
     }
-    if (espacioDisponible || list_is_empty(listaHuecos)) {
-        // Informar falta de espacio libre al Kernel
-        return espacioDisponible;
-    } 
+     // Informar falta de espacio libre al Kernel
+        return 0;
+     
 
     
 }
@@ -57,25 +64,24 @@ uint32_t direccionBase;
     {
     case FIRST:
         direccionBase=algoritmoFirstFit(tamSegmento);
-        return direccionBase;
+        //return direccionBase;
         break;
 
     case BEST:
          direccionBase=algoritmoBestFit(tamSegmento);
-        return direccionBase;
+        //return direccionBase;
         break;
 
     case WORST:
         direccionBase=algoritmoWorstFit(tamSegmento);
-        return direccionBase;
+        //return direccionBase;
         break;
     
     default:
-    //aca va un loger
+        log_error(logger, "no se eligio correctamente el algoritmo de memoria...");
         break;
     }
-
-
+    return direccionBase;
 }
 
 t_tipo_algoritmo obtenerAlgoritmo(){
@@ -94,10 +100,10 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 	return algoritmoConfi;
 }
 
-t_segmento* buscarSegmentoPorId(uint32_t id) {
+t_segmento* buscarSegmentoPorIdPID(uint32_t id,uint32_t pid) {
     for (int i = 0; i < list_size(listaSegmentos); i++) {
         t_segmento* segmento = (t_segmento*)list_get(listaSegmentos, i);
-        if (segmento->id_segmento == id) {
+        if (segmento->id_segmento == id && segmento->pid==pid) {
             return segmento;
         }
     }
@@ -115,15 +121,45 @@ uint32_t compararPorBase(const void* a, const void* b) {
     return 0;
 }
 
+t_list* buscarSegmentoPorPID(uint32_t pid){
+    t_list* lista_Borrar = malloc(sizeof(t_list));
+     t_segmento* segmento;
+      for (int i = 0; i < list_size(listaSegmentos); i++) {
+
+        segmento = list_get(listaSegmentos, i);
+
+        if (segmento->pid==pid) {
+
+            list_add(lista_Borrar,segmento); 
+        }
+    }
+    return lista_Borrar;
+}
+
+void eliminarProceso(t_list* listaSegmentosBorrar){
+        t_hueco * huecoNuevo;
+        t_segmento* segmentoABorrar;
+
+        for (int i = 0; i <list_size(listaSegmentosBorrar); i++)
+        {   
+            segmentoABorrar = list_get(listaSegmentosBorrar,i);
+            huecoNuevo =huecoCrear(segmentoABorrar);
+            list_add(listaHuecos,huecoNuevo);
+            list_remove_element(listaSegmentos,segmentoABorrar);
+            
+        }
+        
+}
+
 
 //Compactar 
 
 void compactar(){
 
-    list_sort(listaSegmentos,compararPorBase);
-    list_sort(listaHuecos,compararPorBase);
+    list_sort(listaSegmentos, compararPorBase);
+    list_sort(listaHuecos, compararPorBase);
     uint32_t desplazamiento = 0;
-
+    
     for(int i=0;i<list_size(listaSegmentos);i++){
 
         t_segmento* segmento=list_get(listaSegmentos,i);
@@ -132,14 +168,20 @@ void compactar(){
 
     }
 
-    int final =list_size(listaSegmentos);
-    t_segmento* seg=list_get(listaSegmentos,final);
+   /* t_segmento* seg=list_get(listaSegmentos,list_size(listaSegmentos));
     desplazamiento = seg->tamanio;
-
+    int tamHueco=0;
+    
     for(int i=0;i<list_size(listaHuecos);i++){
-
+        t_hueco *hueco =list_get(listaHuecos,i);
+        tamHueco += hueco->tamanio;
     }
-
+    */
+    list_clean(listaHuecos);
+    t_hueco* hueco_Nuevo;
+    hueco_Nuevo->base    = desplazamiento; 
+    hueco_Nuevo->tamanio = configuracionMemoria->tam_memoria - desplazamiento;
+    list_add(listaHuecos,hueco_Nuevo);
 
 }
 

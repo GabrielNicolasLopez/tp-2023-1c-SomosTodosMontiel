@@ -1,7 +1,7 @@
-#ifndef ALGORITMOS.H
-#define ALGORITMOS.H
+#ifndef ALGORITMOS_H
+#define ALGORITMOS_H
 
-#include <memoria.h>
+#include "memoria.h"
 
 
 //Algoritmos

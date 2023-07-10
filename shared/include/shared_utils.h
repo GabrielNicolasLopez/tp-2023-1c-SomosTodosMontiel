@@ -46,7 +46,7 @@ typedef struct
     uint32_t id_segmento;
     uint32_t base;
     uint32_t tamanio;
-    //int libre;
+    uint32_t pid;
 }t_segmento;
 
 typedef enum
@@ -66,6 +66,11 @@ typedef enum
 
 typedef enum
 {
+    OK
+} t_CPU_memoria;
+
+typedef enum
+{
     //OK,
     SIN_MEMORIA,
     NECESITO_COMPACTAR,
@@ -74,8 +79,10 @@ typedef enum
     INSTRUCCION, 
     BASE,
     LISTA,
-    NUEVO_PROCESO,
-    TAMANIO
+    TAMANIO,
+    INICIAR_PROCESO,
+    FINALIZAR_PROCESO,
+    PROCESO_BORRADO
 } t_Kernel_Memoria;
 
 /*typedef enum

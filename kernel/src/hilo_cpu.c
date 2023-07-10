@@ -226,7 +226,7 @@ void hilo_general()
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
-			/*case CREATE_SEGMENT:
+			case CREATE_SEGMENT:
 				
 				log_debug(logger, "PID: <%d> - Crear Segmento - Id: <%d> - Tamaño: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
@@ -251,7 +251,7 @@ void hilo_general()
 				agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 				break;
 
-			case DELETE_SEGMENT:
+			/*case DELETE_SEGMENT:
 				log_debug(logger, "PID: <PID> - Eliminar Segmento - Id Segmento: <ID SEGMENTO>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 
 				eliminar_segmento(motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
@@ -259,7 +259,7 @@ void hilo_general()
 				recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
 
 				//Devolver el contexto de ejecucion a CPU
-				break;	*/
+				break;*/
 
 			case YIELD:
 				//Sacamos a la PCB de ejecutando
@@ -295,9 +295,6 @@ void actualizar_posicicon_puntero(t_motivoDevolucion *motivoDevolucion){
 }
 
 uint32_t devolver_puntero_archivo(char *nombreArchivo){
-	int posicion;
-	// t_entradaTAAP *entradaTAAP = malloc(sizeof(t_entradaTAAP));
-	// entradaTAAP->entradaTGAA = malloc(sizeof(t_entradaTGAA));
 	t_entradaTAAP *entradaTAAP;
 	t_pcb *pcb = pcb_ejecutando();
 
@@ -308,6 +305,7 @@ uint32_t devolver_puntero_archivo(char *nombreArchivo){
 		if (strcmp(entradaTAAP->entradaTGAA->nombreArchivo, nombreArchivo) == 0)
 			return entradaTAAP->entradaTGAA->posicionPuntero;
 	}
+	return entradaTAAP->entradaTGAA->posicionPuntero;
 }
 
 
@@ -448,8 +446,6 @@ void esperar_respuestas(){
 t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
 {
 	t_pcb* pcb_a_ready;
-
-	int posicion;
 	t_entradaTGAA *entradaTGAA;
 	for (int i = 0; i < list_size(LISTA_TGAA); i++)
 	{
@@ -885,6 +881,7 @@ t_entradaTGAA* devolverEntradaTGAA(char *nombre_archivo)
 		if (strcmp(entradaTGAA->nombreArchivo, nombre_archivo) == 0)
 			return entradaTGAA;
 	}
+	return entradaTGAA;
 }
 
 void agregarEnTGAA(t_entradaTGAA *entradaTGAA)
