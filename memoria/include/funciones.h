@@ -10,7 +10,7 @@ uint32_t aplicarAlgoritmo(uint32_t tamSegmento);
 t_tipo_algoritmo obtenerAlgoritmo();
 t_segmento* buscarSegmentoPorIdPID(uint32_t id,uint32_t pid);
 uint32_t compararPorBase(const void* a, const void* b);
-t_list* buscarSegmentoPorPID(uint32_t pid);
+void buscarSegmentoPorPID(t_list* lista, uint32_t pid);
 void eliminarProceso(t_list* listaSegmentosBorrar);
 void compactar();
 

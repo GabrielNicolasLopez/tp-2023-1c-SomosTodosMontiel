@@ -121,34 +121,26 @@ uint32_t compararPorBase(const void* a, const void* b) {
     return 0;
 }
 
-t_list* buscarSegmentoPorPID(uint32_t pid){
-    t_list* lista_Borrar = malloc(sizeof(t_list));
-     t_segmento* segmento;
-      for (int i = 0; i < list_size(listaSegmentos); i++) {
-
+void buscarSegmentoPorPID(t_list* listaABorrar, uint32_t pid){
+    t_segmento* segmento = malloc(sizeof(t_segmento));
+    for (int i = 0; i < list_size(listaSegmentos); i++) {
         segmento = list_get(listaSegmentos, i);
-
         if (segmento->pid==pid) {
-
-            list_add(lista_Borrar,segmento); 
+            list_add(listaABorrar,segmento); 
         }
     }
-    return lista_Borrar;
 }
 
 void eliminarProceso(t_list* listaSegmentosBorrar){
-        t_hueco * huecoNuevo;
-        t_segmento* segmentoABorrar;
+    t_hueco *huecoNuevo = malloc(sizeof(t_hueco));
+    t_segmento* segmentoABorrar = malloc(sizeof(t_segmento));
 
-        for (int i = 0; i <list_size(listaSegmentosBorrar); i++)
-        {   
-            segmentoABorrar = list_get(listaSegmentosBorrar,i);
-            huecoNuevo =huecoCrear(segmentoABorrar);
-            list_add(listaHuecos,huecoNuevo);
-            list_remove_element(listaSegmentos,segmentoABorrar);
-            
-        }
-        
+    for (int i = 0; i <list_size(listaSegmentosBorrar); i++)
+    {   
+        segmentoABorrar = list_remove(listaSegmentosBorrar, i);
+        huecoNuevo = huecoCrear(segmentoABorrar);
+        list_add(listaHuecos,huecoNuevo);
+    }
 }
 
 

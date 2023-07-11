@@ -3,43 +3,40 @@
 
 void hilo_kernel_m(){
     while (1){
-        log_info(logger, "Estoy esperando mensaje de Kernel...");
-	
-        uint8_t header = stream_recv_header(conexion_con_kernel);
 
+        log_info(logger, "Estoy esperando mensaje de Kernel...");
+        uint8_t header = stream_recv_header(conexion_con_kernel);
         log_info(logger, "header recibido: %d", header);
 
-        sleep(1);
-
-        /*switch (header){
+        switch (header){
             case INICIAR_PROCESO:
                 //recibo un PID
-                uint32_t *pid_recibido = NULL;
-                recibirPID(pid_recibido);
+                uint32_t pid_recibido = recibirPID();
+
+                log_error(logger, "pid recibido: %d", pid_recibido);
                 
                 //te mando tamanio solo mando el tamanio
                 mandarTam();
 
-                log_info(logger,"Creación de Proceso PID: %ls", pid_recibido);
+                log_info(logger,"Creación de Proceso PID: %d", pid_recibido);
 
                 break;
             
             case FINALIZAR_PROCESO:
             //recibo uint32 pid
             
-            uint32_t *pid = NULL;
-            recibirPID(pid);
-            t_list* listaSBorrar=malloc(sizeof(t_list));
-            //t_segmento* segmentoABorrar;
+            uint32_t pid = recibirPID();
+            t_list* listasABorrar = list_create();
             
-            listaSBorrar= buscarSegmentoPorPID(pid);
+            buscarSegmentoPorPID(listasABorrar, pid);
 
             //borro todos los segmentos con ese Pid y mando un PROCESO_BORRADO
-
-            eliminarProceso(listaSBorrar);
+            eliminarProceso(listasABorrar);
             mandarPrBr();
 
-            log_info(logger,"Eliminación de Proceso PID: %ls ",pid);
+            log_info(logger,"Eliminación de Proceso PID: %d", pid);
+
+            list_destroy(listasABorrar);
 
             break;
 
@@ -124,7 +121,7 @@ void hilo_kernel_m(){
             default:
                 log_info(logger, "Instruccion no valida ERROR: %d", header);
                 break;
-        }*/
+        }
         //free(header);
     }
     
@@ -163,19 +160,20 @@ void recibirIDPID(uint32_t *id,uint32_t *pid){
     buffer_unpack(buffer,pid,sizeof(uint32_t));
     
     buffer_destroy(buffer);
-
-
 }
 
-void recibirPID(uint32_t *pid){
+uint32_t recibirPID(){
 
-    t_buffer *buffer =buffer_create();
+    t_buffer *buffer = buffer_create();
+    uint32_t pid_recibido;
 
-    stream_recv_buffer(conexion_con_kernel,buffer);
+    stream_recv_buffer(conexion_con_kernel, buffer);
 
-    buffer_unpack(buffer,pid,sizeof(uint32_t));
+    buffer_unpack(buffer, &pid_recibido, sizeof(uint32_t));
 
-     buffer_destroy(buffer);
+    buffer_destroy(buffer);
+
+    return pid_recibido;
 }
 
 //Mandar
@@ -208,8 +206,8 @@ void mandarLaBase(uint32_t baseMandar){
 
 void mandarTam(){
     t_buffer* buffer = buffer_create();
-    //buffer_pack(buffer,TAMANIO,sizeof(t_Kernel_Memoria));
-    buffer_pack(buffer,&(configuracionMemoria->tam_segmento_O),sizeof(uint32_t));
+    //log_error(logger, "tam_segm0: %d", configuracionMemoria->tam_segmento_O);
+    buffer_pack(buffer, &(configuracionMemoria->tam_segmento_O), sizeof(uint32_t));
     stream_send_buffer(conexion_con_kernel, TAMANIO, buffer);
     buffer_destroy(buffer);
 }

@@ -22,7 +22,7 @@ void mandarListaGlobal();
 void mandarListaProceso(t_list *lista);
 void mandarPrBr();
 void mandarTam();
-void recibirPID(uint32_t *pid);
+uint32_t recibirPID();
 
 void leer_CPU(uint32_t* dato , uint32_t dirF,uint32_t pid);
 void pedidoLectura_CPU(uint32_t *dir_fisica,uint32_t *pid);

@@ -32,7 +32,7 @@ int main(int argc, char** argv){
 	log_debug(logger, "INICIANDO MEMORIA...");
 
     //Creo el archivo config
-	configuracionMemoria = malloc(sizeof(t_memoria_config));
+	//configuracionMemoria = malloc(sizeof(t_memoria_config));
 	configuracionMemoria = leerConfiguracion();
 	espacioUsuario = malloc(configuracionMemoria -> tam_memoria );
 
@@ -103,22 +103,24 @@ t_memoria_config* leerConfiguracion(){
 	t_config* configuracion = config_create(CONFIG_PATH);// nose si poner el path
 
 	//Creo el archivo config
-	//configuracionMemoria = malloc(sizeof(t_memoria_config));
+	configuracionMemoria = malloc(sizeof(t_memoria_config));
 
 	//Estraer los datos 
 	configuracionMemoria -> puerto_escucha       = config_get_string_value(configuracion, "PUERTO_ESCUCHA");
 	configuracionMemoria -> tam_memoria          = config_get_int_value(configuracion, "TAM_MEMORIA");
-//	configuracionMemoria -> tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEMENTO_0");
 	configuracionMemoria -> cant_segmentos       = config_get_int_value(configuracion, "CANT_SEGMENTOS");
 	configuracionMemoria -> retardo_memoria      = config_get_int_value(configuracion, "RETARDO_MEMORIA");
 	configuracionMemoria -> retardo_compatacion  = config_get_int_value(configuracion, "RETARDO_COMPACTACION");
 	configuracionMemoria -> algoritmo_asignacion = config_get_string_value(configuracion, "ALGORITMO_ASIGNACION");
+	configuracionMemoria -> tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEGMENTO_0");
 
 	//Loggeo los datos leidos del config
 	//log_info(logger, "Me conecté a la IP: %s", configuracionConsola.ip);
 	//log_info(logger, "Me conecté al PUERTO: %s", configuracionConsola.puerto);
 
 	//config_destroy(configuracion);
+
+	log_error(logger, "tam_segm0: %d", configuracionMemoria->tam_segmento_O);
 
 	return configuracionMemoria;
 }

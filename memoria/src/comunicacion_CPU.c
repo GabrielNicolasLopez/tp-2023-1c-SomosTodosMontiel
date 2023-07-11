@@ -7,7 +7,7 @@ void hilo_cpu(){
         uint8_t header = stream_recv_header(conexion_con_cpu);
         log_error(logger, "CPU envio un header incorrecto: %d", header);
         sleep(1);
-        /*if(header==MOV_IN)
+        if(header==MOV_IN)
         {
             log_info(logger, "Mi cod de op es: %d", header);
             uint32_t *dir_fisica = NULL;
@@ -31,7 +31,7 @@ void hilo_cpu(){
             ok_CPU();
         }
         else
-            log_error(logger, "CPU envio un header incorrecto: %d", header);*/
+            log_error(logger, "CPU envio un header incorrecto: %d", header);
     }	
 }
 

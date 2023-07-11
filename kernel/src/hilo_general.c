@@ -4,9 +4,9 @@ void hilo_general()
 {
 
 	//Me conecto con los módulos
-	//conectarse_con_cpu();
+	conectarse_con_cpu();
 	conectarse_con_memoria();
-	//conectarse_con_fs();
+	conectarse_con_fs();
 
 	t_motivoDevolucion *motivoDevolucion = malloc(sizeof(t_motivoDevolucion));
 	t_contextoEjecucion *contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
@@ -853,9 +853,34 @@ void terminar_consola(t_Kernel_Consola razon){
 
 	stream_send_empty_buffer(pcb->contexto->socket, razon);
 
+	finalizar_proceso_en_memoria(pcb->contexto->pid);
+
+	recibir_respuesta_finalizar_proceso();
+
 	log_error(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->contexto->pid, razonFinConsola[razon]);
 	
 	sem_post(&multiprogramacion);
+}
+
+void recibir_respuesta_finalizar_proceso(){
+
+	uint8_t header = stream_recv_header(conexion_con_memoria);
+	//if(header == PROCESO_BORRADO)
+		log_info(logger, "memoria me aviso que se borró el proceso: %d (=10)", header);
+
+	stream_recv_empty_buffer(conexion_con_memoria);
+}
+
+void finalizar_proceso_en_memoria(uint32_t pid){
+	
+	t_buffer *finalizar_proceso = buffer_create();
+
+	//Empaqueto el PID
+	buffer_pack(finalizar_proceso, &pid, sizeof(uint32_t));
+
+	stream_send_buffer(conexion_con_memoria, FINALIZAR_PROCESO, finalizar_proceso);
+
+	buffer_destroy(finalizar_proceso);
 }
 
 t_pcb *pcb_ejecutando(){
