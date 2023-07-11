@@ -46,12 +46,13 @@ t_cpu_config* leer_configuracion(t_config* config){
 // CREA LOS HILOS QUE VA A USAR LA CPU
 void crear_hilos_cpu()
 {
-	pthread_t hiloKernel, hiloMemoria;
+	pthread_t hiloKernel;
+	//, hiloMemoria;
 
-	pthread_create(&hiloMemoria, NULL, (void *) hilo_memoria, NULL);
+	//pthread_create(&hiloMemoria, NULL, (void *) hilo_memoria, NULL);
 	pthread_create(&hiloKernel, NULL, (void *) hilo_kernel, NULL);
 
-	pthread_join(hiloMemoria, NULL);	
+	//pthread_join(hiloMemoria, NULL);	
 	pthread_join(hiloKernel, NULL);
 }
 

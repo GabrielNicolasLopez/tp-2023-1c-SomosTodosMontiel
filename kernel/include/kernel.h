@@ -109,7 +109,8 @@ void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo);
 void desbloqueo_al_primer_proceso_de_la_cola_del(char *nombre_archivo);
 bool hayProcesosEsperandoAl(char *nombre_archivo);
 char* recibir_nombre_de_archivo_de_fs();t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo);
-void actualizar_posicicon_puntero(t_motivoDevolucion *motivoDevolucion);
+void actualizar_posicicon_puntero(char* nombreArchivo, uint32_t puntero);
+void actualizar_posicicon_puntero_sumar(char* nombreArchivo, uint32_t suma_puntero);
 
 t_kernel_config *leerConfiguracion();
 void crear_pcb(void *datos);

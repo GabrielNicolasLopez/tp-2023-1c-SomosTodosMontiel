@@ -5,7 +5,7 @@ void hilo_general()
 
 	//Me conecto con los módulos
 	conectarse_con_cpu();
-	conectarse_con_memoria();
+	//conectarse_con_memoria();
 	conectarse_con_fs();
 
 	t_motivoDevolucion *motivoDevolucion = malloc(sizeof(t_motivoDevolucion));
@@ -104,7 +104,7 @@ void hilo_general()
 
 			case F_SEEK:
 				log_debug(logger, "entre a f_seek");
-				actualizar_posicicon_puntero(motivoDevolucion); //Cambiar la funcion para que reciba el puntero final asi la reutilizamos
+				actualizar_posicicon_puntero(motivoDevolucion->cadena, motivoDevolucion->cant_int);
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
@@ -119,7 +119,8 @@ void hilo_general()
 				enviar_fread_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena));
 				log_debug(logger, "fread enviado a fs, bloqueando proceso");
 
-				//HACER UN FSEEK ACTUALIZANDO EL PUNTERO LUEGO DE LEER
+				//Me muevo la cantidad de bytes que se leen
+				actualizar_posicicon_puntero_sumar(motivoDevolucion->cadena, motivoDevolucion->cant_intB);
 
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está leyendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
@@ -140,7 +141,8 @@ void hilo_general()
 				enviar_fwrite_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena));
 				log_debug(logger, "fwrite enviado a fs, bloqueando proceso");
 				
-				//HACER UN FSEEK ACTUALIZANDO EL PUNTERO LUEGO DE ESCRIBIR
+				//Me muevo la cantidad de bytes que se escriben
+				actualizar_posicicon_puntero_sumar(motivoDevolucion->cadena, motivoDevolucion->cant_intB);
 
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
@@ -226,7 +228,7 @@ void hilo_general()
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
-			case CREATE_SEGMENT:
+			/*case CREATE_SEGMENT:
 				
 				log_debug(logger, "PID: <%d> - Crear Segmento - Id: <%d> - Tamaño: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
@@ -248,14 +250,14 @@ void hilo_general()
 				//Espero la respuesta de memoria y pueden pasar 3 cosas: OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
 				recibir_respuesta_create_segment(nuevo_segmento, motivoDevolucion->cant_int, motivoDevolucion->cant_intB, motivoDevolucion);
 
-				/*agregar_segmento(pcb_ejecutando(), nuevo_segmento);
+				agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 
 				//Reenviamos el contexto			
 				se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);*/
-				break;
+				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+				break;*/
 
-			case DELETE_SEGMENT:
+			/*case DELETE_SEGMENT:
 				log_debug(logger, "PID: <%d> - Eliminar Segmento - Id Segmento: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 
 				eliminar_segmento(motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int); //pid, id
@@ -265,7 +267,7 @@ void hilo_general()
 				//Reenviamos el contexto			
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
-				break;
+				break;*/
 
 			case YIELD:
 				//Sacamos a la PCB de ejecutando
@@ -293,11 +295,18 @@ void hilo_general()
 	}
 }
 
-void actualizar_posicicon_puntero(t_motivoDevolucion *motivoDevolucion){
+void actualizar_posicicon_puntero(char* nombreArchivo, uint32_t puntero){
 	//Busco la entrada en la TGAA
-	t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(motivoDevolucion->cadena);
+	t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
 	//Modifico el valor del puntero
-	entradaTGAA->posicionPuntero = motivoDevolucion->cant_int;
+	entradaTGAA->posicionPuntero = puntero;
+}
+
+void actualizar_posicicon_puntero_sumar(char* nombreArchivo, uint32_t suma_puntero){
+	//Busco la entrada en la TGAA
+	t_entradaTGAA *entradaTGAA = devolverEntradaTGAA(nombreArchivo);
+	//Modifico el valor del puntero
+	entradaTGAA->posicionPuntero += suma_puntero;
 }
 
 uint32_t devolver_puntero_archivo(char *nombreArchivo){
@@ -402,7 +411,6 @@ void esperar_respuestas(){
 		log_debug(logger, "KERNEL ESPERANDO RESPUESTAS DE FS...");
 
 		t_FS_header header = stream_recv_header(conexion_con_fs);
-		//stream_recv_empty_buffer(conexion_con_fs);
 
 		char* nombreArchivo = recibir_nombre_de_archivo_de_fs();
 		log_error(logger, "nombre del archivo recibido: %s", nombreArchivo);
@@ -854,9 +862,9 @@ void terminar_consola(t_Kernel_Consola razon){
 
 	stream_send_empty_buffer(pcb->contexto->socket, razon);
 
-	finalizar_proceso_en_memoria(pcb->contexto->pid);
+	//finalizar_proceso_en_memoria(pcb->contexto->pid);
 
-	recibir_respuesta_finalizar_proceso();
+	//recibir_respuesta_finalizar_proceso();
 
 	log_error(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->contexto->pid, razonFinConsola[razon]);
 	

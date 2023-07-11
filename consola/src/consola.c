@@ -294,9 +294,9 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 	}
 
 	fclose(archivoInstrucciones);
-	free(palabras[0]);
+	/*free(palabras[0]);
 	free(palabras[1]);
-	free(palabras[2]);
+	free(palabras[2]);*/
 	free(palabras);
 }
 

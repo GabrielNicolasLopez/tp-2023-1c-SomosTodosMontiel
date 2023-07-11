@@ -71,8 +71,8 @@ void iniciar_listas_y_semaforos(){
 	sem_init(&CPUVacia, 0, 1);
 	sem_init(&pasar_pcb_a_CPU, 0, 0);
 	sem_init(&multiprogramacion, 0, configuracionKernel->GRADO_MAX_MULTIPROGRAMACION);	
-	sem_init(&esPosibleCompactar, 0, 1);
-	sem_init(&FS_Continue, 0, 1);	
+	sem_init(&esPosibleCompactar, 0, 1); //CReo que va en 0
+	sem_init(&FS_Continue, 0, 0);	
 
 }
 
