@@ -174,7 +174,7 @@ void crear_tabla_de_segmentos(t_pcb *pcb);
 void crear_segmento(uint32_t id, uint32_t tamanio);
 void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar);
 void eliminar_segmento(uint32_t id);
-void recibir_respuesta_create_segment(uint32_t base_segmento, uint32_t id, uint32_t tamanio);
+void recibir_respuesta_create_segment(t_segmento *segmento, uint32_t id, uint32_t tamanio, t_motivoDevolucion*);
 uint32_t recibir_el_segmento0_de_memoria();
 void pedir_a_memoria_el_segmento0(int pid);
 void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0);
@@ -205,6 +205,9 @@ void actualizar_lista_segmentos();
 void limpiar_todas_las_listas_individuales();
 void agregar_pcbs_a_lista_global();
 
+
+void recibir_respuesta_delete_segment();
+void recibir_tabla_de_segmentos();
 
 //void sleep_IO(t_motivoDevolucion *motivoDevolucion);
 void sleep_IO(t_datosIO*);

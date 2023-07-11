@@ -226,17 +226,16 @@ void crear_pcb(void *datos){
 	pthread_mutex_init(&pcb->mutex_TAAP, NULL);
 	
 	//Le pido a memoria el segmento 0
-	//pedir_a_memoria_el_segmento0(pcb->contexto->pid);
+	pedir_a_memoria_el_segmento0(pcb->contexto->pid);
 	
-	//t_segmento *segmento0 = malloc(sizeof(t_segmento));
-
-	//segmento0->id_segmento =  0;
-	//segmento0->base = 0;
+	t_segmento *segmento0 = malloc(sizeof(t_segmento));
+	segmento0->id_segmento =  0;
+	segmento0->base = 0;
 	//Recibo la respuesta
-	//segmento0->tamanio = recibir_el_segmento0_de_memoria();
+	segmento0->tamanio = recibir_el_segmento0_de_memoria();
 
 	//Agrego el segmento 0 al proceso
-	//agregar_segmento_0_a_pcb(pcb, segmento0); 
+	agregar_segmento_0_a_pcb(pcb, segmento0); 
 
 	//Tabla de archivos abiertos del proceso
 	crear_tabla_de_archivos_proceso(pcb);

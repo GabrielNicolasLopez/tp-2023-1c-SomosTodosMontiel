@@ -9,7 +9,7 @@
 
 void hilo_cpu();
 void hilo_filesystem();
-void hilo_kernel();
+void hilo_kernel_m();
 
 
 void recibirDatos(uint32_t pid ,uint32_t id, uint32_t tam);

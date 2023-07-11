@@ -51,7 +51,7 @@ void crear_hilos_cpu()
 	pthread_create(&hiloMemoria, NULL, (void *) hilo_memoria, NULL);
 	pthread_create(&hiloKernel, NULL, (void *) hilo_kernel, NULL);
 
-	//pthread_join(hiloMemoria, NULL);	
+	pthread_join(hiloMemoria, NULL);	
 	pthread_join(hiloKernel, NULL);
 }
 
@@ -94,7 +94,7 @@ void hilo_kernel(){
 void hilo_memoria(){
     
 	// Me conecto a filesystem
-	/*int conexion_con_memoria = crear_conexion(configuracion_cpu->ip_memoria, configuracion_cpu->puerto_memoria);
+	int conexion_con_memoria = crear_conexion(configuracion_cpu->ip_memoria, configuracion_cpu->puerto_memoria);
 
 	if (conexion_con_memoria == -1) //Si no se puede conectar
 	{
@@ -114,10 +114,7 @@ void hilo_memoria(){
         //exit(-1);
     }
 	
-	log_debug(logger, "CPU SE CONECTO CON Memoria");
-	
-	while (1){}*/
-	
+	log_debug(logger, "CPU SE CONECTO CON Memoria");	
 }
 
 void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *contextoEjecucion, int cliente_fd_kernel){

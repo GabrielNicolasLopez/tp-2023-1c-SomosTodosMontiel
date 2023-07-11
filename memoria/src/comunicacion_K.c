@@ -1,128 +1,130 @@
-#include <comunicacion.h>
+#include "comunicacion.h"
 
 
-void hilo_kernel()
-{ while (1){
-    log_info(logger, "Estoy esperando paquete, soy memoria\n");
+void hilo_kernel_m(){
+    while (1){
+        log_info(logger, "Estoy esperando mensaje de Kernel...");
 	
         uint8_t header = stream_recv_header(conexion_con_kernel);
 
-        switch (header)
-        {
-        case INICIAR_PROCESO:
-        //recibo un PID
-        uint32_t *pid_recibido = NULL;
-        recibirPID(pid_recibido);
-        
-        //te mando tamanio solo mando el tamanio
-        mandarTam();
+        log_info(logger, "header recibido: %d", header);
 
-        log_info(logger,"Creación de Proceso PID: %ls", pid_recibido);
+        sleep(1);
 
-        break;
-        
-        case FINALIZAR_PROCESO:
-        //recibo uint32 pid
-        
-        uint32_t *pid = NULL;
-        recibirPID(pid);
-        t_list* listaSBorrar=malloc(sizeof(t_list));
-        //t_segmento* segmentoABorrar;
-        
-        listaSBorrar= buscarSegmentoPorPID(pid);
-
-        //borro todos los segmentos con ese Pid y mando un PROCESO_BORRADO
-
-        eliminarProceso(listaSBorrar);
-        mandarPrBr();
-
-        log_info(logger,"Eliminación de Proceso PID: %ls ",pid);
-
-        break;
-
-        case CREATE_SEGMENT:
-            log_info(logger, "Mi cod de op es: %d", header);
-            t_segmento *segmentoACrear=malloc(sizeof(t_segmento));
-
-
-        //-aca recibo PID ID TAM
-        recibirDatos(segmentoACrear->pid,segmentoACrear->id_segmento,segmentoACrear->tamanio);
-
-        log_info(logger,"id:%d,tam:%d",segmentoACrear->id_segmento,segmentoACrear->tamanio);
-        
-        //compruebo si hay espacio
-            uint32_t espacioDisponible =comprobar_Creacion_de_Seg(segmentoACrear->tamanio);
-            
-        //-creo el segemnto y lo meto en la lista  
-            if(espacioDisponible==1){
-                segmentoACrear->base=aplicarAlgoritmo(segmentoACrear->tamanio);
+        /*switch (header){
+            case INICIAR_PROCESO:
+                //recibo un PID
+                uint32_t *pid_recibido = NULL;
+                recibirPID(pid_recibido);
                 
-                list_add(listaSegmentos,segmentoACrear);
-                log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoACrear->pid,segmentoACrear->id_segmento,segmentoACrear->base,segmentoACrear->tamanio);
-            }
-            else{
-                segmentoACrear->base=espacioDisponible;
-                log_info(logger,"No se puedo crear el segmento  %d ",segmentoACrear->base);
-            }
-        //-devuelvo la base actualizada
-            mandarLaBase(segmentoACrear->base);
+                //te mando tamanio solo mando el tamanio
+                mandarTam();
 
-            break;
+                log_info(logger,"Creación de Proceso PID: %ls", pid_recibido);
 
-        case DELETE_SEGMENT:
-
-            log_info(logger, "Mi cod de op es: %d", header);
-
-        //recibo el segmento a eliminar 
-            uint32_t* id_recivida = NULL;
-            uint32_t* pid_recivida = NULL;
-            recibirIDPID(id_recivida,pid_recivida);
-
-        //elimino el segmento
-            t_segmento *segmentoEncontrado=malloc(sizeof(t_segmento));
-
-            segmentoEncontrado=buscarSegmentoPorIdPID(id_recivida,pid_recivida);
-
-            t_hueco *huecoNuevo = malloc(sizeof(t_hueco));
-            huecoNuevo=huecoCrear(segmentoEncontrado);
-            //huecoNuevo->base =segmentoEncontrado->base;
-            //huecoNuevo->tamanio=segmentoEncontrado->tamanio;
-            list_add(listaHuecos,huecoNuevo);
-            log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoEncontrado->pid,segmentoEncontrado->id_segmento,segmentoEncontrado->base,segmentoEncontrado->tamanio);
-
-            if(!list_remove_element(listaSegmentos,segmentoEncontrado)){
-                log_info(logger, "No lo puede remover");
-            }   
-            //devuelvo la lista nueva con el segemto elimado    
-            t_list* listaMandar=malloc(sizeof(t_list));
-            listaMandar = buscarSegmentoPorPID(pid);
-            mandarListaProceso(listaMandar);
+                break;
             
-            break;
-    
-
-        case EMPEZA_A_COMPACTAR:
-
-            log_info(logger, "Mi cod de op es: %d", header);
+            case FINALIZAR_PROCESO:
+            //recibo uint32 pid
             
-            log_info(logger, "Solicitud de compactacion");
-            compactar();
-            //aplicar retardospleep
-            sleep((configuracionMemoria->retardo_compatacion/1000));
-            for(int i;i<list_size(listaSegmentos);i++){
-                t_segmento* segmentoImprimir= list_get(listaSegmentos,i);
-                 log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoImprimir->pid,segmentoImprimir->id_segmento,segmentoImprimir->base,segmentoImprimir->tamanio);
+            uint32_t *pid = NULL;
+            recibirPID(pid);
+            t_list* listaSBorrar=malloc(sizeof(t_list));
+            //t_segmento* segmentoABorrar;
+            
+            listaSBorrar= buscarSegmentoPorPID(pid);
 
-            }
-            //Recibo el header.#pragma endregionCompacto y devuelvo la lista actualizada    
-            mandarListaGlobal(); //Falta terminar esto
-            break;
+            //borro todos los segmentos con ese Pid y mando un PROCESO_BORRADO
 
-        default:
-            log_info(logger, "Instruccion no valida ERROR: %d", header);
+            eliminarProceso(listaSBorrar);
+            mandarPrBr();
+
+            log_info(logger,"Eliminación de Proceso PID: %ls ",pid);
 
             break;
-        }
+
+            case CREATE_SEGMENT:
+                log_info(logger, "Mi cod de op es: %d", header);
+                t_segmento *segmentoACrear=malloc(sizeof(t_segmento));
+
+
+            //-aca recibo PID ID TAM
+            recibirDatos(segmentoACrear->pid,segmentoACrear->id_segmento,segmentoACrear->tamanio);
+
+            log_info(logger,"id:%d,tam:%d",segmentoACrear->id_segmento,segmentoACrear->tamanio);
+            
+            //compruebo si hay espacio
+                uint32_t espacioDisponible =comprobar_Creacion_de_Seg(segmentoACrear->tamanio);
+                
+            //-creo el segemnto y lo meto en la lista  
+                if(espacioDisponible==1){
+                    segmentoACrear->base=aplicarAlgoritmo(segmentoACrear->tamanio);
+                    
+                    list_add(listaSegmentos,segmentoACrear);
+                    log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoACrear->pid,segmentoACrear->id_segmento,segmentoACrear->base,segmentoACrear->tamanio);
+                }
+                else{
+                    segmentoACrear->base=espacioDisponible;
+                    log_info(logger,"No se puedo crear el segmento  %d ",segmentoACrear->base);
+                }
+            //-devuelvo la base actualizada
+                mandarLaBase(segmentoACrear->base);
+
+                break;
+
+            case DELETE_SEGMENT:
+
+                log_info(logger, "Mi cod de op es: %d", header);
+
+            //recibo el segmento a eliminar 
+                uint32_t* id_recivida = NULL;
+                uint32_t* pid_recivida = NULL;
+                recibirIDPID(id_recivida,pid_recivida);
+
+            //elimino el segmento
+                t_segmento *segmentoEncontrado=malloc(sizeof(t_segmento));
+
+                segmentoEncontrado=buscarSegmentoPorIdPID(id_recivida,pid_recivida);
+
+                t_hueco *huecoNuevo = malloc(sizeof(t_hueco));
+                huecoNuevo=huecoCrear(segmentoEncontrado);
+                //huecoNuevo->base =segmentoEncontrado->base;
+                //huecoNuevo->tamanio=segmentoEncontrado->tamanio;
+                list_add(listaHuecos,huecoNuevo);
+                log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoEncontrado->pid,segmentoEncontrado->id_segmento,segmentoEncontrado->base,segmentoEncontrado->tamanio);
+
+                if(!list_remove_element(listaSegmentos,segmentoEncontrado)){
+                    log_info(logger, "No lo puede remover");
+                }   
+                //devuelvo la lista nueva con el segemto elimado    
+                t_list* listaMandar=malloc(sizeof(t_list));
+                listaMandar = buscarSegmentoPorPID(pid);
+                mandarListaProceso(listaMandar);
+                
+                break;
+        
+
+            case EMPEZA_A_COMPACTAR:
+
+                log_info(logger, "Mi cod de op es: %d", header);
+                
+                log_info(logger, "Solicitud de compactacion");
+                compactar();
+                //aplicar retardospleep
+                sleep((configuracionMemoria->retardo_compatacion/1000));
+                for(int i;i<list_size(listaSegmentos);i++){
+                    t_segmento* segmentoImprimir= list_get(listaSegmentos,i);
+                    log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoImprimir->pid,segmentoImprimir->id_segmento,segmentoImprimir->base,segmentoImprimir->tamanio);
+
+                }
+                //Recibo el header.#pragma endregionCompacto y devuelvo la lista actualizada    
+                mandarListaGlobal(); //Falta terminar esto
+                break;
+
+            default:
+                log_info(logger, "Instruccion no valida ERROR: %d", header);
+                break;
+        }*/
         //free(header);
     }
     

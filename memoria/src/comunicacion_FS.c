@@ -4,7 +4,7 @@
 
 void hilo_filesystem(){
     while(1){
-        log_info(logger, "Estoy esperando paquete, soy memoria\n");
+        log_info(logger, "Estoy esperando mensaje de FS...");
         uint8_t header = stream_recv_header(conexion_con_FileSystem);
             if(header==FS_M_READ)
             {

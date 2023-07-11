@@ -131,12 +131,12 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 		if (strcmp(palabras[0], "SET") == 0){
 			t_tipoInstruccion instruccion = SET;
 			t_registro registro = devolverRegistro(palabras[1]); // Registro
-			strcpy(&cadena_pack, palabras[2]);
+			strcpy(cadena_pack, palabras[2]);
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			buffer_pack(buffer, &registro, sizeof(registro));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
@@ -170,45 +170,45 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 		}
 		else if (strcmp(palabras[0], "F_OPEN") == 0){
 			t_tipoInstruccion instruccion = F_OPEN;
-			strcpy(&cadena_pack, palabras[1]);
+			strcpy(cadena_pack, palabras[1]);
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_CLOSE") == 0){
 			t_tipoInstruccion instruccion = F_CLOSE;
-			strcpy(&cadena_pack, palabras[1]);
+			strcpy(cadena_pack, palabras[1]);
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_SEEK") == 0){
 			t_tipoInstruccion instruccion = F_SEEK;
-			strcpy(&cadena_pack, palabras[1]);
+			strcpy(cadena_pack, palabras[1]);
 			uint32_t paramIntA = atoi(palabras[2]); //Posicion del puntero
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_READ") == 0){
 			t_tipoInstruccion instruccion = F_READ;
-			strcpy(&cadena_pack, palabras[1]);
+			strcpy(cadena_pack, palabras[1]);
 			uint32_t paramIntA = atoi(palabras[2]); //Direccion logica
 			uint32_t paramIntB = atoi(palabras[3]); //Cantidad de bytes
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);	
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);	
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
 			buffer_pack(buffer, &paramIntB, sizeof(uint32_t));
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
@@ -216,13 +216,13 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 		}
 		else if (strcmp(palabras[0], "F_WRITE") == 0){
 			t_tipoInstruccion instruccion = F_WRITE;
-			strcpy(&cadena_pack, palabras[1]);
+			strcpy(cadena_pack, palabras[1]);
 			uint32_t paramIntA = atoi(palabras[2]); //Direccion logica
 			uint32_t paramIntB = atoi(palabras[3]); //Cantidad de bytes
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);	
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);	
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
 			buffer_pack(buffer, &paramIntB, sizeof(uint32_t));
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
@@ -230,34 +230,34 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 		}
 		else if (strcmp(palabras[0], "F_TRUNCATE") == 0){
 			t_tipoInstruccion instruccion = F_TRUNCATE;
-			strcpy(&cadena_pack, palabras[1]);
+			strcpy(cadena_pack, palabras[1]);
 			uint32_t paramIntA = atoi(palabras[2]); //Tamaño del archivo
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);	
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);	
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "WAIT") == 0){
 			t_tipoInstruccion instruccion = WAIT;
-			strcpy(&cadena_pack, palabras[1]);
+			strcpy(cadena_pack, palabras[1]);
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			//log_error(logger, "long: %d", longitud_cadena_pack);
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);	
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);	
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "SIGNAL") == 0){
 			t_tipoInstruccion instruccion = SIGNAL;
-			strcpy(&cadena_pack, palabras[1]);
+			strcpy(cadena_pack, palabras[1]);
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			uint32_t longitud_cadena_pack = string_length(&cadena_pack)+1;
+			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
-			buffer_pack(buffer, &cadena_pack, longitud_cadena_pack);		
+			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);		
 			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 				
 		}

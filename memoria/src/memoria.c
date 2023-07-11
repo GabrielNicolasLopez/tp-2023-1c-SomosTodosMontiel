@@ -52,6 +52,10 @@ int main(int argc, char** argv){
 	int socketEscucha = iniciar_servidor(IP_MEMORIA, configuracionMemoria->puerto_escucha);
 
     recibir_conexiones(socketEscucha);
+	//recibir_conexion(socketEscucha);
+
+	// pthread_create(&hiloKernel, NULL, (void *)hilo_cpu, NULL);
+	// pthread_detach(hiloKernel);
 
 	//Espera la finalizacion de los hilos
 	pthread_join(hiloFilesystem, NULL);
@@ -66,27 +70,23 @@ void recibir_conexion(int socketEscucha) {
     stream_recv_empty_buffer(socketCliente);
     if (handshake == HANDSHAKE_cpu) {
 		conexion_con_cpu = socketCliente;
-        log_info(logger, "Se acepta conexión de CPU en socket %d", socketCliente);
-        stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
+        log_info(logger, "Se acepta conexión de CPU en socket %d", conexion_con_cpu);
+        stream_send_empty_buffer(conexion_con_cpu, HANDSHAKE_ok_continue);
 		pthread_create(&hiloCPU, NULL, (void *)hilo_cpu, NULL);
-		pthread_detach(hiloCPU);
     } else if (handshake == HANDSHAKE_kernel) {
-		conexion_con_memoria = socketCliente;
-        log_info(logger, "Se acepta conexión de Kernel en socket %d", socketCliente);
-        stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
-		pthread_create(&hiloKernel, NULL, (void *)hilo_kernel, NULL);
-		pthread_detach(hiloKernel);
-	 } else if (handshake == HANDSHAKE_filesystem) {
 		conexion_con_kernel = socketCliente;
-        log_info(logger, "Se acepta conexión de Filesystem en socket %d", socketCliente);
-        stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
+        log_info(logger, "Se acepta conexión de Kernel en socket %d", conexion_con_kernel);
+        stream_send_empty_buffer(conexion_con_kernel, HANDSHAKE_ok_continue);
+		pthread_create(&hiloKernel, NULL, (void *)hilo_kernel_m, NULL);
+	 } else if (handshake == HANDSHAKE_filesystem) {
+		conexion_con_FileSystem = socketCliente;
+        log_info(logger, "Se acepta conexión de Filesystem en socket %d", conexion_con_FileSystem);
+        stream_send_empty_buffer(conexion_con_FileSystem, HANDSHAKE_ok_continue);
 		pthread_create(&hiloFilesystem, NULL, (void *)hilo_filesystem, NULL);
-		pthread_detach(hiloFilesystem);
     } else {
         log_error(logger, "Error al recibir handshake de cliente: %s", strerror(errno));
         exit(-1);
     }
-
 }
 
 void recibir_conexiones(int socketEscucha){
