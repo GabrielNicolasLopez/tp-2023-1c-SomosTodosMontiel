@@ -241,14 +241,12 @@ void hilo_general()
 				//TAMAÑO
 				nuevo_segmento->tamanio = motivoDevolucion->cant_intB;
 
-
 				//BASE - La base del segmento se la pregunto a memoria
-				//Creo el paquete y se lo envío a memoria con: instruccion, id, tamaño
-				crear_segmento(motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
+				//Creo el paquete y se lo envío a memoria con: pid, id, tamaño
+				crear_segmento(motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				
 				//Espero la respuesta de memoria y pueden pasar 3 cosas: OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
 				recibir_respuesta_create_segment(nuevo_segmento, motivoDevolucion->cant_int, motivoDevolucion->cant_intB, motivoDevolucion);
-
 
 				/*agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 
@@ -260,8 +258,8 @@ void hilo_general()
 			case DELETE_SEGMENT:
 				log_debug(logger, "PID: <%d> - Eliminar Segmento - Id Segmento: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 
-				eliminar_segmento(motivoDevolucion->cant_int); //Creo el paquete y lo envío a memoria. instruccion, id
-				//respuesta = recibir_respuesta_delete_segment();
+				eliminar_segmento(motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int); //pid, id
+				log_debug(logger, "se envio a memoria el pid e id para eliminar el segmento");
 				recibir_tabla_de_segmentos(); //tabla de segmentos actualizada
 
 				//Reenviamos el contexto			
@@ -629,9 +627,12 @@ void recibir_respuesta_create_segment(t_segmento *nuevo_segmento, uint32_t id, u
 	t_Kernel_Memoria respuesta_memoria = stream_recv_header(conexion_con_memoria);
 	stream_recv_buffer(conexion_con_memoria, respuesta_crear_segmento);
 
+	log_debug(logger, "header recibido: %d (=5, 0, 1)", respuesta_memoria);
+
 	switch (respuesta_memoria){
 		case BASE: //Si puede crear el segmento, tengo que recibir la base del segmento asignado
 			buffer_unpack(respuesta_crear_segmento, &(nuevo_segmento->base), sizeof(uint32_t));
+			log_error(logger, "base recibida: %d", nuevo_segmento->base);
 			agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 			//Reenviamos el contexto			
 			se_reenvia_el_contexto = true;
@@ -653,7 +654,8 @@ void recibir_respuesta_create_segment(t_segmento *nuevo_segmento, uint32_t id, u
 			esperar_respuesta_compactacion(CREATE_SEGMENT, id, tamanio);
 			actualizar_lista_segmentos();
 			log_debug(logger, "Se finalizó el proceso de compactación");
-			crear_segmento(id, tamanio);
+			t_pcb *pcb = pcb_ejecutando();
+			crear_segmento(pcb->contexto->pid, id, tamanio);
 			recibir_respuesta_create_segment(nuevo_segmento, -1, -1, motivoDevolucion);
 			break;
 		default:
@@ -781,13 +783,12 @@ void pedir_a_memoria_que_compacte(){
 	stream_send_empty_buffer(conexion_con_memoria, EMPEZA_A_COMPACTAR);
 }
 
-void crear_segmento(uint32_t id, uint32_t tamanio){
+void crear_segmento(uint32_t pid, uint32_t id, uint32_t tamanio){
 	
 	t_buffer* crear_segmento = buffer_create();
-	t_tipoInstruccion instruccion = CREATE_SEGMENT;
-
-	//Tipo de instruccion: crear/borrar
-	buffer_pack(crear_segmento, &instruccion, sizeof(t_tipoInstruccion));
+	
+	//PID del proceso que crea el segmento
+	buffer_pack(crear_segmento, &pid, sizeof(uint32_t));
 
 	//ID del segmento a crear
 	buffer_pack(crear_segmento, &id, sizeof(uint32_t));
@@ -795,23 +796,23 @@ void crear_segmento(uint32_t id, uint32_t tamanio){
 	//Tamaño del segmento a crear
 	buffer_pack(crear_segmento, &tamanio, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_con_memoria, INSTRUCCION, crear_segmento);
+	stream_send_buffer(conexion_con_memoria, CREATE_SEGMENT, crear_segmento);
+	log_error(logger, "se envio a memoria crear segmento");
 
 	buffer_destroy(crear_segmento);
 }
 
-void eliminar_segmento(uint32_t id){
+void eliminar_segmento(uint32_t pid, uint32_t id){
 	
 	t_buffer* eliminar_segmento = buffer_create();
-	t_tipoInstruccion instruccion = DELETE_SEGMENT;
 
-	//Tipo de instruccion: crear/borrar
-	buffer_pack(eliminar_segmento, &instruccion, sizeof(t_tipoInstruccion));
+	//PID del proceso que quiere borrar
+	buffer_pack(eliminar_segmento, &pid, sizeof(uint32_t));
 
 	//ID del segmento a borrar
 	buffer_pack(eliminar_segmento, &id, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_con_memoria, INSTRUCCION, eliminar_segmento);
+	stream_send_buffer(conexion_con_memoria, DELETE_SEGMENT, eliminar_segmento);
 
 	buffer_destroy(eliminar_segmento);
 }

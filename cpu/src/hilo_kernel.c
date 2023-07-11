@@ -28,7 +28,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_READ;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			motivo.cant_int = instruccion->paramIntA;
 			motivo.cant_intB = instruccion->paramIntB;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
@@ -49,7 +49,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_WRITE;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			motivo.cant_int = instruccion->paramIntA; //Aca se usa la MMU. ParamA es la dir logica, se devuelve la fisica
 			motivo.cant_intB = instruccion->paramIntB;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
@@ -197,7 +197,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_TRUNCATE;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			motivo.cant_int = instruccion->paramIntA;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
@@ -216,7 +216,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			motivo.tipo = F_SEEK;
 			motivo.cant_int = instruccion->paramIntA;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
             break;
@@ -262,7 +262,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
             contexto_ejecucion -> program_counter++;
 			motivo.tipo = WAIT;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
 			break;
@@ -276,7 +276,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = SIGNAL;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
             break;
@@ -290,7 +290,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_OPEN;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
             break;
@@ -304,7 +304,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_CLOSE;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
             break;

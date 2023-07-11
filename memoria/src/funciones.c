@@ -16,42 +16,33 @@ t_segmento* segmentoCrear(int pid,int id, int base, int tam){
 
 t_hueco* huecoCrear(t_segmento* segmento){
 
-    t_hueco* hueco;
-    hueco->base = segmento->base;
-    hueco->tamanio= segmento->tamanio;
-
+    t_hueco* hueco = malloc(sizeof(t_hueco));
+    hueco->base    = segmento->base;
+    hueco->tamanio = segmento->tamanio;
     return hueco;
 }
 
 uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
-    // Verificar disponibilidad de espacio contiguo
-    
+    //Verificar disponibilidad de espacio contiguo
     for (int i = 0; i < list_size(listaHuecos); i++) {
         t_hueco* hueco = list_get(listaHuecos,i);
-        
         if (hueco->tamanio>=tamanio) {
-            
             return 1;
         }
     }
     
-    // Verificar si es necesario solicitar compactación
+    //Verificar si es necesario solicitar compactación
     for (int i = 0; i < list_size(listaHuecos); i++) {
         uint32_t espacioLibre=0;
         t_hueco* hueco =list_get(listaHuecos,i);
-        espacioLibre = espacioLibre + hueco->tamanio;
-        if (espacioLibre>=tamanio)
+        espacioLibre += hueco->tamanio;
+        if (espacioLibre>=tamanio) //Necesito compactar
         {
-            //Necesito compactar
-           return -1;
-        }
-                
+            return -1;
+        }    
     }
-     // Informar falta de espacio libre al Kernel
-        return 0;
-     
-
-    
+    //Informar falta de espacio libre al Kernel
+    return 0;
 }
 
 uint32_t aplicarAlgoritmo(uint32_t tamSegmento){
@@ -139,7 +130,7 @@ void eliminarProceso(t_list* listaSegmentosBorrar){
     {   
         segmentoABorrar = list_remove(listaSegmentosBorrar, i);
         huecoNuevo = huecoCrear(segmentoABorrar);
-        list_add(listaHuecos,huecoNuevo);
+        list_add(listaHuecos, huecoNuevo);
     }
 }
 

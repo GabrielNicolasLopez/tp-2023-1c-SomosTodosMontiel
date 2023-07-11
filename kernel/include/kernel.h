@@ -171,16 +171,18 @@ void esperar_respuesta_compactacion();
 
 //---------------------------------MEMORIA---------------------------------
 void crear_tabla_de_segmentos(t_pcb *pcb);
-void crear_segmento(uint32_t id, uint32_t tamanio);
+void crear_segmento(uint32_t pid, uint32_t id, uint32_t tamanio);
 void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar);
-void eliminar_segmento(uint32_t id);
+void eliminar_segmento(uint32_t pid, uint32_t id);
 void recibir_respuesta_create_segment(t_segmento *segmento, uint32_t id, uint32_t tamanio, t_motivoDevolucion*);
 uint32_t recibir_el_segmento0_de_memoria();
-void pedir_a_memoria_el_segmento0(uint32_t *pid);
+void pedir_a_memoria_el_segmento0(uint32_t pid);
 void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0);
 void crear_tabla_de_archivos_proceso(t_pcb *pcb);
 void esperandoParaCompactar();
 void inicializar_registro_cpu(t_pcb *pcb);
+void finalizar_proceso_en_memoria(uint32_t pid);
+void recibir_respuesta_finalizar_proceso();
 
 //---------------------------------FS---------------------------------
 void enviar_fopen_a_fs(char *nombreArchivo);

@@ -247,7 +247,7 @@ void crear_pcb(void *datos){
 	sem_post(&CantPCBNew);
 }
 
-void pedir_a_memoria_el_segmento0(uint32_t* pid){
+void pedir_a_memoria_el_segmento0(uint32_t pid){
 	
 	t_buffer *pedir_segmento0 = buffer_create();
 
@@ -288,6 +288,7 @@ void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0){
 
 void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar){
 	list_add(pcb->tablaDeSegmentos, segmento_a_agregar);
+	log_debug(logger, "cantidad de segmentos: %d", list_size(pcb->tablaDeSegmentos));
 }
 
 void crear_tabla_de_segmentos(t_pcb *pcb){
