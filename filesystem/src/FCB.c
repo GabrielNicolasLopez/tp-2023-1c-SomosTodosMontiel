@@ -109,3 +109,17 @@ t_lista_FCB_config* FCB_list_get(char* archivo)
 	}
 	return NULL;
 }
+
+bool existe_FCB(char* nombre_FCB)
+{
+    char *pathname = string_new();
+	
+    string_append(&pathname, configFS->PATH_FCB);
+	string_append(&pathname, "/");
+    string_append(&pathname, nombre_FCB);
+
+    bool existe = existe_archivo(pathname);
+    free(pathname);
+    
+    return existe;
+}

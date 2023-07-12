@@ -48,11 +48,11 @@ int crear_conexion(char *ip, char *puerto)
 	// connect():
 	if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1){
 		//log_error(logger, "Error al conectarse!");
+		freeaddrinfo(server_info);
 		return socket_cliente = -1;
 	}
 
 	freeaddrinfo(server_info);
-
 	return socket_cliente;
 }
 

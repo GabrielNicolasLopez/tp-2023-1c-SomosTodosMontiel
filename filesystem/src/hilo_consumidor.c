@@ -21,7 +21,7 @@ void crear_hilo_consumidor()
         
         // *** F_OPEN ***
         if (tipo_inst == F_OPEN) {
-            if (existe_archivo(p_instruccion->cadena)) {
+            if (existe_FCB(p_instruccion->cadena)) {
                 t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
                 FCB->nombre_archivo = p_instruccion->cadena;
                 FCB->config = buscar_FCB(p_instruccion->cadena);
@@ -30,11 +30,11 @@ void crear_hilo_consumidor()
                 
                 log_info(logger, "Abrir Archivo: <%s>", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_OK, p_instruccion);
-                log_info(logger, "le respondi a kernel f_open ok");
+                log_debug(logger, "le respondi a kernel f_open ok");
             } else {
                 log_debug(logger, "Hilo_consumidor: Archivo inexistente, %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
-                log_info(logger, "le respondi a kernel f_open no_ok");
+                log_debug(logger, "le respondi a kernel f_open no_ok");
             }
 
         } else
@@ -54,7 +54,7 @@ void crear_hilo_consumidor()
         } else
         
         if (tipo_inst == F_TRUNCATE) {
-            /*t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
+            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
 
             uint32_t tamanio_anterior = FCB->FCB_config->TAMANIO_ARCHIVO;
             uint32_t tamanio_nuevo = p_instruccion->paramIntA;
@@ -65,7 +65,7 @@ void crear_hilo_consumidor()
             } else {
                 // Liberar bloques:
                 liberar_bloques(FCB, tamanio_nuevo);
-            }*/
+            }
 
             respuesta_a_kernel(FS_OK, p_instruccion);
             log_info(logger, "le respondi a kernel f_truncate");
@@ -74,7 +74,7 @@ void crear_hilo_consumidor()
         
         // *** F_READ ***
         if (tipo_inst == F_READ) {
-            /*t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
+            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
             
             uint32_t puntero_archivo = p_instruccion->paramIntA;
             uint32_t cant_bytes = p_instruccion->paramIntB;
@@ -101,18 +101,18 @@ void crear_hilo_consumidor()
                 log_error(logger, "Hilo_consumidor (F_READ): Respuesta de escritura en memoria erronea. Archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 continue;
-            }*/
+            }
             
             respuesta_a_kernel(FS_OK, p_instruccion);
             log_info(logger, "le respondi a kernel f_read");
-            //free(cadena_bytes);
+            free(cadena_bytes);
 
         } else
         
         // *** F_WRITE ***
         if (tipo_inst == F_WRITE) {
             log_error(logger, "entre al f_write");
-            /*t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
+            t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
 
             uint32_t puntero_archivo = p_instruccion->paramIntA;
             uint32_t cant_bytes = p_instruccion->paramIntB;
@@ -130,10 +130,11 @@ void crear_hilo_consumidor()
                 continue;
             }
             
-            //pedido_lectura_mem(cant_bytes, dir_fisica);
+            pedido_lectura_mem(cant_bytes, dir_fisica);
             uint32_t cant_bytes_memoria;
             uint8_t* cadena_bytes = NULL;
-            //recibir_cadena_bytes_mem(&cant_bytes_memoria, cadena_bytes);
+            recibir_cadena_bytes_mem(&cant_bytes_memoria, cadena_bytes);
+            
             if (cant_bytes_memoria != cant_bytes) {
                 log_error(logger, "Hilo_consumidor (F_WRITE): Memoria pudo leer solo %u bytes", cant_bytes_memoria);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
@@ -147,10 +148,10 @@ void crear_hilo_consumidor()
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 free(cadena_bytes);
                 continue;
-            }*/
+            }
             respuesta_a_kernel(FS_OK, p_instruccion);
             log_info(logger, "le respondi a kernel f_write");
-            //free(cadena_bytes);
+            free(cadena_bytes);
 
         } else
         

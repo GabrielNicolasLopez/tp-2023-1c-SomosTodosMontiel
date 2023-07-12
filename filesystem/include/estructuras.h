@@ -28,7 +28,7 @@
         uint32_t PUNTERO_DIRECTO;
         uint32_t PUNTERO_INDIRECTO;
 
-    } t_FCB_config ;
+    } t_FCB_config;
 
     typedef struct
     {

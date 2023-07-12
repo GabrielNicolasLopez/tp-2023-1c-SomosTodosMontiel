@@ -3,8 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/include",
-                "/home/utnso/tp-2023-1c-SomosTodosMontiel/shared/include"
+                "/usr/include/cspecs",
+                "${workspaceFolder}/../shared/include",
+                "${workspaceFolder}/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

@@ -1,6 +1,6 @@
 #!/bin/bash
 FILE=filesystem
-make ./bin/$FILE.out
+make
 if test -f "./bin/$FILE.out"; then
     ./bin/$FILE.out ./cfg/$FILE.cfg 
 fi

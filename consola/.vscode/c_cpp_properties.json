@@ -5,9 +5,10 @@
     {
       "name": "Linux",
       "includePath": [
-        "${workspaceFolder}/include"
         // TODO: Agregar los directorios de las bibliotecas a utilizar
-        
+        "/usr/include/cspecs",
+        "${workspaceFolder}/../shared/include",
+        "${workspaceFolder}/include"
 
       ],
       "defines": [],
