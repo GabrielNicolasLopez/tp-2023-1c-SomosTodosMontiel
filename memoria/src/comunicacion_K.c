@@ -102,20 +102,17 @@ void hilo_kernel_m(){
                 break;
         
             case EMPEZA_A_COMPACTAR:
-
-                log_info(logger, "Mi cod de op es: %d", header);
                 
                 log_info(logger, "Solicitud de compactacion");
                 compactar();
-                //aplicar retardospleep
                 sleep((configuracionMemoria->retardo_compatacion/1000));
-                for(int i;i<list_size(listaSegmentos);i++){
-                    t_segmento* segmentoImprimir= list_get(listaSegmentos,i);
-                    log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoImprimir->pid,segmentoImprimir->id_segmento,segmentoImprimir->base,segmentoImprimir->tamanio);
-
+                t_segmento* segmentoImprimir;
+                for(int i=0; i < list_size(listaSegmentos); i++){
+                    segmentoImprimir = list_get(listaSegmentos, i);
+                    log_info(logger,"PID: %d - Segmento: %d - Base: %d - Tamaño: %d", segmentoImprimir->pid, segmentoImprimir->id_segmento, segmentoImprimir->base, segmentoImprimir->tamanio);
                 }
-                //Recibo el header.#pragma endregionCompacto y devuelvo la lista actualizada    
-                mandarListaGlobal(); //Falta terminar esto
+                //Se envia la lista de segmentos global
+                mandarListaProceso(listaSegmentos);
                 break;
 
             default:
@@ -124,7 +121,6 @@ void hilo_kernel_m(){
         }
         //free(header);
     }
-    
 }
 
 
@@ -248,12 +244,13 @@ void mandarListaProceso(t_list *lista){
     buffer_destroy(buffer);
 }
 
-void mandarListaGlobal(){
+/*void mandarListaGlobal(){
 
     t_buffer* buffer = buffer_create();
-    uint32_t tamanio_lista =list_size(listaSegmentos);
-    //buffer_pack(buffer,LISTA,sizeof(t_Kernel_Memoria)); // tipo de instruccion
-    buffer_pack(buffer,&tamanio_lista,sizeof(uint32_t)); // tamaño de la lista de segmentos
+    uint32_t tamanio_lista = list_size(listaSegmentos);
+    
+    buffer_pack(buffer, &tamanio_lista, sizeof(uint32_t)); // tamaño de la lista de segmentos
+
     for (int i = 0; i < tamanio_lista; i++)
     {   
         t_segmento * segmento =list_get(listaSegmentos,i);  // saco el segmento de la posicion i
@@ -261,4 +258,4 @@ void mandarListaGlobal(){
     }
     stream_send_buffer(conexion_con_kernel, LISTA, buffer);
     buffer_destroy(buffer);
-};
+}*/

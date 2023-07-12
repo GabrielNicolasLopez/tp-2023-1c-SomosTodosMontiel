@@ -250,7 +250,7 @@ void hilo_general()
 				//Espero la respuesta de memoria y pueden pasar 3 cosas: OK (base del segmento), OUT_OF_MEMORY, COMPACTACION
 				recibir_respuesta_create_segment(nuevo_segmento, motivoDevolucion->cant_int, motivoDevolucion->cant_intB, motivoDevolucion);
 
-				agregar_segmento(pcb_ejecutando(), nuevo_segmento);
+				//agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 				break;
 
 			case DELETE_SEGMENT:
@@ -652,11 +652,10 @@ void recibir_respuesta_create_segment(t_segmento *nuevo_segmento, uint32_t id, u
 		case NECESITO_COMPACTAR:
 			//Espero a que sea posible compactar
 			log_debug(logger, "Compactación: <Esperando Fin de Operaciones de FS>");
-			//sem_wait(&esPosibleCompactar);
 			esperandoParaCompactar();
 			pedir_a_memoria_que_compacte();
 			log_debug(logger, "Compactación: <Se solicitó compactación>");
-			esperar_respuesta_compactacion(CREATE_SEGMENT, id, tamanio);
+			esperar_respuesta_compactacion();
 			actualizar_lista_segmentos();
 			log_debug(logger, "Se finalizó el proceso de compactación");
 			t_pcb *pcb = pcb_ejecutando();
@@ -688,26 +687,55 @@ void esperandoParaCompactar(){
 	pthread_mutex_unlock(&mx_hayQueCompactar);
 }
 
+// void esperar_respuesta_compactacion(){
+// 	t_buffer * buffer_respuesta_compactacion = buffer_create();
+// 	t_Kernel_Memoria header_respuesta_compactacion = stream_recv_header(conexion_con_memoria);
+// 	if(header_respuesta_compactacion != LISTA)
+// 		log_error(logger, "Memoria no envio correctamente el header para compactacion: %d (=6)", header_respuesta_compactacion);
+
+// 	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_compactacion);
+// 	uint32_t cantidad_de_segmentos;
+// 	buffer_unpack(buffer_respuesta_compactacion, &cantidad_de_segmentos, sizeof(uint32_t));
+// 	list_clean_and_destroy_elements(LISTA_TABLA_SEGMENTOS, free);
+// 	t_segmento *segmento;
+//     for (int i = 0; i < cantidad_de_segmentos; i++)
+//     {   
+// 		segmento = malloc(sizeof(t_segmento)); 
+// 		buffer_unpack(buffer_respuesta_compactacion, segmento, (sizeof(t_segmento)));
+// 		pthread_mutex_lock(&mutexTablaSegmentos);  
+//         list_add(LISTA_TABLA_SEGMENTOS, segmento);
+// 		pthread_mutex_unlock(&mutexTablaSegmentos);
+//     }
+
+// 	buffer_destroy(buffer_respuesta_compactacion);
+// }
+
 void esperar_respuesta_compactacion(){
-	t_buffer * buffer_respuesta_compactacion = buffer_create();
-	t_Kernel_Memoria header_respuesta_compactacion = stream_recv_header(conexion_con_memoria);
-	if(header_respuesta_compactacion != LISTA)
-		log_error(logger, "Memoria no envio correctamente el header para compactacion: %d (=6)", header_respuesta_compactacion);
+	t_buffer *buffer_respuesta_compactacion = buffer_create();
+	t_Kernel_Memoria header_compactacion = stream_recv_header(conexion_con_memoria);
+	if(header_compactacion != LISTA)
+		log_error(logger, "Memoria no envio correctamente el header para compactacion: %d (=6)", header_compactacion);
 
 	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_compactacion);
 	uint32_t cantidad_de_segmentos;
 	buffer_unpack(buffer_respuesta_compactacion, &cantidad_de_segmentos, sizeof(uint32_t));
-	list_clean_and_destroy_elements(LISTA_TABLA_SEGMENTOS, free);
+	list_clean(LISTA_TABLA_SEGMENTOS);
+
 	t_segmento *segmento;
     for (int i = 0; i < cantidad_de_segmentos; i++)
     {   
 		segmento = malloc(sizeof(t_segmento)); 
-		buffer_unpack(buffer_respuesta_compactacion, segmento, (sizeof(t_segmento)));
-		pthread_mutex_lock(&mutexTablaSegmentos);  
+		buffer_unpack(buffer_respuesta_compactacion, &(segmento->pid),         sizeof(uint32_t));
+        buffer_unpack(buffer_respuesta_compactacion, &(segmento->id_segmento), sizeof(uint32_t));
+        buffer_unpack(buffer_respuesta_compactacion, &(segmento->base),        sizeof(uint32_t));
+        buffer_unpack(buffer_respuesta_compactacion, &(segmento->tamanio),     sizeof(uint32_t));
         list_add(LISTA_TABLA_SEGMENTOS, segmento);
-		pthread_mutex_unlock(&mutexTablaSegmentos);
+		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		segmento->pid,
+		segmento->id_segmento,
+		segmento->base,
+		segmento->tamanio);
     }
-
 	buffer_destroy(buffer_respuesta_compactacion);
 }
 
@@ -758,30 +786,43 @@ void actualizar_lista_segmentos(){
     {   
 		segmento_a_actualizar = malloc(sizeof(t_segmento));
 		segmento_a_actualizar = list_get(LISTA_TABLA_SEGMENTOS, i);
-		for(int j=0; j<list_size(LISTA_PCBS_EN_RAM); j++){
+		for(int j = 0; j < list_size(LISTA_PCBS_EN_RAM); j++){
 			pcb_a_actualizar = list_get(LISTA_PCBS_EN_RAM, j);
-			if(pcb_a_actualizar->contexto->pid == segmento_a_actualizar->pid){
+			if(pcb_a_actualizar->contexto->pid == segmento_a_actualizar->pid)
 				list_add(pcb_a_actualizar->tablaDeSegmentos, segmento_a_actualizar);
-			}
 		}
+		//Agrego el segmento 0
+		segmento_a_actualizar = list_get(LISTA_TABLA_SEGMENTOS, 0);
+		list_add(pcb_a_actualizar->tablaDeSegmentos, segmento_a_actualizar);
     }
+
+	for(int j = 0; j < list_size(LISTA_PCBS_EN_RAM); j++){
+		pcb_a_actualizar = list_get(LISTA_PCBS_EN_RAM, j);
+		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		segmento->pid,
+		segmento->id_segmento,
+		segmento->base,
+		segmento->tamanio);
+	}
 }
 
 void agregar_pcbs_a_lista_global(){
+
 	//Primero limpio la lista porque puede que tenga pcb viejas
-	list_clean_and_destroy_elements(LISTA_PCBS_EN_RAM, free);
+	list_clean(LISTA_PCBS_EN_RAM);
 	//Agrego las pcbs actuales
-	list_add_all(LISTA_PCBS_EN_RAM,LISTA_READY);
-	list_add_all(LISTA_PCBS_EN_RAM,LISTA_EXEC);
-	list_add_all(LISTA_PCBS_EN_RAM,LISTA_BLOCKED);
+	list_add_all(LISTA_PCBS_EN_RAM, LISTA_READY);
+	list_add_all(LISTA_PCBS_EN_RAM, LISTA_EXEC);
+	list_add_all(LISTA_PCBS_EN_RAM, LISTA_BLOCKED);
 }
 
 void limpiar_todas_las_listas_individuales(){
+	t_pcb *pcb_a_borrar;
 	//Borrar las listas de segmentos de todos los procesos
 	for (int i = 0; i < list_size(LISTA_PCBS_EN_RAM); i++)
     {   
-		t_pcb *pcb_a_borrar = list_get(LISTA_PCBS_EN_RAM, i);
-		list_clean_and_destroy_elements(pcb_a_borrar->tablaDeSegmentos, free);
+		pcb_a_borrar = list_get(LISTA_PCBS_EN_RAM, i);
+		list_clean(pcb_a_borrar->tablaDeSegmentos);
     }
 }
 

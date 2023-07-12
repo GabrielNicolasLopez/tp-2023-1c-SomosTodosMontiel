@@ -20,9 +20,11 @@ void huecoCrear(t_segmento* segmento, t_hueco *hueco){
 }
 
 uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
+    t_hueco* hueco;
+    uint32_t espacioLibre = 0;
     //Verificar disponibilidad de espacio contiguo
     for (int i = 0; i < list_size(listaHuecos); i++) {
-        t_hueco* hueco = list_get(listaHuecos,i);
+        hueco = list_get(listaHuecos,i);
         if (hueco->tamanio>=tamanio) {
             return 1;
         }
@@ -30,8 +32,7 @@ uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
     
     //Verificar si es necesario solicitar compactación
     for (int i = 0; i < list_size(listaHuecos); i++) {
-        uint32_t espacioLibre=0;
-        t_hueco* hueco =list_get(listaHuecos,i);
+        hueco = list_get(listaHuecos,i);
         espacioLibre += hueco->tamanio;
         if (espacioLibre>=tamanio) //Necesito compactar
         {
@@ -138,7 +139,6 @@ void eliminarProceso(t_list* listaSegmentosBorrar){
 
 
 //Compactar 
-
 void compactar(){
 
     list_sort(listaSegmentos, compararPorBase);
@@ -146,27 +146,17 @@ void compactar(){
     uint32_t desplazamiento = 0;
     
     for(int i=0;i<list_size(listaSegmentos);i++){
-
         t_segmento* segmento=list_get(listaSegmentos,i);
         segmento->base = desplazamiento;
         desplazamiento += segmento->tamanio;
-
     }
 
-   /* t_segmento* seg=list_get(listaSegmentos,list_size(listaSegmentos));
-    desplazamiento = seg->tamanio;
-    int tamHueco=0;
-    
-    for(int i=0;i<list_size(listaHuecos);i++){
-        t_hueco *hueco =list_get(listaHuecos,i);
-        tamHueco += hueco->tamanio;
-    }
-    */
+    //Borramos la lista de huecos vieja
     list_clean(listaHuecos);
-    t_hueco* hueco_Nuevo;
+
+    t_hueco* hueco_Nuevo = malloc(sizeof(t_hueco));
     hueco_Nuevo->base    = desplazamiento; 
     hueco_Nuevo->tamanio = configuracionMemoria->tam_memoria - desplazamiento;
-    list_add(listaHuecos,hueco_Nuevo);
-
+    list_add(listaHuecos, hueco_Nuevo);
 }
 
