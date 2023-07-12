@@ -7,10 +7,12 @@
 #include "buffer.h"
 #include "stream.h"
 
-#define CONFIG_PATH "./cfg/kernel.cfg"
+//#define CONFIG_PATH "./cfg/kernel.cfg"
 //#define LOG_PATH "./cfg/kernel.log" LOG QUE PERSISTE EN EL REPO REMOTO
 #define LOG_PATH "./cfg/kernelPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Kernel"
+
+#define NUMBER_OF_ARGS_REQUIRED 2
 
 extern int conexion_con_memoria;
 extern int conexion_con_cpu;
@@ -112,7 +114,7 @@ char* recibir_nombre_de_archivo_de_fs();t_pcb* sacar_de_blocked_de_archivo_de_TG
 void actualizar_posicicon_puntero(char* nombreArchivo, uint32_t puntero);
 void actualizar_posicicon_puntero_sumar(char* nombreArchivo, uint32_t suma_puntero);
 
-t_kernel_config *leerConfiguracion();
+t_kernel_config *leerConfiguracion(char* path);
 void crear_pcb(void *datos);
 void crear_hilo_memoria();
 void crear_hilo_filesystem();

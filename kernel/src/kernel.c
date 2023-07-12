@@ -1,14 +1,22 @@
 #include "kernel.h"
 
-int main(void){
+int main(int argc, char** argv){
 
 	// Creo el logger
 	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_DEBUG);
 
+	if (argc != NUMBER_OF_ARGS_REQUIRED) {
+        log_error(logger, "Cantidad de argumentos inválida.\nArgumentos: <configPath>");
+        log_destroy(logger);
+        return -1;
+    }
+
+	char *CONFIG_PATH = argv[1];
+
 	log_debug(logger, "INICIANDO KERNEL...");
 
 	// Leo la configuracion de kernel
-	configuracionKernel = leerConfiguracion();
+	configuracionKernel = leerConfiguracion(CONFIG_PATH);
 
 	// Inicializo las listas y semaforos
 	iniciar_listas_y_semaforos();
@@ -26,10 +34,10 @@ int main(void){
 	log_error(logger, "KERNEL TERMINO DE EJECUTAR...");
 }
 
-t_kernel_config *leerConfiguracion(){
+t_kernel_config *leerConfiguracion(char* path){
 
 	// Creo el config para leer IP y PUERTO
-	config = config_create(CONFIG_PATH);
+	config = config_create(path);
 
 	// Creo el archivo config
 	t_kernel_config *configuracionKernel = malloc(sizeof(t_kernel_config));

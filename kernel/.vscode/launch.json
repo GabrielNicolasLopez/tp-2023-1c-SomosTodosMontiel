@@ -9,11 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/bin/${workspaceFolderBasename}.out",
-      "args": [
-        // TODO: Agregar los argumentos que se necesiten
-        // CONFIG:
-        //"./cfg/kernel.cfg"
-      ],
+      "args": ["./cfg/kernel.cfg"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
