@@ -782,6 +782,9 @@ void actualizar_lista_segmentos(){
 	t_segmento *segmento_a_actualizar;
 	t_pcb *pcb_a_actualizar;
 
+
+	log_debug(logger, "cantidad de segmentos en tabla global: %d", list_size(LISTA_TABLA_SEGMENTOS));
+
 	for (int i = 0; i < list_size(LISTA_TABLA_SEGMENTOS); i++)
     {   
 		segmento_a_actualizar = malloc(sizeof(t_segmento));
@@ -791,18 +794,13 @@ void actualizar_lista_segmentos(){
 			if(pcb_a_actualizar->contexto->pid == segmento_a_actualizar->pid)
 				list_add(pcb_a_actualizar->tablaDeSegmentos, segmento_a_actualizar);
 		}
+    }
+	
+	for(int j = 0; j < list_size(LISTA_PCBS_EN_RAM); j++){
+		pcb_a_actualizar = list_get(LISTA_PCBS_EN_RAM, j);
 		//Agrego el segmento 0
 		segmento_a_actualizar = list_get(LISTA_TABLA_SEGMENTOS, 0);
 		list_add(pcb_a_actualizar->tablaDeSegmentos, segmento_a_actualizar);
-    }
-
-	for(int j = 0; j < list_size(LISTA_PCBS_EN_RAM); j++){
-		pcb_a_actualizar = list_get(LISTA_PCBS_EN_RAM, j);
-		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
-		segmento->pid,
-		segmento->id_segmento,
-		segmento->base,
-		segmento->tamanio);
 	}
 }
 
