@@ -14,12 +14,9 @@ t_segmento* segmentoCrear(int pid,int id, int base, int tam){
     return segmento;
 }
 
-t_hueco* huecoCrear(t_segmento* segmento){
-
-    t_hueco* hueco = malloc(sizeof(t_hueco));
+void huecoCrear(t_segmento* segmento, t_hueco *hueco){
     hueco->base    = segmento->base;
     hueco->tamanio = segmento->tamanio;
-    return hueco;
 }
 
 uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
@@ -91,10 +88,13 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 	return algoritmoConfi;
 }
 
-t_segmento* buscarSegmentoPorIdPID(uint32_t id,uint32_t pid) {
+t_segmento* buscarSegmentoPorIdPID(uint32_t id, uint32_t pid) {
+    
+    log_error(logger, "ahjklbsdkajsd cantidad de segmentos: %d", list_size(listaSegmentos));
     for (int i = 0; i < list_size(listaSegmentos); i++) {
         t_segmento* segmento = (t_segmento*)list_get(listaSegmentos, i);
         if (segmento->id_segmento == id && segmento->pid==pid) {
+            log_info(logger, "ahjklbsdkajsd pid: %d, id: %d", pid, id);
             return segmento;
         }
     }
@@ -113,11 +113,13 @@ uint32_t compararPorBase(const void* a, const void* b) {
 }
 
 void buscarSegmentoPorPID(t_list* listaABorrar, uint32_t pid){
-    t_segmento* segmento = malloc(sizeof(t_segmento));
+    t_segmento* segmento;
+    //Agregar el segmento 0 de primera
     for (int i = 0; i < list_size(listaSegmentos); i++) {
+        segmento = malloc(sizeof(t_segmento));
         segmento = list_get(listaSegmentos, i);
         if (segmento->pid==pid) {
-            list_add(listaABorrar,segmento); 
+            list_add(listaABorrar, segmento); 
         }
     }
 }
@@ -129,7 +131,7 @@ void eliminarProceso(t_list* listaSegmentosBorrar){
     for (int i = 0; i <list_size(listaSegmentosBorrar); i++)
     {   
         segmentoABorrar = list_remove(listaSegmentosBorrar, i);
-        huecoNuevo = huecoCrear(segmentoABorrar);
+        huecoCrear(segmentoABorrar, huecoNuevo);
         list_add(listaHuecos, huecoNuevo);
     }
 }

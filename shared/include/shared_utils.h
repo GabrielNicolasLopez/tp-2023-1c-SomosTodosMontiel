@@ -151,8 +151,8 @@ typedef struct
 
 typedef struct 
 {
- uint32_t base;
- u_int32_t tamanio;
+    uint32_t base;
+    uint32_t tamanio;
 }t_hueco;
 
 typedef struct

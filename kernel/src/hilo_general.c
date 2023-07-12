@@ -5,8 +5,8 @@ void hilo_general()
 
 	//Me conecto con los módulos
 	conectarse_con_cpu();
-	//conectarse_con_memoria();
-	conectarse_con_fs();
+	conectarse_con_memoria();
+	//conectarse_con_fs();
 
 	t_motivoDevolucion *motivoDevolucion = malloc(sizeof(t_motivoDevolucion));
 	t_contextoEjecucion *contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
@@ -228,7 +228,7 @@ void hilo_general()
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
 				break;
 
-			/*case CREATE_SEGMENT:
+			case CREATE_SEGMENT:
 				
 				log_debug(logger, "PID: <%d> - Crear Segmento - Id: <%d> - Tamaño: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
@@ -251,13 +251,9 @@ void hilo_general()
 				recibir_respuesta_create_segment(nuevo_segmento, motivoDevolucion->cant_int, motivoDevolucion->cant_intB, motivoDevolucion);
 
 				agregar_segmento(pcb_ejecutando(), nuevo_segmento);
+				break;
 
-				//Reenviamos el contexto			
-				se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
-				break;*/
-
-			/*case DELETE_SEGMENT:
+			case DELETE_SEGMENT:
 				log_debug(logger, "PID: <%d> - Eliminar Segmento - Id Segmento: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 
 				eliminar_segmento(motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int); //pid, id
@@ -267,7 +263,8 @@ void hilo_general()
 				//Reenviamos el contexto			
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
-				break;*/
+				log_debug(logger, "se devolvio el ce a cpu");
+				break;
 
 			case YIELD:
 				//Sacamos a la PCB de ejecutando
@@ -695,7 +692,7 @@ void esperar_respuesta_compactacion(){
 	t_buffer * buffer_respuesta_compactacion = buffer_create();
 	t_Kernel_Memoria header_respuesta_compactacion = stream_recv_header(conexion_con_memoria);
 	if(header_respuesta_compactacion != LISTA)
-		log_error(logger, "Memoria no envio correctamente el header: %d (=6)", header_respuesta_compactacion);
+		log_error(logger, "Memoria no envio correctamente el header para compactacion: %d (=6)", header_respuesta_compactacion);
 
 	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_compactacion);
 	uint32_t cantidad_de_segmentos;
@@ -715,26 +712,38 @@ void esperar_respuesta_compactacion(){
 }
 
 void recibir_tabla_de_segmentos(){
-	t_buffer *buffer_respuesta_tabla_segmentos = buffer_create();
+	t_buffer *buffer_tabla_segmentos = buffer_create();
 	t_Kernel_Memoria header_respuesta_tabla_segmentos = stream_recv_header(conexion_con_memoria);
 	if(header_respuesta_tabla_segmentos != LISTA)
-		log_error(logger, "Memoria no envio correctamente el header: %d (=6)", header_respuesta_tabla_segmentos);
+		log_error(logger, "Memoria no envio correctamente el header para borrar segmento: %d (=6)", header_respuesta_tabla_segmentos);
 
-	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_tabla_segmentos);
 	t_pcb *pcb = pcb_ejecutando();
-	buffer_unpack(buffer_respuesta_tabla_segmentos, &pcb->tamanio_tabla, sizeof(uint32_t));
+	stream_recv_buffer(conexion_con_memoria, buffer_tabla_segmentos);
+	log_error(logger, "recibi la lista de memoria: %d", buffer_tabla_segmentos->size);
+	uint32_t tamanio_tabla;
+	buffer_unpack(buffer_tabla_segmentos, &tamanio_tabla, sizeof(uint32_t));
+	pcb->tamanio_tabla = tamanio_tabla;
+	log_debug(logger, "tamanio tabla: %d", pcb->tamanio_tabla);
 	//Borramos los segmentos viejos para cargar los nuevos
-	list_clean_and_destroy_elements(pcb->tablaDeSegmentos, free);
+	//list_clean_and_destroy_elements(pcb->tablaDeSegmentos, free());
+	list_clean(pcb->tablaDeSegmentos);
+	
 	t_segmento *segmento;
     for (int i = 0; i < pcb->tamanio_tabla; i++)
     {   
 		segmento = malloc(sizeof(t_segmento)); 
-		buffer_unpack(buffer_respuesta_tabla_segmentos, segmento, (sizeof(t_segmento)));
-		//pthread_mutex_lock(&mutexTablaSegmentos);  
+		buffer_unpack(buffer_tabla_segmentos, &(segmento->pid),         sizeof(uint32_t));
+        buffer_unpack(buffer_tabla_segmentos, &(segmento->id_segmento), sizeof(uint32_t));
+        buffer_unpack(buffer_tabla_segmentos, &(segmento->base),        sizeof(uint32_t));
+        buffer_unpack(buffer_tabla_segmentos, &(segmento->tamanio),     sizeof(uint32_t));
         list_add(pcb->tablaDeSegmentos, segmento);
-		//pthread_mutex_unlock(&mutexTablaSegmentos);
+		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		segmento->pid,
+		segmento->id_segmento,
+		segmento->base,
+		segmento->tamanio);
     }
-	buffer_destroy(buffer_respuesta_tabla_segmentos);
+	buffer_destroy(buffer_tabla_segmentos);
 }
 
 void actualizar_lista_segmentos(){
@@ -814,11 +823,11 @@ void eliminar_segmento(uint32_t pid, uint32_t id){
 	
 	t_buffer* eliminar_segmento = buffer_create();
 
-	//PID del proceso que quiere borrar
-	buffer_pack(eliminar_segmento, &pid, sizeof(uint32_t));
-
 	//ID del segmento a borrar
 	buffer_pack(eliminar_segmento, &id, sizeof(uint32_t));
+
+	//PID del proceso que quiere borrar
+	buffer_pack(eliminar_segmento, &pid, sizeof(uint32_t));
 
 	stream_send_buffer(conexion_con_memoria, DELETE_SEGMENT, eliminar_segmento);
 
@@ -862,9 +871,9 @@ void terminar_consola(t_Kernel_Consola razon){
 
 	stream_send_empty_buffer(pcb->contexto->socket, razon);
 
-	//finalizar_proceso_en_memoria(pcb->contexto->pid);
+	finalizar_proceso_en_memoria(pcb->contexto->pid);
 
-	//recibir_respuesta_finalizar_proceso();
+	recibir_respuesta_finalizar_proceso();
 
 	log_error(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->contexto->pid, razonFinConsola[razon]);
 	

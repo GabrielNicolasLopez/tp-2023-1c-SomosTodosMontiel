@@ -48,7 +48,8 @@
 			"comunicacion-k.h": "c",
 			"hilo_productor.h": "c",
 			"string.h": "c",
-			"cspec.h": "c"
+			"cspec.h": "c",
+			"funciones.h": "c"
 		}
 	}
 }

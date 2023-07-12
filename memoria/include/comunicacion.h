@@ -17,6 +17,7 @@ void recibirDatos(t_segmento *segmentoACrear);
 void mandarLaBase(uint32_t baseMandar);
 
 void recibirIDPID(uint32_t *id,uint32_t *pid);
+//void recibirIDPID(uint32_t id,uint32_t pid);
 
 void mandarListaGlobal();
 void mandarListaProceso(t_list *lista);

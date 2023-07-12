@@ -2,6 +2,7 @@
 
 
 void hilo_kernel_m(){
+    uint32_t pid_recibido;
     while (1){
 
         log_info(logger, "Estoy esperando mensaje de Kernel...");
@@ -11,7 +12,7 @@ void hilo_kernel_m(){
         switch (header){
             case INICIAR_PROCESO:
                 //recibo un PID
-                uint32_t pid_recibido = recibirPID();
+                pid_recibido = recibirPID();
 
                 log_error(logger, "pid recibido: %d", pid_recibido);
                 
@@ -25,16 +26,16 @@ void hilo_kernel_m(){
             case FINALIZAR_PROCESO:
             //recibo uint32 pid
             
-            uint32_t pid = recibirPID();
+            pid_recibido = recibirPID();
             t_list* listasABorrar = list_create();
             
-            buscarSegmentoPorPID(listasABorrar, pid);
+            buscarSegmentoPorPID(listasABorrar, pid_recibido);
 
             //borro todos los segmentos con ese Pid y mando un PROCESO_BORRADO
             eliminarProceso(listasABorrar);
             mandarPrBr();
 
-            log_info(logger,"Eliminación de Proceso PID: %d", pid);
+            log_info(logger,"Eliminación de Proceso PID: %d", pid_recibido);
 
             list_destroy(listasABorrar);
 
@@ -56,6 +57,7 @@ void hilo_kernel_m(){
                     segmentoACrear->base = aplicarAlgoritmo(segmentoACrear->tamanio);
                     
                     list_add(listaSegmentos, segmentoACrear);
+                    log_error(logger, "cantidad de segmentos: %d", list_size(listaSegmentos));
                     log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoACrear->pid,segmentoACrear->id_segmento,segmentoACrear->base,segmentoACrear->tamanio);
                 }
                 else{
@@ -69,34 +71,36 @@ void hilo_kernel_m(){
 
             case DELETE_SEGMENT:
                 //recibo el segmento a eliminar 
-                uint32_t id_recibido;
-                uint32_t pid_recibido;
+                uint32_t *id = malloc(sizeof(uint32_t));
+                uint32_t *pid = malloc(sizeof(uint32_t));
 
-                recibirIDPID(id_recibido, pid_recibido);
+                recibirIDPID(id, pid);
 
-                log_info(logger, "recibido. pid: %d, id: %d", pid_recibido, id_recibido);
+                log_info(logger, "recibido. pid: %d, id: %d", *pid, *id);
 
                 //elimino el segmento
                 t_segmento *segmentoEncontrado = malloc(sizeof(t_segmento));
-                segmentoEncontrado = buscarSegmentoPorIdPID(id_recibido, pid_recibido);
+                t_hueco    *huecoNuevo         = malloc(sizeof(t_hueco));
+                
+                segmentoEncontrado = buscarSegmentoPorIdPID(*id, *pid);
+                huecoCrear(segmentoEncontrado, huecoNuevo);
 
-                t_hueco *huecoNuevo = malloc(sizeof(t_hueco));
-                huecoNuevo = huecoCrear(segmentoEncontrado);
-                //huecoNuevo->base =segmentoEncontrado->base;
-                //huecoNuevo->tamanio=segmentoEncontrado->tamanio;
                 list_add(listaHuecos,huecoNuevo);
-                log_info(logger,"PID: %d - Crear Segmento: %d - Base: %d - TAMAÑO: %d",segmentoEncontrado->pid,segmentoEncontrado->id_segmento,segmentoEncontrado->base,segmentoEncontrado->tamanio);
+                log_info(logger,"PID: %d - Borrar Segmento: %d - Base: %d - TAMAÑO: %d",segmentoEncontrado->pid,segmentoEncontrado->id_segmento,segmentoEncontrado->base,segmentoEncontrado->tamanio);
 
+                log_error(logger, "cantidad de segmentos antes de borrar: %d", list_size(listaSegmentos));
                 if(!list_remove_element(listaSegmentos,segmentoEncontrado)){
                     log_info(logger, "No lo puede remover");
                 }   
+                log_error(logger, "cantidad de segmentos despues de borrar: %d", list_size(listaSegmentos));
                 //devuelvo la lista nueva con el segemto elimado    
                 t_list* listaMandar = list_create();
-                buscarSegmentoPorPID(listaMandar, pid);
+                buscarSegmentoPorPID(listaMandar, *pid);
+                list_add(listaMandar, segmento_0);
                 mandarListaProceso(listaMandar); 
+                list_destroy(listaMandar);
                 break;
         
-
             case EMPEZA_A_COMPACTAR:
 
                 log_info(logger, "Mi cod de op es: %d", header);
@@ -143,16 +147,26 @@ void recibirDatos(t_segmento *segmentoACrear){
     buffer_destroy(buffer);
 }
 
-void recibirIDPID(uint32_t id,uint32_t pid){
+void recibirIDPID(uint32_t *id, uint32_t *pid){
 
     t_buffer *buffer = buffer_create();
 
+    uint32_t var_id, var_pid;
+
     stream_recv_buffer(conexion_con_kernel,buffer);
 
-    buffer_unpack(buffer, &id, sizeof(uint32_t));
+    buffer_unpack(buffer, &var_id, sizeof(uint32_t));
 
-    buffer_unpack(buffer, &pid, sizeof(uint32_t));
+    buffer_unpack(buffer, &var_pid, sizeof(uint32_t));
+
+    //log_info(logger, "var_id = %d y var_pid = %d", var_id, var_pid);
+
+    *id = var_id;
     
+    *pid = var_pid;
+    
+    //log_info(logger, "id = %d y pid = %d", *id, *pid);
+
     buffer_destroy(buffer);
 }
 
@@ -211,18 +225,26 @@ void mandarPrBr(){
 void mandarListaProceso(t_list *lista){
 
     t_buffer* buffer = buffer_create();
-    uint32_t tamanio_lista = list_size(listaSegmentos); //no seria el tamaño de lista?
+    uint32_t tamanio_lista = list_size(lista);
 
     //Cantidad de segmentos 
     buffer_pack(buffer, &tamanio_lista, sizeof(uint32_t));
 
     //Segmentos
+    t_segmento *segmento;
+    log_error(logger, "cantidad de segmentos al mandar: %d", tamanio_lista);
     for (int i = 0; i < tamanio_lista; i++)
     {   
-        t_segmento *segmento = list_get(lista, i);
-        buffer_pack(buffer,segmento,(sizeof(t_segmento)));
+        segmento = list_get(lista, i);
+        buffer_pack(buffer, &(segmento->pid),         sizeof(uint32_t));
+        buffer_pack(buffer, &(segmento->id_segmento), sizeof(uint32_t));
+        buffer_pack(buffer, &(segmento->base),        sizeof(uint32_t));
+        buffer_pack(buffer, &(segmento->tamanio),     sizeof(uint32_t));
+        log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
     }
+
     stream_send_buffer(conexion_con_kernel, LISTA, buffer);
+    log_error(logger, "envie la lista a kernel: %d", buffer->size);
     buffer_destroy(buffer);
 }
 

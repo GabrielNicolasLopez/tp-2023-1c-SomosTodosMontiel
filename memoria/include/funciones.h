@@ -4,7 +4,7 @@
 #include "memoria.h"
 
 t_segmento* segmentoCrear(int pid,int id, int base, int tam);
-t_hueco* huecoCrear(t_segmento* segmento);
+void huecoCrear(t_segmento* segmento, t_hueco *hueco);
 uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio);
 uint32_t aplicarAlgoritmo(uint32_t tamSegmento);
 t_tipo_algoritmo obtenerAlgoritmo();

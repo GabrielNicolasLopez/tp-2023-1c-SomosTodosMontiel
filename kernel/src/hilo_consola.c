@@ -226,16 +226,16 @@ void crear_pcb(void *datos){
 	pthread_mutex_init(&pcb->mutex_TAAP, NULL);
 	
 	//Le pido a memoria el segmento 0
-	//pedir_a_memoria_el_segmento0(pcb->contexto->pid);
+	pedir_a_memoria_el_segmento0(pcb->contexto->pid);
 	
 	t_segmento *segmento0 = malloc(sizeof(t_segmento));
 	segmento0->id_segmento =  0;
 	segmento0->base = 0;
 	//Recibo la respuesta
-	//segmento0->tamanio = recibir_el_segmento0_de_memoria();
+	segmento0->tamanio = recibir_el_segmento0_de_memoria();
 
 	//Agrego el segmento 0 al proceso
-	//agregar_segmento_0_a_pcb(pcb, segmento0); 
+	agregar_segmento_0_a_pcb(pcb, segmento0); 
 
 	//Tabla de archivos abiertos del proceso
 	crear_tabla_de_archivos_proceso(pcb);
@@ -265,8 +265,8 @@ uint32_t recibir_el_segmento0_de_memoria(){
 
 	t_Kernel_Memoria header = stream_recv_header(conexion_con_memoria);
 
-	//if(header != TAMANIO)
-	log_error(logger, "no se recibió el header correcto al recibir el segmento 0: %d (=7)", header);
+	if(header != TAMANIO)
+	log_error(logger, "no se recibió el header correcto al recibir el segmento_0: %d (=7)", header);
 
 	stream_recv_buffer(conexion_con_memoria, recibir_segmento0);
 
