@@ -28,8 +28,14 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_READ;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
-			motivo.cant_int = instruccion->paramIntA;
+			strcpy(motivo.cadena, instruccion->cadena);
+			motivo.cant_int = usarMMU(contexto_ejecucion, instruccion->paramIntA, instruccion->paramIntB);
+			if (motivo.cant_int == -1) {
+				motivo.tipo = SEG_FAULT;
+				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+				*enviamos_CE_al_kernel = true;
+				break;
+			}
 			motivo.cant_intB = instruccion->paramIntB;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
@@ -49,8 +55,14 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_WRITE;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
-			motivo.cant_int = instruccion->paramIntA; //Aca se usa la MMU. ParamA es la dir logica, se devuelve la fisica
+			strcpy(motivo.cadena, instruccion->cadena);
+			motivo.cant_int = usarMMU(contexto_ejecucion, instruccion->paramIntA, instruccion->paramIntB);
+			if (motivo.cant_int == -1) {
+				motivo.tipo = SEG_FAULT;
+				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+				*enviamos_CE_al_kernel = true;
+				break;
+			}
 			motivo.cant_intB = instruccion->paramIntB;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
@@ -111,7 +123,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 				break;
 			}
 			break;
-		/*case MOV_IN: 	// MOV_IN (Registro, Dirección Lógica): 
+		case MOV_IN: 	// MOV_IN (Registro, Dirección Lógica): 
 						// Lee el valor de memoria correspondiente a la Dirección Lógica y lo almacena en el Registro.
 			
 			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %d", 
@@ -120,16 +132,15 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 				nombresRegistros[instruccion->registro],
 				instruccion->paramIntA);
 			
-			//Comprobamos si sobrepasa el tamaño maximo del segmento
-			if(usarMMU(contexto_ejecucion, tam) == -1){
+			motivo.cant_int = usarMMU(contexto_ejecucion, instruccion->paramIntA, tamanio_reg(instruccion->registro));
+			if (motivo.cant_int == -1) {
 				motivo.tipo = SEG_FAULT;
 				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 				*enviamos_CE_al_kernel = true;
 				break;
 			}
 
-			//						Direccion fisica                 , pid
-			enviar_mov_in_a_memoria(usarMMU(instruccion -> paramIntA, ), contexto_ejecucion->pid);
+			enviar_mov_in_a_memoria(motivo.cant_int, contexto_ejecucion->pid);
 
 			char* cadena = esperar_respuesta_mov_in();
 
@@ -177,23 +188,31 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 
 			contexto_ejecucion -> program_counter++;
 
-			break;*/
-		/*case MOV_OUT: 	// MOV_OUT (Dirección Lógica, Registro): 
+			break;
+		case MOV_OUT: 	// MOV_OUT (Dirección Lógica, Registro): 
 						// Lee el valor del Registro y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica.
 				//MOV_OUT 120 AX
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %s", 
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %d - %s", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->paramIntA,
 				nombresRegistros[instruccion->registro]);
 
-			enviar_mov_out_a_memoria(valor_registro(contexto_ejecucion, instruccion -> registro), instruccion -> paramIntA);
+			motivo.cant_int = usarMMU(contexto_ejecucion, instruccion->paramIntA, tamanio_reg(instruccion->registro));
+			if (motivo.cant_int == -1) {
+				motivo.tipo = SEG_FAULT;
+				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+				*enviamos_CE_al_kernel = true;
+				break;
+			}
+			
+			enviar_mov_out_a_memoria(valor_registro(contexto_ejecucion, instruccion -> registro), motivo.cant_int, contexto_ejecucion->pid);
 
 			esperar_respuesta_mov_out();
 
 			contexto_ejecucion -> program_counter++;
 
-			break;*/
+			break;
 		case F_TRUNCATE: // F_TRUNCATE (Nombre Archivo, Tamaño): 
 						 // Esta instrucción solicita al Kernel que se modifique el tamaño del archivo al indicado por parámetro.
 			
@@ -206,7 +225,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_TRUNCATE;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			motivo.cant_int = instruccion->paramIntA;
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
@@ -225,7 +244,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			motivo.tipo = F_SEEK;
 			motivo.cant_int = instruccion->paramIntA;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
             break;
@@ -299,7 +318,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_OPEN;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
             break;
@@ -313,7 +332,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			contexto_ejecucion -> program_counter++;
 			motivo.tipo = F_CLOSE;
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
-			strcpy(&motivo.cadena, instruccion->cadena);
+			strcpy(motivo.cadena, instruccion->cadena);
 			enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 			*enviamos_CE_al_kernel = true;
             break;
@@ -386,14 +405,15 @@ char* esperar_respuesta_mov_in(){
 	return respuesta;
 }
 
-void enviar_mov_out_a_memoria(t_tipoInstruccion tipo, char* valor_registro, uint32_t direccion_logica){
+void enviar_mov_out_a_memoria(char* valor_registro, uint32_t direccion_fisica, uint32_t PID){
 	t_buffer* buffer_MOV_OUT = buffer_create();
 
 	//buffer_pack(buffer_MOV_OUT, &tipo, sizeof(t_tipoInstruccion));
 	uint32_t size = string_length(valor_registro);
 	buffer_pack(buffer_MOV_OUT, &size, sizeof(uint32_t));
 	buffer_pack(buffer_MOV_OUT, valor_registro, size);
-	buffer_pack(buffer_MOV_OUT, &direccion_logica, sizeof(uint32_t));
+	buffer_pack(buffer_MOV_OUT, &direccion_fisica, sizeof(uint32_t));
+	buffer_pack(buffer_MOV_OUT, &PID, sizeof(uint32_t));
 
 	stream_send_buffer(conexion_con_memoria, MOV_OUT, buffer_MOV_OUT);
 
@@ -417,34 +437,48 @@ void esperar_respuesta_mov_out(){
 		log_error(logger, "No se ejecuto MOV_OUT correctamente.");
 }
 
-char* valor_registro(t_contextoEjecucion* contexto_ejecucion, t_registro registro){
+char* valor_registro(t_contextoEjecucion* contexto_ejecucion, t_registro registro)
+{
+	char* reg;
 	switch(registro){
 		// registros de tamaño 4
-		case AX: return contexto_ejecucion -> registrosCPU -> registroC -> ax;
-		break;
-		case BX: return contexto_ejecucion -> registrosCPU -> registroC -> bx;
-		break;
-		case CX: return contexto_ejecucion -> registrosCPU -> registroC -> cx;
-		break;
-		case DX: return contexto_ejecucion -> registrosCPU -> registroC -> dx;
-		break;
+		case AX: reg = contexto_ejecucion -> registrosCPU -> registroC -> ax; break;
+		case BX: reg = contexto_ejecucion -> registrosCPU -> registroC -> bx; break;
+		case CX: reg = contexto_ejecucion -> registrosCPU -> registroC -> cx; break;
+		case DX: reg = contexto_ejecucion -> registrosCPU -> registroC -> dx; break;
 		// registros de tamaño 8
-		case EAX: return contexto_ejecucion -> registrosCPU -> registroE -> eax;
-		break;
-		case EBX: return contexto_ejecucion -> registrosCPU -> registroE -> ebx;
-		break;
-		case ECX: return contexto_ejecucion -> registrosCPU -> registroE -> ecx;
-		break;
-		case EDX: return contexto_ejecucion -> registrosCPU -> registroE -> edx;
-		break;
+		case EAX: reg = contexto_ejecucion -> registrosCPU -> registroE -> eax; break;
+		case EBX: reg = contexto_ejecucion -> registrosCPU -> registroE -> ebx; break;
+		case ECX: reg = contexto_ejecucion -> registrosCPU -> registroE -> ecx; break;
+		case EDX: reg = contexto_ejecucion -> registrosCPU -> registroE -> edx; break;
 		// registros de tamaño 16
-		case RAX: return contexto_ejecucion -> registrosCPU -> registroR -> rax;
-		break;
-		case RBX: return contexto_ejecucion -> registrosCPU -> registroR -> rbx;
-		break;
-		case RCX: return contexto_ejecucion -> registrosCPU -> registroR -> rcx;
-		break;
-		case RDX: return contexto_ejecucion -> registrosCPU -> registroR -> rdx; 
-		break;
+		case RAX: reg = contexto_ejecucion -> registrosCPU -> registroR -> rax; break;
+		case RBX: reg = contexto_ejecucion -> registrosCPU -> registroR -> rbx; break;
+		case RCX: reg = contexto_ejecucion -> registrosCPU -> registroR -> rcx; break;
+		case RDX: reg = contexto_ejecucion -> registrosCPU -> registroR -> rdx; break; 
 	}
+	return reg;
+}
+
+uint32_t tamanio_reg(int reg)
+{
+	uint32_t tamanio; 
+	switch(reg){
+		// registros de tamaño 4
+		case AX:
+		case BX:
+		case CX:
+		case DX: tamanio = 4; break;
+		// registros de tamaño 8
+		case EAX:
+		case EBX:
+		case ECX:
+		case EDX: tamanio = 8; break;
+		// registros de tamaño 16
+		case RAX:
+		case RBX:
+		case RCX:
+		case RDX: tamanio = 16; break;
+	}
+	return tamanio;
 }

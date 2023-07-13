@@ -276,15 +276,15 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 	//Cantidad de segmentos
-	buffer_pack(buffer, &(contextoEjecucion->tamanio_tabla), sizeof(uint32_t));
-	
+	buffer_pack(cym_a_enviar, &(contextoEjecucion->tamanio_tabla), sizeof(uint32_t));
+	t_segmento* segmento;
 	for (int i = 0; i < contextoEjecucion->tamanio_tabla; i++)
     {   
         segmento = list_get(contextoEjecucion->tablaDeSegmentos, i);
-        buffer_pack(buffer, &(segmento->pid),         sizeof(uint32_t));
-        buffer_pack(buffer, &(segmento->id_segmento), sizeof(uint32_t));
-        buffer_pack(buffer, &(segmento->base),        sizeof(uint32_t));
-        buffer_pack(buffer, &(segmento->tamanio),     sizeof(uint32_t));
+        buffer_pack(cym_a_enviar, &(segmento->pid),         sizeof(uint32_t));
+        buffer_pack(cym_a_enviar, &(segmento->id_segmento), sizeof(uint32_t));
+        buffer_pack(cym_a_enviar, &(segmento->base),        sizeof(uint32_t));
+        buffer_pack(cym_a_enviar, &(segmento->tamanio),     sizeof(uint32_t));
         log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
     }
 
@@ -502,12 +502,12 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
     return contextoEjecucion;
 }
 
-uint32_t usarMMU(t_contextoEjecucion *contextoEjecucion)
+uint32_t usarMMU(t_contextoEjecucion *contextoEjecucion, uint32_t dir_logica, uint32_t tamLeer_Esc)
 {
 	uint32_t num_segmento = floor(dir_logica / configuracion_cpu -> tam_max_segmento);
 	uint32_t desplazamiento_segmento = dir_logica % (configuracion_cpu -> tam_max_segmento);
 	uint32_t direccionFisica = num_segmento + desplazamiento_segmento;
-	uint32_t tamanio_segmento = tamanioSegmento(num_segmento);
+	uint32_t tamanio_segmento = tamanioSegmento(contextoEjecucion ,num_segmento);
 
 
 	//Revisamos si no estamos accediendo a una direccion mayor a la posible
@@ -518,10 +518,10 @@ uint32_t usarMMU(t_contextoEjecucion *contextoEjecucion)
 	return direccionFisica;
 }
 
-uint32_t tamanioSegmento(uint32_t id){
+uint32_t tamanioSegmento(t_contextoEjecucion *contextoEjecucion, uint32_t id){
 	uint32_t tamanioSegmento;
     for (int i = 0; i < list_size(contextoEjecucion->tablaDeSegmentos); i++) {
-        t_segmento* segmento = (t_segmento*)list_get(listaSegmentos, i);
+        t_segmento* segmento = (t_segmento*)list_get(contextoEjecucion->tablaDeSegmentos, i);
         if (segmento->id_segmento == id)
             tamanioSegmento = segmento->tamanio;
     }

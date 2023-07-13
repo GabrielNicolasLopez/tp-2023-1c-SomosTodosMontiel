@@ -125,15 +125,16 @@ void enviar_ce_a_cpu(t_pcb *pcb, int conexion_con_cpu)
 	buffer_pack(ce_a_enviar, pcb->contexto->registrosCPU->registroR, sizeof(t_registroR));
 	//log_error(logger, "TAMAÑO DEL BUFFER %d", ce_a_enviar->size);
 
-	buffer_pack(buffer, &(pcb->tamanio_tabla), sizeof(uint32_t));
+	buffer_pack(ce_a_enviar, &(pcb->contexto->tamanio_tabla), sizeof(uint32_t));
 	
-	for (int i = 0; i < pcb->tamanio_tabla; i++)
+	t_segmento* segmento;
+	for (int i = 0; i < pcb->contexto->tamanio_tabla; i++)
     {   
-        segmento = list_get(pcb->tablaDeSegmentos, i);
-        buffer_pack(buffer, &(segmento->pid),         sizeof(uint32_t));
-        buffer_pack(buffer, &(segmento->id_segmento), sizeof(uint32_t));
-        buffer_pack(buffer, &(segmento->base),        sizeof(uint32_t));
-        buffer_pack(buffer, &(segmento->tamanio),     sizeof(uint32_t));
+        segmento = list_get(pcb->contexto->tablaDeSegmentos, i);
+        buffer_pack(ce_a_enviar, &(segmento->pid),         sizeof(uint32_t));
+        buffer_pack(ce_a_enviar, &(segmento->id_segmento), sizeof(uint32_t));
+        buffer_pack(ce_a_enviar, &(segmento->base),        sizeof(uint32_t));
+        buffer_pack(ce_a_enviar, &(segmento->tamanio),     sizeof(uint32_t));
         log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
     }
 

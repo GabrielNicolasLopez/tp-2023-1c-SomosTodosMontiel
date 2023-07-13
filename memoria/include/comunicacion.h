@@ -25,7 +25,7 @@ void mandarPrBr();
 void mandarTam();
 uint32_t recibirPID();
 
-void leer_CPU(uint32_t* dato , uint32_t dirF,uint32_t pid);
+void leer_CPU(char *dato, uint32_t dirF,uint32_t cantBytes, uint32_t pid);
 void pedidoLectura_CPU(uint32_t *dir_fisica,uint32_t *pid);
 void enviarDato_CPU(uint8_t dato);
 void pedidoEscritura_CPU(uint32_t* cantBytes ,uint32_t *dir_fisica,uint32_t* dato,uint32_t *pid);
