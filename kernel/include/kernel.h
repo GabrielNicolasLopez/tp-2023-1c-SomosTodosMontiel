@@ -61,6 +61,8 @@ typedef struct
 	uint32_t tamanio_tabla;
 	t_list *taap; //Tabla de Archivos Abiertos del Proceso
 	pthread_mutex_t mutex_TAAP;
+	t_list *tablaDeRecursos;
+	pthread_mutex_t mutex_TablaDeRecursos;
 } t_pcb;
 
 typedef struct
@@ -134,7 +136,7 @@ t_pcb *algoritmo_hrrn(t_list*);
 t_pcb *mayorHRRN(t_pcb*,t_pcb*);
 t_pcb *algoritmo_fifo(t_list*);
 void cargarListaReadyIdPCB(t_list *LISTA_NEW);
-void asignarRecurso(char*);
+void asignarRecurso(char *, t_pcb* pcb);
 bool existeRecurso(char* recurso);
 int recursos_disponibles(char* recurso);
 
@@ -154,7 +156,8 @@ t_pcb* pcb_ejecutando_remove();
 void terminar_consola();
 t_motivoDevolucion* recibir_contexto_y_motivo(int socket_cliente);
 void pasar_a_blocked_de_recurso(t_pcb* pcb, char* nombre_recurso);
-void devolverRecurso(char* nombre_recurso);
+void devolverRecurso(char *nombre_recurso, t_pcb* pcb);
+void devolverRecursosPCB(t_pcb* pcb);
 void update_program_counter(t_pcb *pcb, t_motivoDevolucion *motivoDevolucion);
 void devolverContextoEjecucion(t_pcb *pcb, int conexion_con_cpu);
 

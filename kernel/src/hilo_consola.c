@@ -240,6 +240,12 @@ void crear_pcb(void *datos){
 	//Tabla de archivos abiertos del proceso
 	crear_tabla_de_archivos_proceso(pcb);
 
+	//Tabla de recursos asignado del proceso
+	crear_tabla_de_recursos_proceso(pcb);
+
+	//Inicializo el semaforo de Tabla de recursos
+	pthread_mutex_init(&pcb->mutex_TablaDeRecursos, NULL);
+
 	//Una vez inicializada la PCB, la pasamos a NEW
 	pasar_a_new(pcb);
 
@@ -280,6 +286,10 @@ uint32_t recibir_el_segmento0_de_memoria(){
 
 void crear_tabla_de_archivos_proceso(t_pcb *pcb){
 	pcb->taap = list_create();
+}
+
+void crear_tabla_de_recursos_proceso(t_pcb *pcb){
+	pcb->tablaDeRecursos = list_create();
 }
 
 void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0){
