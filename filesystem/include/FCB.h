@@ -13,5 +13,7 @@
     t_config* buscar_FCB(char* archivo);
 
     t_lista_FCB_config* FCB_list_get(char* archivo);
+    
+    bool existe_FCB(char* nombre_FCB);
 
 #endif

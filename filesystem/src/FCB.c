@@ -78,7 +78,7 @@ t_FCB_config* leerConfiguracion_FCB(t_config* config_FCB)
 
 t_FCB_config* levantar_FCB(t_config* config)
 {
-    log_debug(logger, "Levantando FCB"); 
+    //log_debug(logger, "Levantando FCB"); 
     
     t_FCB_config* config_FCB;
 
@@ -89,7 +89,7 @@ t_FCB_config* levantar_FCB(t_config* config)
 
 void actualizar_FCB(t_lista_FCB_config* FCB)
 {
-    log_debug(logger, "Actualizando FCB");
+    //log_debug(logger, "Actualizando FCB");
 
     config_save(FCB->config);
     char* config_path = string_duplicate(FCB->config->path);
@@ -108,4 +108,18 @@ t_lista_FCB_config* FCB_list_get(char* archivo)
 			return FCB;
 	}
 	return NULL;
+}
+
+bool existe_FCB(char* nombre_FCB)
+{
+    char *pathname = string_new();
+	
+    string_append(&pathname, configFS->PATH_FCB);
+	string_append(&pathname, "/");
+    string_append(&pathname, nombre_FCB);
+
+    bool existe = existe_archivo(pathname);
+    free(pathname);
+    
+    return existe;
 }

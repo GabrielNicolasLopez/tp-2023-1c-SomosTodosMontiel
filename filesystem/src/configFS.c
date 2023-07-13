@@ -1,11 +1,5 @@
 #include "configFS.h"
 
-t_config *config;
-t_filesystem_config* configFS;
-
-int socketMemoria;
-int socketKernel;
-
 // CONFIGURACION FS
 t_filesystem_config *leerConfiguracion(t_config* config)
 {

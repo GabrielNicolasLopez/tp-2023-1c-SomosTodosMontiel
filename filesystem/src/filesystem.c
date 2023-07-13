@@ -1,11 +1,5 @@
 #include "filesystem.h"
 
-t_list* lista_inst;
-t_list* l_FCBs_abiertos;
-
-pthread_mutex_t mutex_lista;
-sem_t cant_inst;
-
 int main(int argc, char ** argv){
     if (argc != 2) {
         fprintf(stderr, "Se esperaba: %s [CONFIG_PATH] - Abortando...", argv[0]);
@@ -25,12 +19,12 @@ int main(int argc, char ** argv){
     configFS = leerConfiguracion(config);
     
     // CONEXION COMO CLIENTE CON MEMORIA
-    // int error_memoria = crear_conexion_con_memoria();
-    // if (error_memoria == -1) {
-    //     config_destroy(config);
-	//     free(configFS);
-    //     exit(-1);
-    // }
+    int error_memoria = crear_conexion_con_memoria();
+    if (error_memoria == -1) {
+        config_destroy(config);
+	    free(configFS);
+        exit(-1);
+    }
     
     // LEVANTO ARCHIVOS DEL VOLUMEN (CARPETA FS)
     if (levantar_volumen() == -1) {

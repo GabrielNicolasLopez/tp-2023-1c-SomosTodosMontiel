@@ -9,27 +9,30 @@ void hilo_filesystem(){
             if(header==FS_M_READ)
             {
                 log_info(logger, "Mi cod de op es: %d", header);
-                uint32_t *cantBytes = NULL;
-                uint32_t *dir_fisica = NULL;
-                uint32_t *dato = NULL;
-                uint32_t *pid = NULL;
-                pedidoLectura_FS(cantBytes,dir_fisica,pid);
+                uint32_t cantBytes;
+                uint32_t dir_fisica;
+                //uint32_t pid;
+                char *dato;
+                pedidoLectura_FS(&cantBytes, &dir_fisica/* ,&pid */);
                 sleep((configuracionMemoria->retardo_memoria/1000));
-                leer_FS(dato, *dir_fisica, *cantBytes,*pid);
-                enviarDato_FS(*dato);
+                dato = malloc(cantBytes);
+                leer_FS(dato, dir_fisica, cantBytes/* ,&pid */);
+                enviarDato_FS(cantBytes, dato);
+                free(dato);
             }
 
             else if (header==FS_M_WRITE)
             {
                 log_info(logger, "Mi cod de op es: %d", header);
-                uint32_t *cantBytes = NULL;
-                uint32_t *dir_fisica = NULL;
-                uint32_t *pid = NULL;
-                uint32_t *dato = NULL;
-                pedidoEscritura_FS(cantBytes,dir_fisica,dato,pid);
+                uint32_t cantBytes;
+                uint32_t dir_fisica;
+                //uint32_t pid;
+                char *dato;
+                pedidoEscritura_FS(&cantBytes,&dir_fisica,dato/* ,pid */);
                 sleep((configuracionMemoria->retardo_memoria/1000));
-                escribir_FS(dato,*dir_fisica,*cantBytes,*pid);
+                escribir_FS(dato,dir_fisica,cantBytes/* ,*pid */);
                 ok_FS();
+                free(dato);
             }
 
             else
@@ -37,23 +40,23 @@ void hilo_filesystem(){
     }	
 }
 
-void leer_FS(uint32_t* dato, uint32_t dirF, uint32_t cantBytes,uint32_t pid){
+void leer_FS(char* dato, uint32_t dirF, uint32_t cantBytes/* ,uint32_t pid */){
 	
     memcpy(dato,espacioUsuario+dirF,cantBytes);
 
-    log_debug(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %d - Origen: FS",pid,dirF,cantBytes);
+    //log_debug(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %d - Origen: FS",pid,dirF,cantBytes);
 
 }
 
-void escribir_FS(uint32_t* dato, uint32_t dirF,uint32_t cantBytes,uint32_t pid){
+void escribir_FS(char* dato, uint32_t dirF,uint32_t cantBytes/* ,uint32_t pid */){
 
     memcpy(espacioUsuario+dirF, dato, cantBytes);
 
-    log_debug(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: FS",pid,dirF,cantBytes);
+    //log_debug(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: FS",pid,dirF,cantBytes);
 }
 
 
-void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t *pid)
+void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica /*,uint32_t *pid*/)
 {
     
     t_buffer* buffer = buffer_create();
@@ -65,12 +68,12 @@ void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t *pid)
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(uint32_t));
     //PID
-    buffer_unpack(buffer,pid,sizeof(uint32_t));
+    //buffer_unpack(buffer,pid,sizeof(uint32_t));
     
     buffer_destroy(buffer);
 }
 
-void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t* dato,uint32_t *pid){
+void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,char* dato/* ,uint32_t *pid */){
 
     t_buffer* buffer = buffer_create();
 
@@ -81,22 +84,27 @@ void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t* dato
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(uint32_t));
     // DATO
+    dato = malloc(cantBytes);
     buffer_unpack(buffer,dato,*cantBytes);
     //PID
-    buffer_unpack(buffer,pid,sizeof(uint32_t));
+    //buffer_unpack(buffer,pid,sizeof(uint32_t));
 
     buffer_destroy(buffer);
     
 }
 
 
-void enviarDato_FS(uint8_t dato){
+void enviarDato_FS(uint32_t cantBytes, char* dato){
 
     t_buffer* buffer =buffer_create();
 
     //buffer_pack(buffer,FS_M_READ_OK,sizeof(t_FS_MEMORIA));
-    //buffer_pack(buffer,(sizeof(dato)),sizeof(uint32_t));
-    buffer_pack(buffer,&dato,sizeof(uint8_t));
+    
+    // CANTIDAD DE BYTES
+    buffer_pack(buffer, &cantBytes, sizeof(uint32_t));
+    // CADENA DE BYTES
+    buffer_pack(buffer,&dato, cantBytes);
+
     stream_send_buffer(conexion_con_FileSystem, FS_M_READ_OK, buffer);
     buffer_destroy(buffer);
 }

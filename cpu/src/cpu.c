@@ -469,3 +469,18 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
     return contextoEjecucion;
 }
+
+uint32_t usarMMU(uint32_t dir_logica,uint32_t tamLeer_Esc)
+{
+	uint32_t direccionFisica;
+	uint32_t num_segmento = floor(dir_logica / configuracion_cpu->tam_max_segmento);
+	uint32_t desplazamiento_segmento = dir_logica % (configuracion_cpu->tam_max_segmento);
+	direccionFisica = num_segmento + desplazamiento_segmento;
+	
+	if(configuracion_cpu->tam_max_segmento<direccionFisica+desplazamiento_segmento){
+		return 0;
+	}
+
+	return direccionFisica ;
+
+}

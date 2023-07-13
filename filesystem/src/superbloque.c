@@ -1,10 +1,5 @@
 #include "superbloque.h"
 
-// SUPERBLOQUE
-t_config* t_config_SupBloque;
-t_superbloque_config* config_SupBloque;
-
-
 int levantar_volumen()
 {
     levantar_superbloque();
@@ -21,8 +16,6 @@ int levantar_volumen()
 
     levantar_bitmap();
     levantar_bloques();
-    
-    bitarray_set_bit(bitA_bitmap, 0);
 
     return 0;
 }

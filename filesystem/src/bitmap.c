@@ -1,10 +1,5 @@
 #include "bitmap.h"
 
-// BITMAP
-struct stat stats_fd_bitmap;
-char* p_bitmap;
-t_bitarray* bitA_bitmap;
-
 void crear_bitmap() 
 {
     // Creo el archivo
@@ -38,6 +33,7 @@ uint32_t get_free_block()
     uint32_t block = 0;
     uint32_t MAX = bitarray_get_max_bit(bitA_bitmap);
     while (block <= MAX && bitarray_test_bit(bitA_bitmap, block)) {
+        //log_info(logger, "Acceso a Bitmap - Bloque: <%u> - Estado: <%d>", block, 1);
         block++;
     }
 
@@ -46,6 +42,7 @@ uint32_t get_free_block()
         return -1;
     }
 
+    log_info(logger, "Acceso a Bitmap - Bloque: <%u> - Estado: <%d>", block, 0);
     bitarray_set_bit(bitA_bitmap, block);
     return block;
 }

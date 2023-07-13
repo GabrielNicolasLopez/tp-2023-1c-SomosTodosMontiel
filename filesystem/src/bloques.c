@@ -1,9 +1,5 @@
 #include "bloques.h"
 
-// BLOQUES
-struct stat stats_fd_bloques;
-char* p_bloques;
-
 void crear_archivo_de_bloques() 
 {
     // Creo el archivo
@@ -33,6 +29,8 @@ void levantar_bloques()
 
 int escribir_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 {
+    sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
+    
     if (offset > config_SupBloque->BLOCK_SIZE) {
         log_error(logger, "ESCRITURA DE BLOQUE: Offset en el bloque %u SOBREPASA EL TAMAÑO", bloque);
         return -1;
@@ -47,11 +45,10 @@ int escribir_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 
     memcpy(p_bloques + inicio_bloque + offset, reg, tamanio);
 
-
     return tamanio;
 }
 
-int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t cant_bytes, uint8_t* cadena_bytes)
+int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t cant_bytes, char* cadena_bytes)
 {
     // VER ESQUEMA DE MI CUADERNO PARA ENTENER LA LÓGICA
     
@@ -59,8 +56,8 @@ int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t
     int block_size = config_SupBloque->BLOCK_SIZE;
 
     //VARIABLES:
-    int bloque_contiene_p_archivo = ceil((double) cant_bytes / block_size);
-    int offset = (((double) cant_bytes / block_size) - bloque_contiene_p_archivo) * block_size;
+    int bloque_contiene_p_archivo = ceil((double) puntero_archivo / block_size);
+    int offset = (((double) puntero_archivo / block_size) - floor(puntero_archivo / block_size)) * block_size;
     int restante = (cant_bytes > block_size - offset)
                     ? block_size - offset
                     : cant_bytes;
@@ -69,16 +66,27 @@ int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t
     uint32_t bytes_escritos = 0;
     uint32_t bloque_a_escribir;
     
+    uint32_t* PIS = leer_PIS(FCB);
 
     // ESCRIBO RESTANTE
-    bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo, FCB);
+    bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo, FCB, PIS);
+    log_info(logger, "Acceso Bloque (W) - Archivo: <%s> - Bloque Archivo: <%d> - Bloque File System <%u>",
+        FCB->nombre_archivo,
+        bloque_contiene_p_archivo,
+        bloque_a_escribir
+    );
     escribir_bloque(bloque_a_escribir, offset, cadena_bytes + bytes_escritos, restante);
     bytes_escritos += restante;
 
     // ESCRIBO ENTEROS
     if (enteros) {
         for (int i = 1; i <= enteros; i++) {
-            bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo + i, FCB);
+            bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo + i, FCB, PIS);
+            log_info(logger, "Acceso Bloque (W) - Archivo: <%s> - Bloque Archivo: <%d> - Bloque File System <%u>",
+                FCB->nombre_archivo,
+                bloque_contiene_p_archivo + i,
+                bloque_a_escribir
+            );
             escribir_bloque(bloque_a_escribir, 0, cadena_bytes + bytes_escritos, block_size);
             bytes_escritos += block_size; 
         }
@@ -86,17 +94,25 @@ int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t
     
     // ESCRIBO SOBRANTE
     if (sobrante) {
-        bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo + enteros + 1, FCB);
+        bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo + enteros + 1, FCB, PIS);
+        log_info(logger, "Acceso Bloque (W) - Archivo: <%s> - Bloque Archivo: <%d> - Bloque File System <%u>",
+            FCB->nombre_archivo,
+            bloque_contiene_p_archivo + enteros + 1,
+            bloque_a_escribir
+        );
         escribir_bloque(bloque_a_escribir, 0, cadena_bytes + bytes_escritos, sobrante);
         bytes_escritos += sobrante; 
     }
 
+    free(PIS);
     msync(p_bloques, stats_fd_bloques.st_size, MS_SYNC);
     return bytes_escritos;
 }
 
 int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 {
+    sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
+    
     if (offset + tamanio > config_SupBloque->BLOCK_SIZE) {
         log_error(logger, "LECTURA DE BLOQUE %u SOBREPASA EL TAMAÑO", bloque);
         return -1;
@@ -110,7 +126,7 @@ int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
     return 0;
 }
 
-uint8_t* leer_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t cant_bytes)
+char* leer_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t cant_bytes)
 {
     // VER ESQUEMA DE MI CUADERNO PARA ENTENER LA LÓGICA
     
@@ -118,58 +134,90 @@ uint8_t* leer_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_
     int block_size = config_SupBloque->BLOCK_SIZE;
 
     //VARIABLES:
-    int bloque_contiene_p_archivo = ceil((double) cant_bytes / block_size);
-    int offset = (((double) cant_bytes / block_size) - bloque_contiene_p_archivo) * block_size;
+    int bloque_contiene_p_archivo = ceil((double) puntero_archivo / block_size);
+    int offset = (((double) puntero_archivo / block_size) - floor(puntero_archivo / block_size)) * block_size;
     int restante = (cant_bytes > block_size - offset)
                     ? block_size - offset
                     : cant_bytes;
     int enteros = floor((double) (cant_bytes - restante) / block_size);
     int sobrante = cant_bytes - restante - enteros;
     
-    uint8_t* cadena_bytes = malloc(cant_bytes);
+    char* cadena_bytes = malloc(cant_bytes);
     uint32_t bytes_leidos = 0;
     uint32_t bloque_a_leer;
 
+    uint32_t* PIS = leer_PIS(FCB);
+
     // LEO RESTANTE
-    bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo, FCB);
+    bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo, FCB, PIS);
+    log_info(logger, "Acceso Bloque (R) - Archivo: <%s> - Bloque Archivo: <%d> - Bloque File System <%u>",
+        FCB->nombre_archivo,
+        bloque_contiene_p_archivo,
+        bloque_a_leer
+    );
     leer_bloque(bloque_a_leer, offset, cadena_bytes + bytes_leidos, restante);
     bytes_leidos += restante;
 
     // LEO ENTEROS
     if (enteros) {
         for (int i = 1; i <= enteros; i++) {
-            bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo + i, FCB);
-            escribir_bloque(bloque_a_leer, 0, cadena_bytes + bytes_leidos, block_size);
+            bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo + i, FCB, PIS);
+            log_info(logger, "Acceso Bloque (R) - Archivo: <%s> - Bloque Archivo: <%d> - Bloque File System <%u>",
+                FCB->nombre_archivo,
+                bloque_contiene_p_archivo  + i,
+                bloque_a_leer
+            );
+            leer_bloque(bloque_a_leer, 0, cadena_bytes + bytes_leidos, block_size);
             bytes_leidos += block_size;
         }
     }
 
     // LEO SOBRANTE
     if (sobrante) {
-        bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo + enteros + 1, FCB);
-        escribir_bloque(bloque_a_leer, 0, cadena_bytes + bytes_leidos, sobrante);
+        bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo + enteros + 1, FCB, PIS);
+        log_info(logger, "Acceso Bloque (R) - Archivo: <%s> - Bloque Archivo: <%d> - Bloque File System <%u>",
+            FCB->nombre_archivo,
+            bloque_contiene_p_archivo + enteros + 1,
+            bloque_a_leer
+        );
+        leer_bloque(bloque_a_leer, 0, cadena_bytes + bytes_leidos, sobrante);
         bytes_leidos += sobrante; 
     }
 
+    free(PIS);
     return cadena_bytes;
 }
 
-uint32_t buscar_bloque(int numero_bloque, t_lista_FCB_config* FCB)
+uint32_t* leer_PIS(t_lista_FCB_config* FCB)
+{
+    uint32_t* PIS = malloc(config_SupBloque->BLOCK_SIZE);
+    
+    log_info(logger, "Acceso Bloque (R) - Archivo: <%s> - Bloque Archivo: <Punt. Indirecto> - Bloque File System <%u>",
+        FCB->nombre_archivo,
+        FCB->FCB_config->PUNTERO_INDIRECTO
+    );
+    leer_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, 0, PIS, sizeof(PIS));
+
+    return PIS;
+}
+
+uint32_t buscar_bloque(int numero_bloque, t_lista_FCB_config* FCB, uint32_t* PIS)
 {
     if (numero_bloque == 1) {
         return FCB->FCB_config->PUNTERO_DIRECTO;
     }
     
     uint32_t puntero;
-    int tamanio_puntero = sizeof(puntero);
-    off_t offset = (numero_bloque - 2) * tamanio_puntero;
+    off_t offset = (numero_bloque - 2) * sizeof(puntero);
     
-    leer_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, offset, &puntero, tamanio_puntero);
+    memcpy(&puntero, PIS + offset, sizeof(puntero));
     return puntero;
 }
 
 int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
 {
+    log_debug(logger, "Asignando bloques:");
+
     // TAMAÑO ANTERIOR DEL ARCHIVO
     uint32_t tam_ant_arch = FCB->FCB_config->TAMANIO_ARCHIVO;
     // TAMAÑO NUEVO DEL ARCHIVO
@@ -217,16 +265,23 @@ int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
 
         if (bloques_nuevos_a_ocupar > 0) {
             //Ultimo puntero del bloque de punteros asignado
-            uint32_t ultimo_p_indirecto = max( (int) bloques_ya_ocupados - 1, 0) ;
+            uint32_t ultimo_p_datos = max( (int) bloques_ya_ocupados - 1, 0) ;
+
+            // PUNTEROS DE DATOS A ESCRIBIR EN EL PUNTERO INDIRECTO
+            uint32_t* punteros_a_escribir = malloc(tam_puntero * bloques_nuevos_a_ocupar);
 
             // Asigno la cantidad de punteros a bloques de datos que necesito
-            uint32_t bloque_a_ocupar;
+            uint32_t bloque_libre;
             for(int i = 0; i < bloques_nuevos_a_ocupar; i++) {
-                bloque_a_ocupar = get_free_block();
-                // Asigno puntero en bloque de punteros
-                escribir_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, ultimo_p_indirecto * tam_puntero, &bloque_a_ocupar, tam_puntero);
-                ultimo_p_indirecto ++;
+                bloque_libre = get_free_block();
+                punteros_a_escribir[i] = bloque_libre;
             }
+            log_info(logger, "Acceso Bloque (W) - Archivo: <%s> - Bloque Archivo: <Punt. Indirecto> - Bloque File System <%u>",
+                FCB->nombre_archivo,
+                FCB->FCB_config->PUNTERO_INDIRECTO
+            );
+            escribir_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, ultimo_p_datos * tam_puntero, punteros_a_escribir, tam_puntero * bloques_nuevos_a_ocupar);
+            free(punteros_a_escribir);
         }
     }
     
@@ -239,6 +294,8 @@ int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
 
 int liberar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
 {
+    log_debug(logger, "Liberando bloques:");
+    
     // TAMAÑO ANTERIOR DEL ARCHIVO
     uint32_t tam_ant_arch = FCB->FCB_config->TAMANIO_ARCHIVO;
     // TAMAÑO NUEVO DEL ARCHIVO
@@ -269,24 +326,36 @@ int liberar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
     actualizar_FCB(FCB);
 
     if (bloques_ocupados_nuevo == 0) {
+        log_info(logger, "Acceso a Bitmap - Bloque: <%u> - Estado: <%d>", FCB->FCB_config->PUNTERO_DIRECTO, 1);
         bitarray_clean_bit(bitA_bitmap, FCB->FCB_config->PUNTERO_DIRECTO);
         bloques_a_liberar--;
     }
 
     if (bloques_ocupados_ant > 1) {
         //Ultimo puntero del bloque de punteros asignado
-        uint32_t ultimo_p_indirecto = max( (int) bloques_ocupados_ant - 1, 0) ;
+        uint32_t ultimo_p_datos = max( (int) bloques_ocupados_ant - 1, 0) ;
+        
+        
+        // PUNTEROS DE DATOS A LIBERAR EN EL PUNTERO INDIRECTO
+        uint32_t* punteros_a_liberar = malloc(tam_puntero * bloques_a_liberar);
+        
+        // defino los punteros_a_liberar 
+        log_info(logger, "Acceso Bloque (R) - Archivo: <%s> - Bloque Archivo: <Punt. Indirecto> - Bloque File System <%u>",
+            FCB->nombre_archivo,
+            FCB->FCB_config->PUNTERO_INDIRECTO
+        );
+        leer_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, (ultimo_p_datos - bloques_a_liberar) * tam_puntero, punteros_a_liberar, bloques_a_liberar * tam_puntero);
         
         uint32_t bloque_a_liberar;
-        uint32_t bloque_default = 0;
         for (int i = 0; i < bloques_a_liberar; i++) {
-            leer_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, (ultimo_p_indirecto-1) * tam_puntero, &bloque_a_liberar, tam_puntero);
-            escribir_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, (ultimo_p_indirecto-1) * tam_puntero, &bloque_default, tam_puntero);
+            bloque_a_liberar = punteros_a_liberar[i];
+            log_info(logger, "Acceso a Bitmap - Bloque: <%u> - Estado: <%d>", bloque_a_liberar, 1);
             bitarray_clean_bit(bitA_bitmap, bloque_a_liberar);
-            ultimo_p_indirecto--;
         }
+        free(punteros_a_liberar);
 
         if (bloques_ocupados_nuevo <= 1) {
+            log_info(logger, "Acceso a Bitmap - Bloque: <%u> - Estado: <%d>", FCB->FCB_config->PUNTERO_INDIRECTO, 1);
             bitarray_clean_bit(bitA_bitmap, FCB->FCB_config->PUNTERO_INDIRECTO);
         }
     }

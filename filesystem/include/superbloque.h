@@ -3,9 +3,6 @@
 
     #include "filesystem.h"
 
-    extern t_config* t_config_SupBloque;
-    extern t_superbloque_config* config_SupBloque;
-
     int levantar_volumen();
     void levantar_superbloque();
 

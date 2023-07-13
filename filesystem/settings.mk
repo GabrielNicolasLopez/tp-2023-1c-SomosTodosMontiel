@@ -7,7 +7,7 @@ STATIC_LIBPATHS=../shared
 
 #Compiler flags
 CDEBUG=-g -Wall -Werror -DDEBUG
-CRELEASE=-O3 -Wall -DNDEBUG
+CRELEASE=-g -O3 -Wall -DNDEBUG
 
 #Arguments when executing with start, memcheck or helgrind
 ARGS=./cfg/filesystem.cfg
@@ -17,4 +17,4 @@ MEMCHECK_FLAGS=--tool=memcheck --leak-check=full --track-origins=yes --show-poss
 HELGRIND_FLAGS=--log-file="helgrind.log"
 
 #Source files (*.c) to be excluded from tests compilation
-TEST_EXCLUDE=#src/filesystem.c
+TEST_EXCLUDE=src/filesystem.c

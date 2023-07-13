@@ -20,6 +20,7 @@
     #include "FS_memoria.h"
 
     #include "estructuras.h"
+    #include "variables.h"
    
     #include "configFS.h"
     #include "superbloque.h"
@@ -29,18 +30,9 @@
     #include "hilo_productor.h"
     #include "hilo_consumidor.h"
 
-    #include "tests.h"
-
     //#define LOG_PATH "./cfg/filesystem.log" LOG QUE PERSISTE EN EL REPO REMOTO
     #define LOG_PATH "./cfg/filesystemPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
     #define MODULE_NAME "Filesystem"
-
-    // VARIABLES GLOBALES
-    extern t_list* lista_inst;
-    extern t_list* l_FCBs_abiertos;
-
-    extern pthread_mutex_t mutex_lista;
-    extern sem_t cant_inst;
 
     // PRODUCTOR CONSUMIDOR
     void iniciar_listas_y_sem();
