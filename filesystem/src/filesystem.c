@@ -1,11 +1,5 @@
 #include "filesystem.h"
 
-t_list* lista_inst;
-t_list* l_FCBs_abiertos;
-
-pthread_mutex_t mutex_lista;
-sem_t cant_inst;
-
 int main(int argc, char ** argv){
     if (argc != 2) {
         fprintf(stderr, "Se esperaba: %s [CONFIG_PATH] - Abortando...", argv[0]);

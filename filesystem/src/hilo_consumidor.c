@@ -67,6 +67,7 @@ void crear_hilo_consumidor()
                 liberar_bloques(FCB, tamanio_nuevo);
             }
 
+            log_info(logger, "Truncar Archivo: <%s> - Tamaño: <%u>", p_instruccion->cadena, tamanio_nuevo);
             respuesta_a_kernel(FS_OK, p_instruccion);
             log_info(logger, "le respondi a kernel f_truncate");
 
@@ -92,7 +93,13 @@ void crear_hilo_consumidor()
                 continue;
             }
             
-            uint8_t* cadena_bytes = leer_bloques(FCB, puntero_archivo, cant_bytes);
+            log_info(logger, "Leer Archivo: <%s> - Puntero: <%u> - Memoria: <%u> - Tamaño: <%u>",
+                p_instruccion->cadena, 
+                puntero_archivo,
+                dir_fisica,
+                cant_bytes
+            );
+            char* cadena_bytes = leer_bloques(FCB, puntero_archivo, cant_bytes);
 
             pedido_escritura_mem(cant_bytes, cadena_bytes, dir_fisica);
             uint8_t header = stream_recv_header(socketMemoria);
@@ -132,7 +139,7 @@ void crear_hilo_consumidor()
             
             pedido_lectura_mem(cant_bytes, dir_fisica);
             uint32_t cant_bytes_memoria;
-            uint8_t* cadena_bytes = NULL;
+            char* cadena_bytes = NULL;
             recibir_cadena_bytes_mem(&cant_bytes_memoria, cadena_bytes);
             
             if (cant_bytes_memoria != cant_bytes) {
@@ -142,6 +149,12 @@ void crear_hilo_consumidor()
                 continue;
             }
 
+            log_info(logger, "Escribir Archivo: <%s> - Puntero: <%u> - Memoria: <%u> - Tamaño: <%u>",
+                p_instruccion->cadena, 
+                puntero_archivo,
+                dir_fisica,
+                cant_bytes
+            );
             int bloques_escritos = escribir_bloques(FCB, puntero_archivo, cant_bytes, cadena_bytes);
             if (bloques_escritos != cant_bytes) {
                 log_error(logger, "Hilo_consumidor (F_WRITE): Solo se pudieron escribir en los bloques %u bytes", cant_bytes);
@@ -179,7 +192,7 @@ void respuesta_a_kernel(int operacion, t_instruccion_FS* instruccion)
     buffer_destroy(buffer);
 }
 
-void pedido_escritura_mem(uint32_t cantBytes, uint8_t* cadena_bytes, uint32_t dir_fisica)
+void pedido_escritura_mem(uint32_t cantBytes, char* cadena_bytes, uint32_t dir_fisica)
 {
     uint8_t header = FS_M_WRITE;
     t_buffer* buffer = buffer_create();
@@ -209,7 +222,7 @@ void pedido_lectura_mem(uint32_t cantBytes, uint32_t dir_fisica)
     buffer_destroy(buffer);
 }
 
-void recibir_cadena_bytes_mem(uint32_t* cantBytes, uint8_t* cadena_bytes)
+void recibir_cadena_bytes_mem(uint32_t* cantBytes, char* cadena_bytes)
 {
     t_buffer* buffer = buffer_create();
     stream_recv_buffer(socketMemoria, buffer);

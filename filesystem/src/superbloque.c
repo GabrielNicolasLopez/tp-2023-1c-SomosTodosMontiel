@@ -1,10 +1,5 @@
 #include "superbloque.h"
 
-// SUPERBLOQUE
-t_config* t_config_SupBloque;
-t_superbloque_config* config_SupBloque;
-
-
 int levantar_volumen()
 {
     levantar_superbloque();

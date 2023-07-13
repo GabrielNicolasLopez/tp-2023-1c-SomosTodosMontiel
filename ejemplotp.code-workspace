@@ -50,7 +50,8 @@
 			"string.h": "c",
 			"cspec.h": "c",
 			"socket.h": "c",
-			"fcb.h": "c"
+			"fcb.h": "c",
+			"hilo_consumidor.h": "c"
 		}
 	}
 }
