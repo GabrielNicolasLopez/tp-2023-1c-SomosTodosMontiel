@@ -114,13 +114,22 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		/*case MOV_IN: 	// MOV_IN (Registro, Dirección Lógica): 
 						// Lee el valor de memoria correspondiente a la Dirección Lógica y lo almacena en el Registro.
 			
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %s - %u", 
+			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %d", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				nombresRegistros[instruccion->registro],
 				instruccion->paramIntA);
 			
-			enviar_mov_in_a_memoria(MOV_IN, instruccion -> paramIntA);
+			//Comprobamos si sobrepasa el tamaño maximo del segmento
+			if(usarMMU(contexto_ejecucion, tam) == -1){
+				motivo.tipo = SEG_FAULT;
+				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
+				*enviamos_CE_al_kernel = true;
+				break;
+			}
+
+			//						Direccion fisica                 , pid
+			enviar_mov_in_a_memoria(usarMMU(instruccion -> paramIntA, ), contexto_ejecucion->pid);
 
 			char* cadena = esperar_respuesta_mov_in();
 
@@ -168,8 +177,8 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 
 			contexto_ejecucion -> program_counter++;
 
-			break;
-		case MOV_OUT: 	// MOV_OUT (Dirección Lógica, Registro): 
+			break;*/
+		/*case MOV_OUT: 	// MOV_OUT (Dirección Lógica, Registro): 
 						// Lee el valor del Registro y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica.
 				//MOV_OUT 120 AX
 			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %s", 
@@ -178,7 +187,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 				instruccion->paramIntA,
 				nombresRegistros[instruccion->registro]);
 
-			enviar_mov_out_a_memoria(MOV_OUT, valor_registro(contexto_ejecucion, instruccion -> registro), instruccion -> paramIntA);
+			enviar_mov_out_a_memoria(valor_registro(contexto_ejecucion, instruccion -> registro), instruccion -> paramIntA);
 
 			esperar_respuesta_mov_out();
 
@@ -347,14 +356,14 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 	return contexto_ejecucion;
 }
 
-/*
-void enviar_mov_in_a_memoria(t_tipoInstruccion tipo, uint32_t direccion_logica){
+
+void enviar_mov_in_a_memoria(uint32_t direccion_fisica, uint32_t pid){
 	t_buffer* buffer_MOV_IN = buffer_create();
 
-	buffer_pack(buffer_MOV_IN, &tipo, sizeof(t_tipoInstruccion));
-	buffer_pack(buffer_MOV_IN, &direccion_logica, sizeof(uint32_t));
+	buffer_pack(buffer_MOV_IN, &direccion_fisica, sizeof(uint32_t));
+	buffer_pack(buffer_MOV_IN, &pid, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_memoria, buffer_MOV_IN);
+	stream_send_buffer(conexion_con_memoria, MOV_IN, buffer_MOV_IN);
 
 	buffer_destroy(buffer_MOV_IN);
 }
@@ -364,7 +373,7 @@ char* esperar_respuesta_mov_in(){
 
 	int size;
 
-	stream_recv_buffer(conexion_memoria, buffer_MOV_IN);
+	stream_recv_buffer(conexion_con_memoria, buffer_MOV_IN);
 
 	buffer_unpack(buffer_MOV_IN, &size, sizeof(uint32_t));
 
@@ -380,13 +389,13 @@ char* esperar_respuesta_mov_in(){
 void enviar_mov_out_a_memoria(t_tipoInstruccion tipo, char* valor_registro, uint32_t direccion_logica){
 	t_buffer* buffer_MOV_OUT = buffer_create();
 
-	buffer_pack(buffer_MOV_OUT, &tipo, sizeof(t_tipoInstruccion));
+	//buffer_pack(buffer_MOV_OUT, &tipo, sizeof(t_tipoInstruccion));
 	uint32_t size = string_length(valor_registro);
 	buffer_pack(buffer_MOV_OUT, &size, sizeof(uint32_t));
 	buffer_pack(buffer_MOV_OUT, valor_registro, size);
 	buffer_pack(buffer_MOV_OUT, &direccion_logica, sizeof(uint32_t));
 
-	stream_send_buffer(conexion_memoria, buffer_MOV_OUT);
+	stream_send_buffer(conexion_con_memoria, MOV_OUT, buffer_MOV_OUT);
 
 	buffer_destroy(buffer_MOV_OUT);	
 }
@@ -394,11 +403,11 @@ void enviar_mov_out_a_memoria(t_tipoInstruccion tipo, char* valor_registro, uint
 void esperar_respuesta_mov_out(){
 	t_buffer* buffer_MOV_OUT = buffer_create();
 
-	cpu_memoria respuesta;
+	t_CPU_memoria respuesta;
 
-	stream_recv_buffer(conexion_memoria, buffer_MOV_OUT);
+	stream_recv_buffer(conexion_con_memoria, buffer_MOV_OUT);
 
-	buffer_unpack(buffer_MOV_OUT, &respuesta, sizeof(cpu_memoria));
+	buffer_unpack(buffer_MOV_OUT, &respuesta, sizeof(t_CPU_memoria));
 
 	buffer_destroy(buffer_MOV_OUT);
 
@@ -410,32 +419,32 @@ void esperar_respuesta_mov_out(){
 
 char* valor_registro(t_contextoEjecucion* contexto_ejecucion, t_registro registro){
 	switch(registro){
-				// registros de tamaño 4
-				case AX: return contexto_ejecucion -> registrosCPU -> registroC -> ax;
-				break;
-				case BX: return contexto_ejecucion -> registrosCPU -> registroC -> bx;
-				break;
-				case CX: return contexto_ejecucion -> registrosCPU -> registroC -> cx;
-				break;
-				case DX: return contexto_ejecucion -> registrosCPU -> registroC -> dx;
-				break;
-				// registros de tamaño 8
-				case EAX: return contexto_ejecucion -> registrosCPU -> registroE -> eax;
-				break;
-				case EBX: return contexto_ejecucion -> registrosCPU -> registroE -> ebx;
-				break;
-				case ECX: return contexto_ejecucion -> registrosCPU -> registroE -> ecx;
-				break;
-				case EDX: return contexto_ejecucion -> registrosCPU -> registroE -> edx;
-				break;
-				// registros de tamaño 16
-				case RAX: return contexto_ejecucion -> registrosCPU -> registroR -> rax;
-				break;
-				case RBX: return contexto_ejecucion -> registrosCPU -> registroR -> rbx;
-				break;
-				case RCX: return contexto_ejecucion -> registrosCPU -> registroR -> rcx;
-				break;
-				case RDX: return contexto_ejecucion -> registrosCPU -> registroR -> rdx; 
-				break;
-			}
-}*/
+		// registros de tamaño 4
+		case AX: return contexto_ejecucion -> registrosCPU -> registroC -> ax;
+		break;
+		case BX: return contexto_ejecucion -> registrosCPU -> registroC -> bx;
+		break;
+		case CX: return contexto_ejecucion -> registrosCPU -> registroC -> cx;
+		break;
+		case DX: return contexto_ejecucion -> registrosCPU -> registroC -> dx;
+		break;
+		// registros de tamaño 8
+		case EAX: return contexto_ejecucion -> registrosCPU -> registroE -> eax;
+		break;
+		case EBX: return contexto_ejecucion -> registrosCPU -> registroE -> ebx;
+		break;
+		case ECX: return contexto_ejecucion -> registrosCPU -> registroE -> ecx;
+		break;
+		case EDX: return contexto_ejecucion -> registrosCPU -> registroE -> edx;
+		break;
+		// registros de tamaño 16
+		case RAX: return contexto_ejecucion -> registrosCPU -> registroR -> rax;
+		break;
+		case RBX: return contexto_ejecucion -> registrosCPU -> registroR -> rbx;
+		break;
+		case RCX: return contexto_ejecucion -> registrosCPU -> registroR -> rcx;
+		break;
+		case RDX: return contexto_ejecucion -> registrosCPU -> registroR -> rdx; 
+		break;
+	}
+}

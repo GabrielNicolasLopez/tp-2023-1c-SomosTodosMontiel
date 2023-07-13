@@ -210,5 +210,24 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	buffer_unpack(cym_recibido, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
 	buffer_unpack(cym_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 
+	uint32_t cantidad_de_segmentos;
+	buffer_unpack(ce_recibido, &cantidad_de_segmentos, sizeof(uint32_t));
+
+	t_segmento *segmento;
+    for (int i = 0; i < cantidad_de_segmentos; i++)
+    {   
+		segmento = malloc(sizeof(t_segmento)); 
+		buffer_unpack(ce_recibido, &(segmento->pid),         sizeof(uint32_t));
+        buffer_unpack(ce_recibido, &(segmento->id_segmento), sizeof(uint32_t));
+        buffer_unpack(ce_recibido, &(segmento->base),        sizeof(uint32_t));
+        buffer_unpack(ce_recibido, &(segmento->tamanio),     sizeof(uint32_t));
+        list_add(contextoEjecucion->tablaDeSegmentos, segmento);
+		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		segmento->pid,
+		segmento->id_segmento,
+		segmento->base,
+		segmento->tamanio);
+    }
+
 	buffer_destroy(cym_recibido);
 }

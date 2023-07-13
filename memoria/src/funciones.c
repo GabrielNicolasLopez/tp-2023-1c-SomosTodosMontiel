@@ -91,11 +91,11 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 
 t_segmento* buscarSegmentoPorIdPID(uint32_t id, uint32_t pid) {
     
-    log_error(logger, "ahjklbsdkajsd cantidad de segmentos: %d", list_size(listaSegmentos));
+    log_error(logger, "cantidad de segmentos: %d", list_size(listaSegmentos));
     for (int i = 0; i < list_size(listaSegmentos); i++) {
         t_segmento* segmento = (t_segmento*)list_get(listaSegmentos, i);
         if (segmento->id_segmento == id && segmento->pid==pid) {
-            log_info(logger, "ahjklbsdkajsd pid: %d, id: %d", pid, id);
+            log_info(logger, "pid: %d, id: %d", pid, id);
             return segmento;
         }
     }
