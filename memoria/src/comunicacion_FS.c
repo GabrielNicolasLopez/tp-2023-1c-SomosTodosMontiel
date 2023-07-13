@@ -87,7 +87,7 @@ char* pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica/* ,uint32_t *
     //buffer_unpack(buffer,pid,sizeof(uint32_t));
 
     buffer_destroy(buffer);
-    
+    return dato;
 }
 
 

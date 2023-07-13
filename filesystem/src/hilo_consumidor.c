@@ -22,17 +22,18 @@ void crear_hilo_consumidor()
         // *** F_OPEN ***
         if (tipo_inst == F_OPEN) {
             if (existe_FCB(p_instruccion->cadena)) {
+                log_info(logger, "Abrir Archivo: <%s>", p_instruccion->cadena);
+                
                 t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
                 FCB->nombre_archivo = p_instruccion->cadena;
                 FCB->config = buscar_FCB(p_instruccion->cadena);
                 FCB->FCB_config = levantar_FCB(FCB->config);
                 list_add(l_FCBs_abiertos, (void*) FCB);
                 
-                log_info(logger, "Abrir Archivo: <%s>", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_OK, p_instruccion);
                 log_debug(logger, "le respondi a kernel f_open ok");
             } else {
-                log_debug(logger, "Hilo_consumidor: Archivo inexistente, %s", p_instruccion->cadena);
+                log_info(logger, "F_OPEN: Archivo inexistente, %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
                 log_debug(logger, "le respondi a kernel f_open no_ok");
             }
@@ -41,19 +42,22 @@ void crear_hilo_consumidor()
         
         // *** F_CREATE ***
         if (tipo_inst == F_CREATE) {
+            log_info(logger, "Crear Archivo: <%s>", p_instruccion->cadena);
+            
             t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
             FCB->nombre_archivo = p_instruccion->cadena;
             FCB->config = crear_FCB(p_instruccion->cadena);
             FCB->FCB_config = levantar_FCB(FCB->config);
             list_add(l_FCBs_abiertos, (void*) FCB);
 
-            log_info(logger, "Crear Archivo: <%s>", p_instruccion->cadena);
             respuesta_a_kernel(FS_CREATE_OK, p_instruccion);
             log_info(logger, "le respondi a kernel f_create");
 
         } else
         
         if (tipo_inst == F_TRUNCATE) {
+            log_info(logger, "Truncar Archivo: <%s> - Tamaño: <%u>", p_instruccion->cadena, p_instruccion->paramIntA);
+            
             t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
 
             uint32_t tamanio_anterior = FCB->FCB_config->TAMANIO_ARCHIVO;
@@ -62,12 +66,12 @@ void crear_hilo_consumidor()
             if (tamanio_nuevo > tamanio_anterior) {
                 // Asignar bloques: 
                 asignar_bloques(FCB, tamanio_nuevo);
-            } else {
+            } else 
+            if (tamanio_nuevo < tamanio_anterior) {
                 // Liberar bloques:
                 liberar_bloques(FCB, tamanio_nuevo);
             }
 
-            log_info(logger, "Truncar Archivo: <%s> - Tamaño: <%u>", p_instruccion->cadena, tamanio_nuevo);
             respuesta_a_kernel(FS_OK, p_instruccion);
             log_info(logger, "le respondi a kernel f_truncate");
 
@@ -75,6 +79,7 @@ void crear_hilo_consumidor()
         
         // *** F_READ ***
         if (tipo_inst == F_READ) {
+            log_info(logger, "ENTRE A F_READ");
             t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
             
             uint32_t puntero_archivo = p_instruccion->paramIntA;
@@ -118,7 +123,7 @@ void crear_hilo_consumidor()
         
         // *** F_WRITE ***
         if (tipo_inst == F_WRITE) {
-            log_error(logger, "entre al f_write");
+            log_info(logger, "ENTRE A F_WRITE");
             t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
 
             uint32_t puntero_archivo = p_instruccion->paramIntA;
@@ -146,8 +151,7 @@ void crear_hilo_consumidor()
             }
             
             uint32_t cant_bytes_memoria;
-            char* cadena_bytes = NULL;
-            recibir_cadena_bytes_mem(&cant_bytes_memoria, cadena_bytes);
+            char* cadena_bytes = recibir_cadena_bytes_mem(&cant_bytes_memoria);
             
             if (cant_bytes_memoria != cant_bytes) {
                 log_error(logger, "Hilo_consumidor (F_WRITE): Memoria pudo leer solo %u bytes", cant_bytes_memoria);
@@ -194,7 +198,7 @@ void respuesta_a_kernel(int operacion, t_instruccion_FS* instruccion)
     buffer_pack(buffer, &instruccion->longitud_cadena, sizeof(instruccion->longitud_cadena));
 	// CADENA_ARCHIVO
     buffer_pack(buffer, instruccion->cadena, instruccion->longitud_cadena);
-    log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer->size);
+    log_error(logger, "Tamaño de la instruccion enviada a MEMORIA %d", buffer->size);
     stream_send_buffer(socketKernel, header, buffer);
     buffer_destroy(buffer);
 }
@@ -234,7 +238,7 @@ void pedido_lectura_mem(uint32_t cantBytes, uint32_t dir_fisica)
     buffer_destroy(buffer);
 }
 
-void recibir_cadena_bytes_mem(uint32_t* cantBytes, char* cadena_bytes)
+char* recibir_cadena_bytes_mem(uint32_t* cantBytes)
 {
     t_buffer* buffer = buffer_create();
     stream_recv_buffer(socketMemoria, buffer);
@@ -242,9 +246,10 @@ void recibir_cadena_bytes_mem(uint32_t* cantBytes, char* cadena_bytes)
 
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(*cantBytes));
-    cadena_bytes = malloc(*cantBytes);
     // CADENA DE BYTES
+    char* cadena_bytes = malloc(*cantBytes);
     buffer_unpack(buffer, cadena_bytes, *cantBytes);
 
     buffer_destroy(buffer);
+    return cadena_bytes;
 }
