@@ -390,21 +390,21 @@ void enviar_mov_in_a_memoria(uint32_t direccion_fisica, uint32_t cantBytes, uint
 
 char* esperar_respuesta_mov_in(){
 
-	t_buffer* buffer_MOV_IN = buffer_create();
+	t_buffer* buffer = buffer_create();
 
 	int size;
 
 	stream_recv_header(conexion_con_memoria);
 
-	stream_recv_buffer(conexion_con_memoria, buffer_MOV_IN);
+	stream_recv_buffer(conexion_con_memoria, buffer);
 
-	buffer_unpack(buffer_MOV_IN, &size, sizeof(uint32_t));
+	buffer_unpack(buffer, &size, sizeof(uint32_t));
 
 	char* respuesta = malloc(size);
 
-	buffer_unpack(buffer_MOV_IN, respuesta, size);
+	buffer_unpack(buffer, respuesta, size);
 
-	buffer_destroy(buffer_MOV_IN);
+	buffer_destroy(buffer);
 
 	return respuesta;
 }

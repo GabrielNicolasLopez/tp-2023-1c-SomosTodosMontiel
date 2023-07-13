@@ -505,8 +505,11 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 uint32_t usarMMU(t_contextoEjecucion *contextoEjecucion, uint32_t dir_logica, uint32_t tamLeer_Esc)
 {
 	uint32_t num_segmento = floor(dir_logica / configuracion_cpu -> tam_max_segmento);
+	log_debug(logger, "num_segmento: %u", num_segmento);
 	uint32_t desplazamiento_segmento = dir_logica % (configuracion_cpu -> tam_max_segmento);
+	log_debug(logger, "desplazamiento_segmento: %u", desplazamiento_segmento);
 	uint32_t direccionFisica = num_segmento + desplazamiento_segmento;
+	log_debug(logger, "direccionFisica: %u", direccionFisica);
 	uint32_t tamanio_segmento = tamanioSegmento(contextoEjecucion, num_segmento);
 
 	log_error(logger, "tam: %d, desp: :%d, bytes: %d", tamanio_segmento, desplazamiento_segmento, tamLeer_Esc);

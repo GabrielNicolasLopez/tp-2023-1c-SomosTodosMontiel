@@ -26,8 +26,7 @@ void hilo_filesystem(){
                 uint32_t cantBytes;
                 uint32_t dir_fisica;
                 //uint32_t pid;
-                char *dato;
-                pedidoEscritura_FS(&cantBytes,&dir_fisica,dato/* ,pid */);
+                char *dato = pedidoEscritura_FS(&cantBytes,&dir_fisica/* ,pid */);
                 sleep((configuracionMemoria->retardo_memoria/1000));
                 escribir_FS(dato,dir_fisica,cantBytes/* ,*pid */);
                 free(dato);
@@ -72,7 +71,7 @@ void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica /*,uint32_t *pid
     buffer_destroy(buffer);
 }
 
-void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,char* dato/* ,uint32_t *pid */){
+char* pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica/* ,uint32_t *pid */){
 
     t_buffer* buffer = buffer_create();
 
@@ -82,7 +81,7 @@ void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,char* dato/* ,
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(uint32_t));
     // DATO
-    dato = malloc(cantBytes);
+    char* dato = malloc(*cantBytes);
     buffer_unpack(buffer,dato,*cantBytes);
     //PID
     //buffer_unpack(buffer,pid,sizeof(uint32_t));

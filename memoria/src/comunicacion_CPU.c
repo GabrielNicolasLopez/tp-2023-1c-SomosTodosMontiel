@@ -26,8 +26,11 @@ void hilo_cpu(){
             uint32_t cantBytes;
             uint32_t dir_fisica;
             uint32_t pid;
-            char *cadena;
-            pedidoEscritura_CPU(&cantBytes, &dir_fisica, cadena, pid);
+            char *cadena = pedidoEscritura_CPU(&cantBytes, &dir_fisica, &pid);
+            log_debug(logger, "cantBytes: %u", cantBytes);
+            log_debug(logger, "dir_fisica: %u", dir_fisica);
+            log_debug(logger, "cadena: %.4s", cadena);
+            log_debug(logger, "pid: %u", pid);
             sleep((configuracionMemoria->retardo_memoria/1000));
             escribir_CPU(cadena, dir_fisica, cantBytes, pid);
             free(cadena);
@@ -42,11 +45,12 @@ void hilo_cpu(){
 
 void leer_CPU(char *dato, uint32_t dirF,uint32_t cantBytes, uint32_t pid){
     memcpy(dato, espacioUsuario+dirF, cantBytes);
-    log_debug(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %ld - Origen: CPU",pid,dirF,cantBytes);
+    log_debug(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %u - Origen: CPU",pid,dirF,cantBytes);
 }
 
 void escribir_CPU(char* dato, uint32_t dirF,uint32_t cantBytes,uint32_t pid ){
 
+    log_debug(logger, "cadena: %.4s", dato);
     memcpy(espacioUsuario+dirF,dato,cantBytes);
 
     log_debug(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: CPU",pid,dirF,cantBytes);
@@ -64,28 +68,29 @@ void pedidoLectura_CPU(uint32_t *cantBytes, uint32_t *dir_fisica ,uint32_t *pid)
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(uint32_t));
     //PID
-    buffer_unpack(buffer, pid,sizeof(uint32_t));
+    buffer_unpack(buffer, pid, sizeof(uint32_t));
     
     buffer_destroy(buffer);
 }
 
-void pedidoEscritura_CPU(uint32_t* cantBytes ,uint32_t *dir_fisica,uint32_t* dato,uint32_t *pid){
+char* pedidoEscritura_CPU(uint32_t* cantBytes ,uint32_t* dir_fisica, uint32_t* pid){
 
     t_buffer* buffer = buffer_create();
 
     stream_recv_buffer(conexion_con_cpu, buffer);
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(uint32_t));   
-    char* cadeda = malloc(*cantBytes);
     // DATO
-    buffer_unpack(buffer, cadeda, *cantBytes);
-
+    char* cadena = malloc(*cantBytes);
+    buffer_unpack(buffer, cadena, *cantBytes);
+    log_debug(logger, "cadena: %.4s", cadena);
     // DIRECCION FISICA DONDE ESCRIBIR
     buffer_unpack(buffer, dir_fisica, sizeof(uint32_t));
     //PID
     buffer_unpack(buffer, pid, sizeof(uint32_t));
 
     buffer_destroy(buffer);
+    return cadena;
 }
 
 void enviarDato_CPU(uint32_t cantBytes, char* dato){

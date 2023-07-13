@@ -34,7 +34,7 @@ int main(int argc, char** argv){
     //Creo el archivo config
 	//configuracionMemoria = malloc(sizeof(t_memoria_config));
 	configuracionMemoria = leerConfiguracion();
-	espacioUsuario = malloc(configuracionMemoria -> tam_memoria );
+	espacioUsuario = malloc(configuracionMemoria -> tam_memoria);
 
 	segmento_0 = malloc(sizeof(t_segmento));
 	hueco_0 = malloc(sizeof(t_hueco));

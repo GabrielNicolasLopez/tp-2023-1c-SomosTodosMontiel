@@ -26,7 +26,7 @@ void pedidoLectura_CPU(uint32_t *cantBytes, uint32_t *dir_fisica ,uint32_t *pid)
 void enviarDato_CPU( uint32_t cantBytes, char* dato);
 
 //ESCRIBIR CPU
-void pedidoEscritura_CPU(uint32_t* cantBytes ,uint32_t *dir_fisica,uint32_t* dato,uint32_t *pid);
+char* pedidoEscritura_CPU(uint32_t* cantBytes ,uint32_t* dir_fisica, uint32_t* pid);
 void escribir_CPU(char* dato, uint32_t dirF,uint32_t cantBytes,uint32_t pid );
 void ok_CPU();
 
@@ -36,7 +36,7 @@ void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica/* ,uint32_t *pid
 void enviarDato_FS(uint32_t cantBytes, char* dato);
 
 //ESCRIBIR FS
-void pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,char* dato/* ,uint32_t *pid */);
+char* pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica/* ,uint32_t *pid */);
 void escribir_FS(char* dato , uint32_t dirF,uint32_t cantBytes/* ,uint32_t pid */);
 void ok_FS();
 
