@@ -39,6 +39,7 @@ t_cpu_config* leer_configuracion(t_config* config){
 	configuracion -> ip_memoria = config_get_string_value(config, "IP_MEMORIA");
 	configuracion -> puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
 	configuracion -> retardo_instruccion = config_get_int_value(config, "RETARDO_INSTRUCCION");
+	configuracion -> tam_max_segmento = config_get_int_value(config, "TAM_MAX_SEGMENTO");
 
 	return configuracion;
 }
@@ -273,10 +274,20 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+
+	//Cantidad de segmentos
+	buffer_pack(buffer, &(contextoEjecucion->tamanio_tabla), sizeof(uint32_t));
 	
-	
-	//uint8_t header = CYM;
-	//stream_send_buffer(cliente_fd_kernel, header, cym_a_enviar);
+	for (int i = 0; i < contextoEjecucion->tamanio_tabla; i++)
+    {   
+        segmento = list_get(contextoEjecucion->tablaDeSegmentos, i);
+        buffer_pack(buffer, &(segmento->pid),         sizeof(uint32_t));
+        buffer_pack(buffer, &(segmento->id_segmento), sizeof(uint32_t));
+        buffer_pack(buffer, &(segmento->base),        sizeof(uint32_t));
+        buffer_pack(buffer, &(segmento->tamanio),     sizeof(uint32_t));
+        log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
+    }
+
 	stream_send_buffer(cliente_fd_kernel, CYM, cym_a_enviar);
 	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
 
@@ -299,7 +310,9 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	t_registroC *registroC    = malloc(sizeof(t_registroC));
 	t_registroE *registroE    = malloc(sizeof(t_registroE));
 	t_registroR *registroR    = malloc(sizeof(t_registroR));
+
 	
+	contextoEjecucion->tablaDeSegmentos = list_create();
 	contextoEjecucion->instrucciones = inst;
 	contextoEjecucion->instrucciones->listaInstrucciones = list_create();
 	contextoEjecucion->registrosCPU = registros;
@@ -465,7 +478,52 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 	//log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 
+	uint32_t cantidad_de_segmentos;
+	buffer_unpack(ce_recibido, &cantidad_de_segmentos, sizeof(uint32_t));
+
+	t_segmento *segmento;
+    for (int i = 0; i < cantidad_de_segmentos; i++)
+    {   
+		segmento = malloc(sizeof(t_segmento)); 
+		buffer_unpack(ce_recibido, &(segmento->pid),         sizeof(uint32_t));
+        buffer_unpack(ce_recibido, &(segmento->id_segmento), sizeof(uint32_t));
+        buffer_unpack(ce_recibido, &(segmento->base),        sizeof(uint32_t));
+        buffer_unpack(ce_recibido, &(segmento->tamanio),     sizeof(uint32_t));
+        list_add(contextoEjecucion->tablaDeSegmentos, segmento);
+		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		segmento->pid,
+		segmento->id_segmento,
+		segmento->base,
+		segmento->tamanio);
+    }
+
     buffer_destroy(ce_recibido);
 
     return contextoEjecucion;
+}
+
+uint32_t usarMMU(t_contextoEjecucion *contextoEjecucion)
+{
+	uint32_t num_segmento = floor(dir_logica / configuracion_cpu -> tam_max_segmento);
+	uint32_t desplazamiento_segmento = dir_logica % (configuracion_cpu -> tam_max_segmento);
+	uint32_t direccionFisica = num_segmento + desplazamiento_segmento;
+	uint32_t tamanio_segmento = tamanioSegmento(num_segmento);
+
+
+	//Revisamos si no estamos accediendo a una direccion mayor a la posible
+	if(tamanio_segmento < tamLeer_Esc + desplazamiento_segmento)
+		return -1;
+
+	//Si esta ok, enviamos
+	return direccionFisica;
+}
+
+uint32_t tamanioSegmento(uint32_t id){
+	uint32_t tamanioSegmento;
+    for (int i = 0; i < list_size(contextoEjecucion->tablaDeSegmentos); i++) {
+        t_segmento* segmento = (t_segmento*)list_get(listaSegmentos, i);
+        if (segmento->id_segmento == id)
+            tamanioSegmento = segmento->tamanio;
+    }
+    return tamanioSegmento;
 }

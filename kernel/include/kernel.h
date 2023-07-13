@@ -57,8 +57,6 @@ typedef struct
 	struct timespec llegadaReady;
 	double estimacion_anterior;
 	double real_anterior;
-	t_list *tablaDeSegmentos;
-	uint32_t tamanio_tabla;
 	t_list *taap; //Tabla de Archivos Abiertos del Proceso
 	pthread_mutex_t mutex_TAAP;
 } t_pcb;

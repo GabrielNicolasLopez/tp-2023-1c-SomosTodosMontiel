@@ -138,6 +138,7 @@ typedef enum
     // 0 parámetros
     YIELD,
     EXIT,
+    SEG_FAULT
 } t_tipoInstruccion;
 
 typedef struct
@@ -204,6 +205,8 @@ typedef struct
 	uint32_t program_counter;
 	t_instrucciones *instrucciones;
 	t_registrosCPU *registrosCPU;
+    t_list *tablaDeSegmentos;
+	uint32_t tamanio_tabla;
 } t_contextoEjecucion;
 
 typedef struct

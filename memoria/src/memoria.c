@@ -68,6 +68,32 @@ void recibir_conexion(int socketEscucha) {
 	int socketCliente = esperar_cliente(socketEscucha);
     uint8_t handshake = stream_recv_header(socketCliente);
     stream_recv_empty_buffer(socketCliente);
+	switch(handshake){
+		case HANDSHAKE_cpu:
+			conexion_con_cpu = socketCliente;
+			log_info(logger, "Se acepta conexión de CPU en socket %d", conexion_con_cpu);
+			stream_send_empty_buffer(conexion_con_cpu, HANDSHAKE_ok_continue);
+			pthread_create(&hiloCPU, NULL, (void *)hilo_cpu, NULL);
+			break;
+		case HANDSHAKE_kernel:
+			conexion_con_kernel = socketCliente;
+			log_info(logger, "Se acepta conexión de Kernel en socket %d", conexion_con_kernel);
+			stream_send_empty_buffer(conexion_con_kernel, HANDSHAKE_ok_continue);
+			pthread_create(&hiloKernel, NULL, (void *)hilo_kernel_m, NULL);
+			break;
+		case HANDSHAKE_filesystem:
+			conexion_con_FileSystem = socketCliente;
+			log_info(logger, "Se acepta conexión de Filesystem en socket %d", conexion_con_FileSystem);
+			stream_send_empty_buffer(conexion_con_FileSystem, HANDSHAKE_ok_continue);
+			pthread_create(&hiloFilesystem, NULL, (void *)hilo_filesystem, NULL);
+			break;
+		default:
+			log_error(logger, "Error al recibir handshake de cliente: %s", strerror(errno));
+			exit(-1);
+			break;
+	}
+
+	/*
     if (handshake == HANDSHAKE_cpu) {
 		conexion_con_cpu = socketCliente;
         log_info(logger, "Se acepta conexión de CPU en socket %d", conexion_con_cpu);
@@ -84,9 +110,9 @@ void recibir_conexion(int socketEscucha) {
         stream_send_empty_buffer(conexion_con_FileSystem, HANDSHAKE_ok_continue);
 		pthread_create(&hiloFilesystem, NULL, (void *)hilo_filesystem, NULL);
     } else {
-        log_error(logger, "Error al recibir handshake de cliente: %s", strerror(errno));
-        exit(-1);
+        
     }
+	*/
 }
 
 void recibir_conexiones(int socketEscucha){

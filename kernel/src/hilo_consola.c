@@ -292,7 +292,7 @@ void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar){
 }
 
 void crear_tabla_de_segmentos(t_pcb *pcb){
-	pcb->tablaDeSegmentos = list_create();
+	pcb->contexto->tablaDeSegmentos = list_create();
 }
 
 void inicializar_registro_cpu(t_pcb *pcb){

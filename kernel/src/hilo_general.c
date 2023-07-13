@@ -30,7 +30,7 @@ void hilo_general()
 
 			// Enviamos el contexto de ejecucion a cpu
 			//log_info(logger, "ce enviado a CPU. PID: %d", pcb->contexto->pid);
-			enviar_ce_a_cpu(pcb->contexto, conexion_con_cpu);
+			enviar_ce_a_cpu(pcb, conexion_con_cpu);
 		}
 
 		log_info(logger, "Esperando cym desde CPU...");

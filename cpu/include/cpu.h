@@ -15,12 +15,13 @@
 		char* puerto_escucha;
 		char* ip_memoria;
 		char* puerto_memoria;
-		int retardo_instruccion;
+		uint32_t retardo_instruccion;
+		uint32_t tam_max_segmento;
 	}t_cpu_config;
 
 	extern t_cpu_config *configuracion_cpu;
 
-	extern int conexion_memoria, server_fd_kernel;
+	extern int conexion_con_memoria, server_fd_kernel;
 
 	// OBTENEMOS LA CONFIGURACION DEL PROCESO
 	t_cpu_config* leer_configuracion(t_config* config);
@@ -59,5 +60,6 @@
 	void stream_recv_buffer(int fromSocket, t_buffer* destBuffer);
 	t_buffer* buffer_create(void);
 	void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *contextoEjecucion, int cliente_fd_kernel);
+	char* esperar_respuesta_mov_in();
 
 #endif
