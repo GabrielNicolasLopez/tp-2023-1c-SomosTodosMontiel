@@ -6,7 +6,7 @@ void hilo_general()
 	//Me conecto con los módulos
 	conectarse_con_cpu();
 	conectarse_con_memoria();
-	//conectarse_con_fs();
+	conectarse_con_fs();
 
 	t_motivoDevolucion *motivoDevolucion = malloc(sizeof(t_motivoDevolucion));
 	t_contextoEjecucion *contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
@@ -82,7 +82,7 @@ void hilo_general()
 					sem_wait(&FS_Continue);
 					log_debug(logger, "recibi la respuesta de fs, continuando...");
 					se_reenvia_el_contexto = true;
-					devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+					devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 					log_debug(logger, "se devolvio el ce a cpu");
 				}
 				break;
@@ -99,14 +99,14 @@ void hilo_general()
 				//t_pcb* pcb = pcb_ejecutando();
 				//log_debug(logger, "archivos en taap de la pcb: %d", list_size(pcb->taap));
 				se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+				devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 				break;
 
 			case F_SEEK:
 				log_debug(logger, "entre a f_seek");
 				actualizar_posicicon_puntero(motivoDevolucion->cadena, motivoDevolucion->cant_int);
 				se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+				devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 				break;
 
 			case F_READ:
@@ -191,7 +191,7 @@ void hilo_general()
 					log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
 					//Renviamos el contexto porque la solicitud fue exitosa
 					se_reenvia_el_contexto = true;
-					devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+					devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 					break;
 				}
 				// Si el recurso existe pero no hay instancias disponibles en este momento, se envia a la lista de bloqueo
@@ -225,7 +225,7 @@ void hilo_general()
 				actualizar_procesos_bloqueados(motivoDevolucion->cadena);
 				//Reenviamos el contexto			
 				se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+				devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 				break;
 
 			case CREATE_SEGMENT:
@@ -262,7 +262,7 @@ void hilo_general()
 
 				//Reenviamos el contexto			
 				se_reenvia_el_contexto = true;
-				devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+				devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 				log_debug(logger, "se devolvio el ce a cpu");
 				break;
 
@@ -641,7 +641,7 @@ void recibir_respuesta_create_segment(t_segmento *nuevo_segmento, uint32_t id, u
 			agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 			//Reenviamos el contexto			
 			se_reenvia_el_contexto = true;
-			devolver_ce_a_cpu(motivoDevolucion->contextoEjecucion, conexion_con_cpu);
+			devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 			break;
 		case SIN_MEMORIA:
 			//Si no hay memoria no se reenvia la PCB. Se la finaliza y libera la CPU ya que no hay memoria.
@@ -750,21 +750,21 @@ void recibir_tabla_de_segmentos(){
 	log_error(logger, "recibi la lista de memoria: %d", buffer_tabla_segmentos->size);
 	uint32_t tamanio_tabla;
 	buffer_unpack(buffer_tabla_segmentos, &tamanio_tabla, sizeof(uint32_t));
-	pcb->tamanio_tabla = tamanio_tabla;
-	log_debug(logger, "tamanio tabla: %d", pcb->tamanio_tabla);
+	pcb->contexto->tamanio_tabla = tamanio_tabla;
+	log_debug(logger, "tamanio tabla: %d", pcb->contexto->tamanio_tabla);
 	//Borramos los segmentos viejos para cargar los nuevos
 	//list_clean_and_destroy_elements(pcb->tablaDeSegmentos, free());
-	list_clean(pcb->tablaDeSegmentos);
+	list_clean(pcb->contexto->tablaDeSegmentos);
 	
 	t_segmento *segmento;
-    for (int i = 0; i < pcb->tamanio_tabla; i++)
+    for (int i = 0; i < pcb->contexto->tamanio_tabla; i++)
     {   
 		segmento = malloc(sizeof(t_segmento)); 
 		buffer_unpack(buffer_tabla_segmentos, &(segmento->pid),         sizeof(uint32_t));
         buffer_unpack(buffer_tabla_segmentos, &(segmento->id_segmento), sizeof(uint32_t));
         buffer_unpack(buffer_tabla_segmentos, &(segmento->base),        sizeof(uint32_t));
         buffer_unpack(buffer_tabla_segmentos, &(segmento->tamanio),     sizeof(uint32_t));
-        list_add(pcb->tablaDeSegmentos, segmento);
+        list_add(pcb->contexto->tablaDeSegmentos, segmento);
 		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
 		segmento->pid,
 		segmento->id_segmento,
@@ -792,7 +792,7 @@ void actualizar_lista_segmentos(){
 		for(int j = 0; j < list_size(LISTA_PCBS_EN_RAM); j++){
 			pcb_a_actualizar = list_get(LISTA_PCBS_EN_RAM, j);
 			if(pcb_a_actualizar->contexto->pid == segmento_a_actualizar->pid)
-				list_add(pcb_a_actualizar->tablaDeSegmentos, segmento_a_actualizar);
+				list_add(pcb_a_actualizar->contexto->tablaDeSegmentos, segmento_a_actualizar);
 		}
     }
 	
@@ -800,7 +800,7 @@ void actualizar_lista_segmentos(){
 		pcb_a_actualizar = list_get(LISTA_PCBS_EN_RAM, j);
 		//Agrego el segmento 0
 		segmento_a_actualizar = list_get(LISTA_TABLA_SEGMENTOS, 0);
-		list_add(pcb_a_actualizar->tablaDeSegmentos, segmento_a_actualizar);
+		list_add(pcb_a_actualizar->contexto->tablaDeSegmentos, segmento_a_actualizar);
 	}
 }
 
@@ -820,7 +820,7 @@ void limpiar_todas_las_listas_individuales(){
 	for (int i = 0; i < list_size(LISTA_PCBS_EN_RAM); i++)
     {   
 		pcb_a_borrar = list_get(LISTA_PCBS_EN_RAM, i);
-		list_clean(pcb_a_borrar->tablaDeSegmentos);
+		list_clean(pcb_a_borrar->contexto->tablaDeSegmentos);
     }
 }
 
@@ -891,10 +891,10 @@ void actualizar_pcb(t_contextoEjecucion *contextoEjecucion)
 	pcb->contexto = contextoEjecucion;
 }
 
-void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cpu)
+void devolver_ce_a_cpu(t_pcb *pcb, int conexion_con_cpu)
 {
-	log_info(logger, "ce enviado a CPU. PID: %d", contextoEjecucion->pid);
-	enviar_ce_a_cpu(contextoEjecucion, conexion_con_cpu);
+	log_info(logger, "ce enviado a CPU. PID: %d", pcb->contexto->pid);
+	enviar_ce_a_cpu(pcb, conexion_con_cpu);
 }
 
 void sleep_IO(t_datosIO *datosIO){

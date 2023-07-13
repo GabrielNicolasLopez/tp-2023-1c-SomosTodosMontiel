@@ -159,11 +159,11 @@ void devolverRecursosPCB(t_pcb* pcb);
 void update_program_counter(t_pcb *pcb, t_motivoDevolucion *motivoDevolucion);
 void devolverContextoEjecucion(t_pcb *pcb, int conexion_con_cpu);
 
-void enviar_ce_a_cpu(t_contextoEjecucion* contextoEjecucion, int conexion_con_cpu);
-void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cpu);
+void enviar_ce_a_cpu(t_pcb* pcb, int conexion_con_cpu);
+//void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cpu);
 
 void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_con_cpu);
-void devolver_ce_a_cpu(t_contextoEjecucion *contextoEjecucion, int conexion_con_cpu);
+void devolver_ce_a_cpu(t_pcb *pcb, int conexion_con_cpu);
 
 void actualizar_pcb(t_contextoEjecucion *contextoEjecucion);
 

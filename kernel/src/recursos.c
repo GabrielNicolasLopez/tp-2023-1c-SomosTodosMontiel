@@ -33,11 +33,11 @@ void asignarRecurso(char *nombre_recurso, t_pcb* pcb)
 			recurso->instancias_recursos -= 1;
 			pthread_mutex_unlock(&recurso->mutex_lista_blocked);
 			//Agrego el nombre del recurso a la tabla de recursos del proceso
-			char* nombreRecurso = malloc(recurso->nombre);
-			nombreRecurso = recurso->nombre;
-			pthread_mutex_lock(&pcb->mutex_TablaDeRecursos);
-			list_add(pcb->tablaDeRecursos, nombreRecurso);
-			pthread_mutex_unlock(&pcb->mutex_TablaDeRecursos);
+			// char* nombreRecurso = malloc(recurso->nombre);
+			// nombreRecurso = recurso->nombre;
+			// pthread_mutex_lock(&pcb->mutex_TablaDeRecursos);
+			// list_add(pcb->tablaDeRecursos, nombreRecurso);
+			// pthread_mutex_unlock(&pcb->mutex_TablaDeRecursos);
 		}
 	}
 }

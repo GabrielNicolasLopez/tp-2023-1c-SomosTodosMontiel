@@ -210,7 +210,7 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	buffer_unpack(cym_recibido, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
 	buffer_unpack(cym_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 
-	buffer_unpack(cym_recibido, contextoEjecucion->tamanio_tabla, sizeof(uint32_t));
+	buffer_unpack(cym_recibido, &contextoEjecucion->tamanio_tabla, sizeof(uint32_t));
 
 	t_segmento *segmento;
     for (int i = 0; i < contextoEjecucion->tamanio_tabla; i++)
