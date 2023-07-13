@@ -95,7 +95,7 @@ void hilo_kernel(){
 void hilo_memoria(){
     
 	// Me conecto a filesystem
-	int conexion_con_memoria = crear_conexion(configuracion_cpu->ip_memoria, configuracion_cpu->puerto_memoria);
+	conexion_con_memoria = crear_conexion(configuracion_cpu->ip_memoria, configuracion_cpu->puerto_memoria);
 
 	if (conexion_con_memoria == -1) //Si no se puede conectar
 	{
@@ -478,11 +478,11 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
 	//log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 
-	uint32_t cantidad_de_segmentos;
-	buffer_unpack(ce_recibido, &cantidad_de_segmentos, sizeof(uint32_t));
+	buffer_unpack(ce_recibido, &contextoEjecucion->tamanio_tabla, sizeof(uint32_t));
+	log_error(logger, "tamanio_tabla: %d", contextoEjecucion->tamanio_tabla);
 
 	t_segmento *segmento;
-    for (int i = 0; i < cantidad_de_segmentos; i++)
+    for (int i = 0; i < contextoEjecucion->tamanio_tabla; i++)
     {   
 		segmento = malloc(sizeof(t_segmento)); 
 		buffer_unpack(ce_recibido, &(segmento->pid),         sizeof(uint32_t));
@@ -490,7 +490,7 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
         buffer_unpack(ce_recibido, &(segmento->base),        sizeof(uint32_t));
         buffer_unpack(ce_recibido, &(segmento->tamanio),     sizeof(uint32_t));
         list_add(contextoEjecucion->tablaDeSegmentos, segmento);
-		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",
 		segmento->pid,
 		segmento->id_segmento,
 		segmento->base,
@@ -507,11 +507,12 @@ uint32_t usarMMU(t_contextoEjecucion *contextoEjecucion, uint32_t dir_logica, ui
 	uint32_t num_segmento = floor(dir_logica / configuracion_cpu -> tam_max_segmento);
 	uint32_t desplazamiento_segmento = dir_logica % (configuracion_cpu -> tam_max_segmento);
 	uint32_t direccionFisica = num_segmento + desplazamiento_segmento;
-	uint32_t tamanio_segmento = tamanioSegmento(contextoEjecucion ,num_segmento);
+	uint32_t tamanio_segmento = tamanioSegmento(contextoEjecucion, num_segmento);
 
+	log_error(logger, "tam: %d, desp: :%d, bytes: %d", tamanio_segmento, desplazamiento_segmento, tamLeer_Esc);
 
 	//Revisamos si no estamos accediendo a una direccion mayor a la posible
-	if(tamanio_segmento < tamLeer_Esc + desplazamiento_segmento)
+	if(tamanio_segmento < desplazamiento_segmento + tamLeer_Esc)
 		return -1;
 
 	//Si esta ok, enviamos
@@ -525,5 +526,6 @@ uint32_t tamanioSegmento(t_contextoEjecucion *contextoEjecucion, uint32_t id){
         if (segmento->id_segmento == id)
             tamanioSegmento = segmento->tamanio;
     }
+	log_error(logger, "tamaño segmento0: %d", tamanioSegmento);
     return tamanioSegmento;
 }

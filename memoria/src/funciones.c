@@ -45,9 +45,9 @@ uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
 
 uint32_t aplicarAlgoritmo(uint32_t tamSegmento){
 
-t_tipo_algoritmo algoritmo;
-algoritmo = obtenerAlgoritmo();
-uint32_t direccionBase;
+    t_tipo_algoritmo algoritmo;
+    algoritmo = obtenerAlgoritmo();
+    uint32_t direccionBase;
 
     switch (algoritmo)
     {
@@ -58,6 +58,7 @@ uint32_t direccionBase;
 
     case BEST:
          direccionBase=algoritmoBestFit(tamSegmento);
+         log_error(logger, "best");
         //return direccionBase;
         break;
 
@@ -160,3 +161,4 @@ void compactar(){
     list_add(listaHuecos, hueco_Nuevo);
 }
 
+void buddySystem(){}

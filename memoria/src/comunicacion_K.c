@@ -47,13 +47,14 @@ void hilo_kernel_m(){
                 //aca recibo PID ID TAM
                 //recibirDatos(segmentoACrear->pid, segmentoACrear->id_segmento, segmentoACrear->tamanio);
                 recibirDatos(segmentoACrear);
-                //log_info(logger,"datos recibidos para crear un segmento: pid: %d, id: %d, tam: %d", segmentoACrear->pid, segmentoACrear->id_segmento, segmentoACrear->tamanio);
+                log_info(logger,"datos recibidos para crear un segmento: pid: %d, id: %d, tam: %d", segmentoACrear->pid, segmentoACrear->id_segmento, segmentoACrear->tamanio);
                 
                 //compruebo si hay espacio
                 uint32_t espacioDisponible = comprobar_Creacion_de_Seg(segmentoACrear->tamanio);
                     
                 //creo el segemnto y lo meto en la lista
                 if(espacioDisponible==1){
+                    log_error(logger, "aplicando algoritmo...");
                     segmentoACrear->base = aplicarAlgoritmo(segmentoACrear->tamanio);
                     
                     list_add(listaSegmentos, segmentoACrear);
@@ -147,21 +148,17 @@ void recibirIDPID(uint32_t *id, uint32_t *pid){
 
     t_buffer *buffer = buffer_create();
 
-    uint32_t var_id, var_pid;
+    //uint32_t var_id, var_pid;
 
     stream_recv_buffer(conexion_con_kernel,buffer);
 
-    buffer_unpack(buffer, &var_id, sizeof(uint32_t));
+    buffer_unpack(buffer, id, sizeof(uint32_t));
 
-    buffer_unpack(buffer, &var_pid, sizeof(uint32_t));
+    buffer_unpack(buffer, pid, sizeof(uint32_t));
 
-    //log_info(logger, "var_id = %d y var_pid = %d", var_id, var_pid);
-
-    *id = var_id;
+    // *id = var_id;
     
-    *pid = var_pid;
-    
-    //log_info(logger, "id = %d y pid = %d", *id, *pid);
+    // *pid = var_pid;
 
     buffer_destroy(buffer);
 }

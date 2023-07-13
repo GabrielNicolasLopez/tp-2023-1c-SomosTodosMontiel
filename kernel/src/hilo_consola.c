@@ -272,7 +272,7 @@ uint32_t recibir_el_segmento0_de_memoria(){
 	t_Kernel_Memoria header = stream_recv_header(conexion_con_memoria);
 
 	if(header != TAMANIO)
-	log_error(logger, "no se recibió el header correcto al recibir el segmento_0: %d (=7)", header);
+		log_error(logger, "no se recibió el header correcto al recibir el segmento_0: %d (=7)", header);
 
 	stream_recv_buffer(conexion_con_memoria, recibir_segmento0);
 
@@ -281,6 +281,8 @@ uint32_t recibir_el_segmento0_de_memoria(){
 
 	buffer_destroy(recibir_segmento0);
 
+	log_error(logger, "tamaño segmento0: %d", tamanio);
+
 	return tamanio;
 }
 
@@ -288,9 +290,9 @@ void crear_tabla_de_archivos_proceso(t_pcb *pcb){
 	pcb->taap = list_create();
 }
 
-/*void crear_tabla_de_recursos_proceso(t_pcb *pcb){
+void crear_tabla_de_recursos_proceso(t_pcb *pcb){
 	pcb->contexto->tablaDeSegmentos = list_create();
-}*/
+}
 
 void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0){
 	agregar_segmento(pcb, segmento0);
@@ -299,6 +301,7 @@ void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0){
 void agregar_segmento(t_pcb *pcb, t_segmento *segmento_a_agregar){
 	list_add(pcb->contexto->tablaDeSegmentos, segmento_a_agregar);
 	log_debug(logger, "cantidad de segmentos: %d", list_size(pcb->contexto->tablaDeSegmentos));
+	pcb->contexto->tamanio_tabla++;
 }
 
 void crear_tabla_de_segmentos(t_pcb *pcb){

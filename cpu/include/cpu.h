@@ -65,9 +65,9 @@
 	uint32_t usarMMU(t_contextoEjecucion *contextoEjecucion, uint32_t dir_logica, uint32_t tamLeer_Esc);
 	uint32_t tamanioSegmento(t_contextoEjecucion *contextoEjecucion, uint32_t id);
 	
-	void enviar_mov_in_a_memoria(uint32_t direccion_fisica, uint32_t pid);
+	void enviar_mov_in_a_memoria(uint32_t direccion_fisica, uint32_t cantBytes, uint32_t pid);
 	char* esperar_respuesta_mov_in();
-	void enviar_mov_out_a_memoria(char* valor_registro, uint32_t direccion_fisica, uint32_t PID);
+	void enviar_mov_out_a_memoria(uint32_t cantBytes, char* valor_registro, uint32_t direccion_fisica, uint32_t PID);
 	void esperar_respuesta_mov_out();
 	char* valor_registro(t_contextoEjecucion* contexto_ejecucion, t_registro registro);
 	uint32_t tamanio_reg(int reg);

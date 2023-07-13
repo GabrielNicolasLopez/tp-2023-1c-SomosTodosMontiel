@@ -52,10 +52,6 @@ int main(int argc, char** argv){
 	int socketEscucha = iniciar_servidor(IP_MEMORIA, configuracionMemoria->puerto_escucha);
 
     recibir_conexiones(socketEscucha);
-	//recibir_conexion(socketEscucha);
-
-	// pthread_create(&hiloKernel, NULL, (void *)hilo_cpu, NULL);
-	// pthread_detach(hiloKernel);
 
 	//Espera la finalizacion de los hilos
 	pthread_join(hiloFilesystem, NULL);

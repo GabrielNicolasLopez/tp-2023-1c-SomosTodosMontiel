@@ -30,6 +30,7 @@ uint32_t algoritmoFirstFit(uint32_t tamSegmento){
 //BestFit
 uint32_t algoritmoBestFit(uint32_t tamSegmento) {
     // Ordenar los huecos por tamaño de forma ascendente
+    log_error(logger, "cantidad de segmentos en algoritmo bestfit: %d", list_size(listaHuecos));
     list_sort(listaHuecos, compararHuecosPorTamanioAscendente);
 
     // Buscar el hueco más pequeño que pueda contener el segmento
@@ -81,8 +82,11 @@ uint32_t algoritmoWorstFit(uint32_t tamSegmento) {
 }
 
 int compararHuecosPorTamanioAscendente(const void* a, const void* b) {
-    t_hueco* huecoA = *(t_hueco**)a;
-    t_hueco* huecoB = *(t_hueco**)b;
+    t_hueco* huecoA = (t_hueco*)a;
+    t_hueco* huecoB = (t_hueco*)b;
+
+    log_error(logger, "huecoA->tamanio: %d", huecoA->tamanio);
+    log_error(logger, "huecoB->tamanio: %d", huecoB->tamanio);
 
     if (huecoA->tamanio < huecoB->tamanio) {
         return -1;
@@ -94,8 +98,11 @@ int compararHuecosPorTamanioAscendente(const void* a, const void* b) {
 }
 
 int compararHuecosPorTamanioDescendente(const void* a, const void* b) {
-    t_hueco* huecoA = *(t_hueco**)a;
-    t_hueco* huecoB = *(t_hueco**)b;
+    t_hueco* huecoA = (t_hueco*)a;
+    t_hueco* huecoB = (t_hueco*)b;
+
+    log_error(logger, "huecoA->tamanio: %d", huecoA->tamanio);
+    log_error(logger, "huecoB->tamanio: %d", huecoB->tamanio);
 
     if (huecoA->tamanio > huecoB->tamanio) {
         return -1;

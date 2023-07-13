@@ -19,6 +19,7 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	contextoEjecucion->registrosCPU->registroR = malloc(sizeof(t_registroR));
 
 	contextoEjecucion->instrucciones->listaInstrucciones = list_create();
+	contextoEjecucion->tablaDeSegmentos = list_create();
 
 	motivoDevolucion->contextoEjecucion = contextoEjecucion;
 
