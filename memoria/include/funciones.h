@@ -13,5 +13,6 @@ uint32_t compararPorBase(const void* a, const void* b);
 void buscarSegmentoPorPID(t_list* lista, uint32_t pid);
 void eliminarProceso(t_list* listaSegmentosBorrar);
 void compactar();
+void buddySystem();
 
 #endif

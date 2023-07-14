@@ -33,6 +33,7 @@ void hilo_kernel_m(){
 
             //borro todos los segmentos con ese Pid y mando un PROCESO_BORRADO
             eliminarProceso(listasABorrar);
+            buddySystem();
             mandarPrBr();
 
             log_info(logger,"Eliminación de Proceso PID: %d", pid_recibido);
@@ -87,12 +88,15 @@ void hilo_kernel_m(){
                 huecoCrear(segmentoEncontrado, huecoNuevo);
 
                 list_add(listaHuecos,huecoNuevo);
+                
                 log_info(logger,"PID: %d - Borrar Segmento: %d - Base: %d - TAMAÑO: %d",segmentoEncontrado->pid,segmentoEncontrado->id_segmento,segmentoEncontrado->base,segmentoEncontrado->tamanio);
 
                 log_error(logger, "cantidad de segmentos antes de borrar: %d", list_size(listaSegmentos));
                 if(!list_remove_element(listaSegmentos,segmentoEncontrado)){
                     log_info(logger, "No lo puede remover");
-                }   
+                } 
+                buddySystem();
+                
                 log_error(logger, "cantidad de segmentos despues de borrar: %d", list_size(listaSegmentos));
                 //devuelvo la lista nueva con el segemto elimado    
                 t_list* listaMandar = list_create();

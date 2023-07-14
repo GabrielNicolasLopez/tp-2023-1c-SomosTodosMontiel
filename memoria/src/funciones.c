@@ -161,4 +161,31 @@ void compactar(){
     list_add(listaHuecos, hueco_Nuevo);
 }
 
-void buddySystem(){}
+void buddySystem(){
+    
+    list_sort(listaHuecos, compararPorBase);
+     
+    t_hueco* huecoA = malloc(sizeof(t_hueco));
+    t_hueco* huecoB = malloc(sizeof(t_hueco));
+    uint32_t baseComparar;
+    
+
+    for (int i = 0; i < list_size(listaHuecos); i++)
+    {
+        if (i == list_size(listaHuecos)){
+            break;
+        }
+        huecoA = list_get(listaHuecos,i);
+        huecoB = list_get(listaHuecos,i+1);
+        
+        baseComparar = huecoA->base + huecoA->tamanio;
+
+        if(baseComparar == huecoB->base){
+
+            huecoB->base=huecoA->base;
+            huecoB->tamanio+=huecoA->tamanio;
+            list_remove_element(listaHuecos,huecoA);
+            
+        }
+    }
+}
