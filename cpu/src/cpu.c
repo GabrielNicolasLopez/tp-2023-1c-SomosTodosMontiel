@@ -58,7 +58,7 @@ void crear_hilos_cpu()
 
 // *** HILO KERNEL ***
 void hilo_kernel(){
-	int server_fd_kernel = iniciar_servidor("127.0.0.1", configuracion_cpu -> puerto_escucha);
+	int server_fd_kernel = iniciar_servidor(IP_SERVER, configuracion_cpu -> puerto_escucha);
 	log_error(logger, "CPU listo para recibir clientes del Kernel");
     int cliente_fd_kernel = esperar_cliente(server_fd_kernel); // esperamos un proceso para ejecutar
 

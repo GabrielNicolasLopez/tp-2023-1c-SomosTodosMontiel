@@ -17,6 +17,8 @@
 #include <pthread.h>
 #include <time.h>
 
+#define IP_SERVER "0.0.0.0"
+
 extern char *razonFinConsola[];
 extern char *nombresCodigoOperaciones[];
 extern char *nombresInstrucciones[];

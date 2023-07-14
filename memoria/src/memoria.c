@@ -49,7 +49,7 @@ int main(int argc, char** argv){
 	list_add(listaSegmentos,segmento_0);
 	list_add(listaHuecos,hueco_0);
 
-	int socketEscucha = iniciar_servidor(IP_MEMORIA, configuracionMemoria->puerto_escucha);
+	int socketEscucha = iniciar_servidor(IP_SERVER, configuracionMemoria->puerto_escucha);
 
     recibir_conexiones(socketEscucha);
 
