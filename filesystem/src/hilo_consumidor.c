@@ -88,7 +88,7 @@ void crear_hilo_consumidor()
                     cant_bytes
                 );
                 respuesta_a_kernel(FS_OK, p_instruccion);
-                //free_p_instruccion(p_instruccion);
+                free(p_instruccion->cadena);
                 continue;
             }
             
@@ -106,7 +106,7 @@ void crear_hilo_consumidor()
             );
             char* cadena_bytes = leer_bloques(FCB, puntero_archivo, cant_bytes);
 
-            pedido_escritura_mem(cant_bytes, cadena_bytes, dir_fisica);
+            pedido_escritura_mem(cant_bytes, cadena_bytes, dir_fisica, p_instruccion->pid);
             uint8_t header = stream_recv_header(socketMemoria);
             stream_recv_empty_buffer(socketMemoria);
             if (header != FS_M_WRITE_OK) {
@@ -143,7 +143,7 @@ void crear_hilo_consumidor()
                 continue;
             }
             
-            pedido_lectura_mem(cant_bytes, dir_fisica);
+            pedido_lectura_mem(cant_bytes, dir_fisica, p_instruccion->pid);
             uint8_t header = stream_recv_header(socketMemoria);
             if (header != FS_M_READ_OK) {
                 log_error(logger, "Hilo_consumidor (F_READ): Respuesta de escritura en memoria erronea. Archivo %s", p_instruccion->cadena);
@@ -206,7 +206,7 @@ void respuesta_a_kernel(int operacion, t_instruccion_FS* instruccion)
     buffer_destroy(buffer);
 }
 
-void pedido_escritura_mem(uint32_t cantBytes, char* cadena_bytes, uint32_t dir_fisica)
+void pedido_escritura_mem(uint32_t cantBytes, char* cadena_bytes, uint32_t dir_fisica, uint32_t pid)
 {
     uint8_t header = FS_M_WRITE;
     t_buffer* buffer = buffer_create();
@@ -218,13 +218,13 @@ void pedido_escritura_mem(uint32_t cantBytes, char* cadena_bytes, uint32_t dir_f
 	// CADENA DE BYTES
     buffer_pack(buffer, cadena_bytes, cantBytes);
     //PID
-    //buffer_pack(buffer, &pid, sizeof(uint32_t));
+    buffer_pack(buffer, &pid, sizeof(uint32_t));
 
     stream_send_buffer(socketMemoria, header, buffer);
     buffer_destroy(buffer);
 }
 
-void pedido_lectura_mem(uint32_t cantBytes, uint32_t dir_fisica)
+void pedido_lectura_mem(uint32_t cantBytes, uint32_t dir_fisica, uint32_t pid)
 {
     uint8_t header = FS_M_READ;
     t_buffer* buffer = buffer_create();
@@ -234,8 +234,7 @@ void pedido_lectura_mem(uint32_t cantBytes, uint32_t dir_fisica)
     // CANTIDAD DE BYTES
     buffer_pack(buffer, &cantBytes, sizeof(uint32_t));
     //PID
-    //buffer_pack(buffer, &pid, sizeof(uint32_t));
-
+    buffer_pack(buffer, &pid, sizeof(uint32_t));
 
     stream_send_buffer(socketMemoria, header, buffer);
     buffer_destroy(buffer);

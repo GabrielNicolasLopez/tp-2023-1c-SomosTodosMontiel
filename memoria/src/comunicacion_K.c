@@ -9,6 +9,7 @@ void hilo_kernel_m(){
         uint8_t header = stream_recv_header(conexion_con_kernel);
         log_info(logger, "header recibido: %d", header);
 
+        t_segmento* segmentoImprimir;
         switch (header){
             case INICIAR_PROCESO:
                 //recibo un PID
@@ -33,7 +34,6 @@ void hilo_kernel_m(){
         
             buscarSegmentoPorPID(listasABorrar, pid_recibido);
 
-            t_segmento* segmentoImprimir;
             log_debug(logger,"Segmentos del Proceso PID:%d a borrar:",pid_recibido);
             for(int i=0; i < list_size(listasABorrar); i++){
                     segmentoImprimir = list_get(listasABorrar, i);
@@ -125,8 +125,7 @@ void hilo_kernel_m(){
                 
                 log_info(logger, "Solicitud de compactacion");
                 compactar();
-                sleep((configuracionMemoria->retardo_compatacion/1000));
-                t_segmento* segmentoImprimir;
+                //sleep((configuracionMemoria->retardo_compatacion/1000));
                 log_info(logger,"Resultado Compactación: ");
                 for(int i=0; i < list_size(listaSegmentos); i++){
                     segmentoImprimir = list_get(listaSegmentos, i);

@@ -85,6 +85,8 @@ t_instruccion_FS* recibir_instruccion(int socket)
         buffer_unpack(buffer, &instruccion->paramIntB, sizeof(uint32_t));
         //Parametro C <------- Dir. Memoria Física
         buffer_unpack(buffer, &instruccion->paramIntC, sizeof(uint32_t));
+        //PID
+        buffer_pack(buffer, &instruccion->pid, sizeof(uint32_t));
     } else
     if(instruccion->tipo == F_READ){
         //Longitud cadena
@@ -98,6 +100,8 @@ t_instruccion_FS* recibir_instruccion(int socket)
         buffer_unpack(buffer, &instruccion->paramIntB, sizeof(uint32_t));
         //Parametro C <------- Dir. Memoria Física
         buffer_unpack(buffer, &instruccion->paramIntC, sizeof(uint32_t));
+        //PID
+        buffer_pack(buffer, &instruccion->pid, sizeof(uint32_t));
     }
     
     buffer_destroy(buffer);

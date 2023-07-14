@@ -11,13 +11,13 @@ void hilo_filesystem(){
             {
                 uint32_t cantBytes;
                 uint32_t dir_fisica;
-                //uint32_t pid;
+                uint32_t pid;
                 char *dato;
                 log_info(logger,"Solicitud de Lectura por parte de FS");
-                pedidoLectura_FS(&cantBytes, &dir_fisica/* ,&pid */);
-                sleep((configuracionMemoria->retardo_memoria/1000));
+                pedidoLectura_FS(&cantBytes, &dir_fisica, &pid);
+                //sleep((configuracionMemoria->retardo_memoria/1000));
                 dato = malloc(cantBytes);
-                leer_FS(dato, dir_fisica, cantBytes/* ,pid */);
+                leer_FS(dato, dir_fisica, cantBytes, pid);
                 enviarDato_FS(cantBytes, dato);
                 free(dato);
             }
@@ -26,11 +26,11 @@ void hilo_filesystem(){
             {
                 uint32_t cantBytes;
                 uint32_t dir_fisica;
-                //uint32_t pid;
+                uint32_t pid;
                 log_info(logger,"Solicitud de Escritura por parte de FS");
-                char *dato = pedidoEscritura_FS(&cantBytes,&dir_fisica/* ,pid */);
-                sleep((configuracionMemoria->retardo_memoria/1000));
-                escribir_FS(dato,dir_fisica,cantBytes/* ,*pid */);
+                char *dato = pedidoEscritura_FS(&cantBytes,&dir_fisica,&pid);
+                //sleep((configuracionMemoria->retardo_memoria/1000));
+                escribir_FS(dato,dir_fisica,cantBytes,pid);
                 free(dato);
                 ok_FS();
             }
@@ -40,23 +40,23 @@ void hilo_filesystem(){
     }	
 }
 
-void leer_FS(char* dato, uint32_t dirF, uint32_t cantBytes/* ,uint32_t pid */){
+void leer_FS(char* dato, uint32_t dirF, uint32_t cantBytes,uint32_t pid){
 	
     memcpy(dato, espacioUsuario+dirF, cantBytes);
 
-    log_info(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %d - Origen: FS",/* pid ,*/dirF,cantBytes);
+    log_info(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %d - Origen: FS",pid ,dirF,cantBytes);
 
 }
 
-void escribir_FS(char* dato, uint32_t dirF,uint32_t cantBytes/* ,uint32_t pid */){
+void escribir_FS(char* dato, uint32_t dirF,uint32_t cantBytes,uint32_t pid){
 
     memcpy(espacioUsuario+dirF,dato,cantBytes);
 
-    log_info(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: FS",/* pid ,*/dirF,cantBytes);
+    log_info(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: FS",pid ,dirF,cantBytes);
 }
 
 
-void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica /*,uint32_t *pid*/)
+void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica, uint32_t *pid)
 {
     
     t_buffer* buffer = buffer_create();
@@ -68,12 +68,12 @@ void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica /*,uint32_t *pid
     // CANTIDAD DE BYTES
     buffer_unpack(buffer, cantBytes, sizeof(uint32_t));
     //PID
-    //buffer_unpack(buffer,pid,sizeof(uint32_t));
+    buffer_unpack(buffer,pid,sizeof(uint32_t));
     
     buffer_destroy(buffer);
 }
 
-char* pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica/* ,uint32_t *pid */){
+char* pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica, uint32_t *pid){
 
     t_buffer* buffer = buffer_create();
 
@@ -86,7 +86,7 @@ char* pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica/* ,uint32_t *
     char* dato = malloc(*cantBytes);
     buffer_unpack(buffer,dato,*cantBytes);
     //PID
-    //buffer_unpack(buffer,pid,sizeof(uint32_t));
+    buffer_unpack(buffer,pid,sizeof(uint32_t));
 
     buffer_destroy(buffer);
     return dato;

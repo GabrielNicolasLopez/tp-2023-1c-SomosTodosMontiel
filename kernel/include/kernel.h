@@ -191,8 +191,8 @@ void recibir_respuesta_finalizar_proceso();
 //---------------------------------FS---------------------------------
 void enviar_fopen_a_fs(char *nombreArchivo);
 void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion);
-void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo);
-void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo);
+void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo, uint32_t pid);
+void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo, uint32_t pid);
 void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion);
 void enviar_fcreate_a_fs(char *nombreArchivo);
 uint32_t devolver_puntero_archivo(char *nombreArchivo);

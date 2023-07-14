@@ -116,7 +116,7 @@ void hilo_general()
 				instruccion_en_fs++;
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
 
-				enviar_fread_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena));
+				enviar_fread_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena), motivoDevolucion->contextoEjecucion->pid);
 				log_debug(logger, "fread enviado a fs, bloqueando proceso");
 
 				//Me muevo la cantidad de bytes que se leen
@@ -138,7 +138,7 @@ void hilo_general()
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
 				
 				
-				enviar_fwrite_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena));
+				enviar_fwrite_a_fs(motivoDevolucion, devolver_puntero_archivo(motivoDevolucion->cadena), motivoDevolucion->contextoEjecucion->pid);
 				log_debug(logger, "fwrite enviado a fs, bloqueando proceso");
 				
 				//Me muevo la cantidad de bytes que se escriben
@@ -541,7 +541,7 @@ void enviar_fcreate_a_fs(char *nombreArchivo)
 	buffer_destroy(buffer_fcreate);
 }
 
-void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo){
+void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo, uint32_t pid){
 	
 	t_buffer* buffer_fwrite = buffer_create();
 
@@ -557,6 +557,8 @@ void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_a
 	buffer_pack(buffer_fwrite, &motivoDevolucion->cant_intB, sizeof(uint32_t));
 	//Parametro C <------- Dir. Memoria Física
 	buffer_pack(buffer_fwrite, &motivoDevolucion->cant_int, sizeof(uint32_t));
+	//PID
+    buffer_pack(buffer_fwrite, &pid, sizeof(uint32_t));
 	
 	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fwrite);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fwrite->size);
@@ -564,7 +566,7 @@ void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_a
 	buffer_destroy(buffer_fwrite);
 }
 
-void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo){
+void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_archivo, uint32_t pid){
 	t_buffer* buffer_fread = buffer_create();
 
 	//Tipo de instruccion
@@ -579,6 +581,8 @@ void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_ar
 	buffer_pack(buffer_fread, &motivoDevolucion->cant_intB, sizeof(uint32_t));
 	//Parametro C <------- Dir. Memoria Física
 	buffer_pack(buffer_fread, &motivoDevolucion->cant_int, sizeof(uint32_t));
+	//PID
+    buffer_pack(buffer_fread, &pid, sizeof(uint32_t));
 	
 	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fread);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fread->size);
@@ -619,7 +623,7 @@ void enviar_fopen_a_fs(char *nombreArchivo){
 	buffer_pack(buffer_fopen, &longitudCadena, sizeof(uint32_t));
     //Cadena
     buffer_pack(buffer_fopen, nombreArchivo, longitudCadena);
-	
+
 	stream_send_buffer(conexion_con_fs, (uint8_t) FS_INSTRUCCION, buffer_fopen);
 	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fopen->size);
 
@@ -899,7 +903,7 @@ void devolver_ce_a_cpu(t_pcb *pcb, int conexion_con_cpu)
 
 void sleep_IO(t_datosIO *datosIO){
 	int tiempo = datosIO->motivo->cant_int;
-	sleep(tiempo);
+	//sleep(tiempo);
 	list_remove_element(LISTA_BLOCKED, datosIO->pcb);
 	log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", datosIO->pcb->contexto->pid);
 	pasar_a_ready(datosIO->pcb);
@@ -911,7 +915,7 @@ void terminar_consola(t_Kernel_Consola razon)
 	
 	pasar_a_exit(pcb);
 
-	devolverRecursosPCB(pcb);
+//	devolverRecursosPCB(pcb);
 
 	stream_send_empty_buffer(pcb->contexto->socket, razon);
 

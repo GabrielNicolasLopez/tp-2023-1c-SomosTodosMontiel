@@ -31,13 +31,13 @@ void escribir_CPU(char* dato, uint32_t dirF,uint32_t cantBytes,uint32_t pid );
 void ok_CPU();
 
 //LEER FS
-void leer_FS(char* dato , uint32_t dirF,uint32_t cantBytes/* , uint32_t pid */);
-void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica/* ,uint32_t *pid */);
+void leer_FS(char* dato , uint32_t dirF,uint32_t cantBytes, uint32_t pid);
+void pedidoLectura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t *pid);
 void enviarDato_FS(uint32_t cantBytes, char* dato);
 
 //ESCRIBIR FS
-char* pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica/* ,uint32_t *pid */);
-void escribir_FS(char* dato , uint32_t dirF,uint32_t cantBytes/* ,uint32_t pid */);
+char* pedidoEscritura_FS(uint32_t *cantBytes, uint32_t *dir_fisica,uint32_t *pid);
+void escribir_FS(char* dato , uint32_t dirF,uint32_t cantBytes,uint32_t pid);
 void ok_FS();
 
 

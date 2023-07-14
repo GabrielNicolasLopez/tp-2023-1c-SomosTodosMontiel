@@ -25,6 +25,7 @@
         uint32_t paramIntA;  // Puntero del archivo
         uint32_t paramIntB;  // Cant. Bytes
         uint32_t paramIntC;  // Dir. Memoria Física
+        uint32_t pid;        // PID
 
     } t_instruccion_FS;
 
