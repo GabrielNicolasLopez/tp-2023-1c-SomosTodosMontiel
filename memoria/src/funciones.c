@@ -26,6 +26,7 @@ uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
     for (int i = 0; i < list_size(listaHuecos); i++) {
         hueco = list_get(listaHuecos,i);
         if (hueco->tamanio>=tamanio) {
+            log_info(logger,"Hay espacio suficiente para crear el segmento");
             return 1;
         }
     }
@@ -36,10 +37,12 @@ uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
         espacioLibre += hueco->tamanio;
         if (espacioLibre>=tamanio) //Necesito compactar
         {
+            log_info(logger,"Se Necesita compactar");
             return -1;
         }    
     }
     //Informar falta de espacio libre al Kernel
+    log_error(logger,"No hay espacio suficiente para crear el Segmento Out of Memory.");
     return 0;
 }
 
@@ -53,22 +56,21 @@ uint32_t aplicarAlgoritmo(uint32_t tamSegmento){
     {
     case FIRST:
         direccionBase=algoritmoFirstFit(tamSegmento);
-        //return direccionBase;
+        
         break;
 
     case BEST:
          direccionBase=algoritmoBestFit(tamSegmento);
-         log_error(logger, "best");
-        //return direccionBase;
+        
         break;
 
     case WORST:
         direccionBase=algoritmoWorstFit(tamSegmento);
-        //return direccionBase;
+        
         break;
     
     default:
-        log_error(logger, "no se eligio correctamente el algoritmo de memoria...");
+        log_error(logger, "No se eligio correctamente el algoritmo de memoria...");
         break;
     }
     return direccionBase;
@@ -92,11 +94,11 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 
 t_segmento* buscarSegmentoPorIdPID(uint32_t id, uint32_t pid) {
     
-    log_error(logger, "cantidad de segmentos: %d", list_size(listaSegmentos));
+    /* log_debug(logger, "cantidad de segmentos: %d", list_size(listaSegmentos)); */
     for (int i = 0; i < list_size(listaSegmentos); i++) {
         t_segmento* segmento = (t_segmento*)list_get(listaSegmentos, i);
         if (segmento->id_segmento == id && segmento->pid==pid) {
-            log_info(logger, "pid: %d, id: %d", pid, id);
+            log_debug(logger, "pid: %d, id: %d", pid, id);
             return segmento;
         }
     }
@@ -145,7 +147,7 @@ void compactar(){
     list_sort(listaSegmentos, compararPorBase);
     list_sort(listaHuecos, compararPorBase);
     uint32_t desplazamiento = 0;
-    
+    log_info(logger,"Se empezo a Compactar");
     for(int i=0;i<list_size(listaSegmentos);i++){
         t_segmento* segmento=list_get(listaSegmentos,i);
         segmento->base = desplazamiento;
@@ -159,6 +161,7 @@ void compactar(){
     hueco_Nuevo->base    = desplazamiento; 
     hueco_Nuevo->tamanio = configuracionMemoria->tam_memoria - desplazamiento;
     list_add(listaHuecos, hueco_Nuevo);
+    log_info(logger,"Se termino de Compactar");
 }
 
 void buddySystem(){
@@ -172,7 +175,7 @@ void buddySystem(){
 
     for (int i = 0; i < list_size(listaHuecos); i++)
     {
-        if (i == list_size(listaHuecos) - 1){
+        if (i == list_size(listaHuecos)){
             break;
         }
         huecoA = list_get(listaHuecos,i);

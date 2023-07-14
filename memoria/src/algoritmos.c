@@ -3,7 +3,7 @@
 
 //FirstFit
 uint32_t algoritmoFirstFit(uint32_t tamSegmento){
-
+    log_debug(logger,"Aplicando Algoritmo FirstFit");
     // Buscar el primer hueco que pueda contener el segmento
     for (int i = 0; i < list_size(listaHuecos); i++) {
         t_hueco* hueco = list_get(listaHuecos, i);
@@ -30,7 +30,9 @@ uint32_t algoritmoFirstFit(uint32_t tamSegmento){
 //BestFit
 uint32_t algoritmoBestFit(uint32_t tamSegmento) {
     // Ordenar los huecos por tamaño de forma ascendente
-    log_error(logger, "cantidad de segmentos en algoritmo bestfit: %d", list_size(listaHuecos));
+
+   /*  log_error(logger, "cantidad de segmentos en algoritmo bestfit: %d", list_size(listaHuecos)); */
+    log_debug(logger,"Aplicando Algoritmo BestFit");
     list_sort(listaHuecos, compararHuecosPorTamanioAscendente);
 
     // Buscar el hueco más pequeño que pueda contener el segmento
@@ -59,6 +61,7 @@ uint32_t algoritmoBestFit(uint32_t tamSegmento) {
 //Worts Fit
 uint32_t algoritmoWorstFit(uint32_t tamSegmento) {
     // Ordenar los huecos por tamaño de forma descendente
+    log_debug(logger,"Aplicando Algoritmo WorstFit");
     list_sort(listaHuecos, compararHuecosPorTamanioDescendente);
 
     // Buscar el hueco más grande que pueda contener el segmento
@@ -85,9 +88,6 @@ int compararHuecosPorTamanioAscendente(const void* a, const void* b) {
     t_hueco* huecoA = (t_hueco*)a;
     t_hueco* huecoB = (t_hueco*)b;
 
-    log_error(logger, "huecoA->tamanio: %d", huecoA->tamanio);
-    log_error(logger, "huecoB->tamanio: %d", huecoB->tamanio);
-
     if (huecoA->tamanio < huecoB->tamanio) {
         return -1;
     } else if (huecoA->tamanio > huecoB->tamanio) {
@@ -100,9 +100,6 @@ int compararHuecosPorTamanioAscendente(const void* a, const void* b) {
 int compararHuecosPorTamanioDescendente(const void* a, const void* b) {
     t_hueco* huecoA = (t_hueco*)a;
     t_hueco* huecoB = (t_hueco*)b;
-
-    log_error(logger, "huecoA->tamanio: %d", huecoA->tamanio);
-    log_error(logger, "huecoB->tamanio: %d", huecoB->tamanio);
 
     if (huecoA->tamanio > huecoB->tamanio) {
         return -1;

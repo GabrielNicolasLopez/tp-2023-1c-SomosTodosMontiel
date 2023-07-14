@@ -32,7 +32,6 @@ int main(int argc, char** argv){
 	log_debug(logger, "INICIANDO MEMORIA...");
 
     //Creo el archivo config
-	//configuracionMemoria = malloc(sizeof(t_memoria_config));
 	configuracionMemoria = leerConfiguracion();
 	espacioUsuario = malloc(configuracionMemoria -> tam_memoria);
 
@@ -40,6 +39,7 @@ int main(int argc, char** argv){
 	hueco_0 = malloc(sizeof(t_hueco));
 
 	segmento_0 = segmentoCrear(-1,0,0,configuracionMemoria->tam_segmento_O);
+	log_info(logger,"Se creo el segmento 0 global Tam:%d ");
 	hueco_0->base = (segmento_0->base + segmento_0->tamanio);
 	hueco_0->tamanio = (configuracionMemoria->tam_memoria - segmento_0->tamanio);  
 	
@@ -89,26 +89,7 @@ void recibir_conexion(int socketEscucha) {
 			break;
 	}
 
-	/*
-    if (handshake == HANDSHAKE_cpu) {
-		conexion_con_cpu = socketCliente;
-        log_info(logger, "Se acepta conexión de CPU en socket %d", conexion_con_cpu);
-        stream_send_empty_buffer(conexion_con_cpu, HANDSHAKE_ok_continue);
-		pthread_create(&hiloCPU, NULL, (void *)hilo_cpu, NULL);
-    } else if (handshake == HANDSHAKE_kernel) {
-		conexion_con_kernel = socketCliente;
-        log_info(logger, "Se acepta conexión de Kernel en socket %d", conexion_con_kernel);
-        stream_send_empty_buffer(conexion_con_kernel, HANDSHAKE_ok_continue);
-		pthread_create(&hiloKernel, NULL, (void *)hilo_kernel_m, NULL);
-	 } else if (handshake == HANDSHAKE_filesystem) {
-		conexion_con_FileSystem = socketCliente;
-        log_info(logger, "Se acepta conexión de Filesystem en socket %d", conexion_con_FileSystem);
-        stream_send_empty_buffer(conexion_con_FileSystem, HANDSHAKE_ok_continue);
-		pthread_create(&hiloFilesystem, NULL, (void *)hilo_filesystem, NULL);
-    } else {
-        
-    }
-	*/
+
 }
 
 void recibir_conexiones(int socketEscucha){
@@ -136,13 +117,7 @@ t_memoria_config* leerConfiguracion(){
 	configuracionMemoria -> algoritmo_asignacion = config_get_string_value(configuracion, "ALGORITMO_ASIGNACION");
 	configuracionMemoria -> tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEGMENTO_0");
 
-	//Loggeo los datos leidos del config
-	//log_info(logger, "Me conecté a la IP: %s", configuracionConsola.ip);
-	//log_info(logger, "Me conecté al PUERTO: %s", configuracionConsola.puerto);
-
-	//config_destroy(configuracion);
-
-	log_error(logger, "tam_segm0: %d", configuracionMemoria->tam_segmento_O);
+	/* log_error(logger, "tam_segm0: %d", configuracionMemoria->tam_segmento_O); */
 
 	return configuracionMemoria;
 }
