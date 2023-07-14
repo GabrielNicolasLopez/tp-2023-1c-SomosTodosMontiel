@@ -33,11 +33,10 @@ void asignarRecurso(char *nombre_recurso, t_pcb* pcb)
 			recurso->instancias_recursos -= 1;
 			pthread_mutex_unlock(&recurso->mutex_lista_blocked);
 			//Agrego el nombre del recurso a la tabla de recursos del proceso
-			// char* nombreRecurso = malloc(recurso->nombre);
-			// nombreRecurso = recurso->nombre;
-			// pthread_mutex_lock(&pcb->mutex_TablaDeRecursos);
-			// list_add(pcb->tablaDeRecursos, nombreRecurso);
-			// pthread_mutex_unlock(&pcb->mutex_TablaDeRecursos);
+			t_recurso *recursoProceso = recurso;
+			pthread_mutex_lock(&pcb->mutex_TablaDeRecursos);
+			list_add(pcb->tablaDeRecursos, recursoProceso);
+			pthread_mutex_unlock(&pcb->mutex_TablaDeRecursos);
 		}
 	}
 }
@@ -61,10 +60,13 @@ void pasar_a_blocked_de_recurso(t_pcb *pcb_a_blocked, char *nombre_recurso)
 
 void devolverRecursosPCB(t_pcb* pcb)
 {
-	for (int i = 0; i < list_size(pcb->tablaDeRecursos); i++)
+	if(list_size(pcb->tablaDeRecursos)>0)
 	{
-		char *nombre_recurso = list_get(pcb->tablaDeRecursos, i);
-		devolverRecurso(nombre_recurso, pcb);
+		for (int i = 0; i < list_size(pcb->tablaDeRecursos); i++)
+		{
+			t_recurso *recursoADevolver = list_get(pcb->tablaDeRecursos, i);
+			devolverRecurso(recursoADevolver->nombre, pcb);
+		}
 	}
 }
 
@@ -85,17 +87,16 @@ void devolverRecurso(char *nombre_recurso, t_pcb* pcb)
 
 	//Para evirtar que quite de la tabla varias entradas del mismo recurso
 	//Como se agrega un recurso a la vez, se quita uno a la vez
-	bool first;
+	bool first = true;
 
 	for (int i = 0; i < list_size(pcb->tablaDeRecursos); i++)
 	{
-		char *nombre_recurso = list_get(lista_de_recursos, i);
-		if (strcmp(recurso->nombre, nombre_recurso) == 0 && first)
+		t_recurso *recursoADevolver = list_get(pcb->tablaDeRecursos, i);
+		if (strcmp(recurso->nombre, recursoADevolver->nombre) == 0 && first)
 		{
 			pthread_mutex_lock(&pcb->mutex_TablaDeRecursos);
-			nombre_recurso = list_remove(pcb->tablaDeRecursos, i);
+			recursoADevolver = list_remove(pcb->tablaDeRecursos, i);
 			pthread_mutex_unlock(&pcb->mutex_TablaDeRecursos);
-			free(nombre_recurso);
 			first = false;
 		}
 	}
