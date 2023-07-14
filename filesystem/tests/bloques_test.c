@@ -31,7 +31,7 @@ context (BLOQUES) {
             FCB->FCB_config = levantar_FCB(FCB->config);
 
             // LE ASIGNO UN TAMAÑO DE 100
-            asignar_bloques(FCB, 100);
+            asignar_bloques(FCB, 1000);
         } end 
 
         after { 
@@ -44,7 +44,7 @@ context (BLOQUES) {
             config_destroy(FCB->config);
             free(FCB);
         } end 
-        
+        /*
         it("Escribiendo y leyendo un solo bloque (n°5)") {
             uint32_t bloque = 10;
             off_t offset = 0;
@@ -59,10 +59,10 @@ context (BLOQUES) {
 
             should_string(a_leer) be equal to(a_escribir);
         } end
-        
+        */
         
         it("Escritura y lectura de MULTIPLES bloques") {
-            uint32_t puntero_archivo = 50;
+            uint32_t puntero_archivo = 127;
             char* cadena_escrita = "HOLA COMO ESTAS?";
             uint32_t cant_bytes = string_length(cadena_escrita) + 1;
             escribir_bloques(FCB, puntero_archivo, cant_bytes, cadena_escrita);

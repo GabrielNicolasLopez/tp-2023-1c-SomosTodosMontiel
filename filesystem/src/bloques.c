@@ -29,7 +29,7 @@ void levantar_bloques()
 
 int escribir_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 {
-    sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
+    //sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
     
     if (offset > config_SupBloque->BLOCK_SIZE) {
         log_error(logger, "ESCRITURA DE BLOQUE: Offset en el bloque %u SOBREPASA EL TAMAÑO", bloque);
@@ -56,8 +56,12 @@ int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t
     int block_size = config_SupBloque->BLOCK_SIZE;
 
     //VARIABLES:
-    int bloque_contiene_p_archivo = ceil((double) puntero_archivo / block_size);
-    int offset = (((double) puntero_archivo / block_size) - floor(puntero_archivo / block_size)) * block_size;
+    double bloque_p_a = (double) puntero_archivo / block_size;
+    
+    int bloque_contiene_p_archivo = (puntero_archivo % block_size == 0)
+                                    ? bloque_p_a + 1
+                                    : ceil(bloque_p_a);
+    int offset = (bloque_p_a - floor(bloque_p_a)) * block_size;
     int restante = (cant_bytes > block_size - offset)
                     ? block_size - offset
                     : cant_bytes;
@@ -111,7 +115,7 @@ int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t
 
 int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 {
-    sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
+    //sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
     
     if (offset + tamanio > config_SupBloque->BLOCK_SIZE) {
         log_error(logger, "LECTURA DE BLOQUE %u SOBREPASA EL TAMAÑO", bloque);
@@ -134,8 +138,12 @@ char* leer_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t c
     int block_size = config_SupBloque->BLOCK_SIZE;
 
     //VARIABLES:
-    int bloque_contiene_p_archivo = ceil((double) puntero_archivo / block_size);
-    int offset = (((double) puntero_archivo / block_size) - floor(puntero_archivo / block_size)) * block_size;
+    double bloque_p_a = (double) puntero_archivo / block_size;
+
+    int bloque_contiene_p_archivo = (puntero_archivo % block_size == 0)
+                                    ? bloque_p_a + 1
+                                    : ceil(bloque_p_a);
+    int offset = (bloque_p_a - floor(bloque_p_a)) * block_size;
     int restante = (cant_bytes > block_size - offset)
                     ? block_size - offset
                     : cant_bytes;
@@ -196,7 +204,7 @@ uint32_t* leer_PIS(t_lista_FCB_config* FCB)
         FCB->nombre_archivo,
         FCB->FCB_config->PUNTERO_INDIRECTO
     );
-    leer_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, 0, PIS, sizeof(PIS));
+    leer_bloque(FCB->FCB_config->PUNTERO_INDIRECTO, 0, PIS, config_SupBloque->BLOCK_SIZE);
 
     return PIS;
 }
@@ -208,7 +216,7 @@ uint32_t buscar_bloque(int numero_bloque, t_lista_FCB_config* FCB, uint32_t* PIS
     }
     
     uint32_t puntero;
-    off_t offset = (numero_bloque - 2) * sizeof(puntero);
+    off_t offset = numero_bloque - 2;
     
     memcpy(&puntero, PIS + offset, sizeof(puntero));
     return puntero;

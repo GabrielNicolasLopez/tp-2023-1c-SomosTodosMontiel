@@ -125,7 +125,7 @@ void hilo_kernel_m(){
                 
                 log_info(logger, "Solicitud de compactacion");
                 compactar();
-                sleep((configuracionMemoria->retardo_compatacion/1000));
+                //sleep((configuracionMemoria->retardo_compatacion/1000));
                 log_info(logger,"Resultado Compactación: ");
                 for(int i=0; i < list_size(listaSegmentos); i++){
                     segmentoImprimir = list_get(listaSegmentos, i);
