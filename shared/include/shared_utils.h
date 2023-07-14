@@ -52,11 +52,12 @@ typedef struct
 typedef enum
 {
     INSTRUCCIONES,
-    FIN,
+    SUCCESS,
+    INVALID_RESOURCE,
     OUT_OF_MEMORY,
-    E_SIGNAL,
-    E_WAIT
+    SEG_FAULTT
 } t_Kernel_Consola;
+
 
 typedef enum
 {
@@ -138,7 +139,7 @@ typedef enum
     // 0 parámetros
     YIELD,
     EXIT,
-    SEG_FAULT
+    SEG_FAULT,
 } t_tipoInstruccion;
 
 typedef struct

@@ -15,7 +15,7 @@ void hilo_filesystem(){
                 char *dato;
                 log_info(logger,"Solicitud de Lectura por parte de FS");
                 pedidoLectura_FS(&cantBytes, &dir_fisica, &pid);
-                //sleep((configuracionMemoria->retardo_memoria/1000));
+                sleep((configuracionMemoria->retardo_memoria/1000));
                 dato = malloc(cantBytes);
                 leer_FS(dato, dir_fisica, cantBytes, pid);
                 enviarDato_FS(cantBytes, dato);
@@ -29,7 +29,7 @@ void hilo_filesystem(){
                 uint32_t pid;
                 log_info(logger,"Solicitud de Escritura por parte de FS");
                 char *dato = pedidoEscritura_FS(&cantBytes,&dir_fisica,&pid);
-                //sleep((configuracionMemoria->retardo_memoria/1000));
+                sleep((configuracionMemoria->retardo_memoria/1000));
                 escribir_FS(dato,dir_fisica,cantBytes,pid);
                 free(dato);
                 ok_FS();

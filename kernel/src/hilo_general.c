@@ -175,7 +175,7 @@ void hilo_general()
 				{
 					//No se reenvia porque se finaliza la PCB
 					se_reenvia_el_contexto = false;
-					razon = E_WAIT;
+					razon = INVALID_RESOURCE;
 					//Finalizamos la consola con el error
 					terminar_consola(razon);
 					//Liberamos la CPU
@@ -212,7 +212,7 @@ void hilo_general()
 				{
 					//No se reenvia porque finalizamos la PCB
 					se_reenvia_el_contexto = false;
-					razon = E_SIGNAL;
+					razon = INVALID_RESOURCE;
 					terminar_consola(razon);
 					//Liberamos la PCB
 					sem_post(&CPUVacia);
@@ -280,7 +280,14 @@ void hilo_general()
 			
 			case EXIT:
 				se_reenvia_el_contexto = false;
-				razon = FIN;
+				razon = SUCCESS;
+				terminar_consola(razon);
+				sem_post(&CPUVacia);
+				break;
+
+			case SEG_FAULT:
+				se_reenvia_el_contexto = false;
+				razon = SEG_FAULT;
 				terminar_consola(razon);
 				sem_post(&CPUVacia);
 				break;
@@ -903,7 +910,7 @@ void devolver_ce_a_cpu(t_pcb *pcb, int conexion_con_cpu)
 
 void sleep_IO(t_datosIO *datosIO){
 	int tiempo = datosIO->motivo->cant_int;
-	//sleep(tiempo);
+	sleep(tiempo);
 	list_remove_element(LISTA_BLOCKED, datosIO->pcb);
 	log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", datosIO->pcb->contexto->pid);
 	pasar_a_ready(datosIO->pcb);

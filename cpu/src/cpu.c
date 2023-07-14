@@ -101,7 +101,7 @@ void hilo_memoria(){
 	{
 		log_error(logger, "KERNEL NO SE CONECTÓ CON FS. FINALIZANDO CPU...");
 		//kernel_destroy(configuracionKernel, logger);
-		//exit(-1);
+		exit(-1);
 	}
 
 	stream_send_empty_buffer(conexion_con_memoria, HANDSHAKE_cpu);
@@ -112,7 +112,7 @@ void hilo_memoria(){
 	{
         log_error(logger, "Error al hacer handshake con módulo Memoria");
         //kernel_destroy(configuracionKernel, logger);
-        //exit(-1);
+        exit(-1);
     }
 	
 	log_debug(logger, "CPU SE CONECTO CON Memoria");	

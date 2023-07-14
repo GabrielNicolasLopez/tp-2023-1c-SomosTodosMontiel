@@ -65,17 +65,17 @@ int main(int argc, char** argv){
 	t_Kernel_Consola razon = recibir_fin_desde_kernel(conexionKernel);
 
 	switch(razon){
-		case FIN:
+		case SUCCESS:
 			log_error(logger,"Finalizando consola: instruccion EXIT");
 		break;
 		case OUT_OF_MEMORY:
 			log_error(logger,"Finalizando consola: Out of memory");
 		break;
-		case E_WAIT:
+		case INVALID_RESOURCE:
 			log_error(logger,"Finalizando consola: Wait de un recurso no válido");
 		break;
-		case E_SIGNAL:
-			log_error(logger,"Finalizando consola: Signal de un recurso no válido");
+		case SEG_FAULTT:
+			log_error(logger,"Finalizando consola: Wait de un recurso no válido");
 		break;
 		default:
 			log_error(logger,"Finalizando consola: RAZON INVALIDA");
