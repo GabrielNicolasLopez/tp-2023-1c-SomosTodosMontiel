@@ -12,6 +12,8 @@ void hilo_general()
 	t_contextoEjecucion *contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
 	motivoDevolucion->contextoEjecucion = contextoEjecucion;
 
+	t_pcb* pcb;
+
 	while (1)
 	{
 		//En caso de que se reenvio un contexto a CPU, no debo esperar la llegada de una nueva PCB porque se 
@@ -44,14 +46,14 @@ void hilo_general()
 				pthread_t hilo_sleep;
 				log_debug(logger, "PID: <%d> - Ejecuta IO: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 				//Envio la PCB a la lista de bloqueados
-				t_pcb* pcb_a_blocked = pcb_ejecutando_remove();
-				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
-				log_debug(logger, "PID: <%d> - Bloqueado por: <IO>", pcb_a_blocked->contexto->pid);
-				pasar_a_blocked(pcb_a_blocked);
+				pcb = pcb_ejecutando_remove();
+				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
+				log_debug(logger, "PID: <%d> - Bloqueado por: <IO>", pcb->contexto->pid);
+				pasar_a_blocked(pcb);
 				
 				//Preparo los datos para enviar la PCB al hilo de sleep
 				t_datosIO* datosIO = malloc(sizeof(t_datosIO));
-				datosIO->pcb = pcb_a_blocked;
+				datosIO->pcb = pcb;
 				datosIO->motivo = motivoDevolucion;
 				pthread_create(&hilo_sleep, NULL, (void *)sleep_IO, (void *)datosIO);
 				// Detacheamos el hilo que es quien se encarga de mandar a ready al pcb
@@ -63,11 +65,12 @@ void hilo_general()
 				break;
 
 			case F_OPEN:
-			log_debug(logger, "entre a f_open");
 				if(existeEnTGAA(motivoDevolucion->cadena)) //Nombre del archivo
 				{
-					log_debug(logger, "el archivo existe en tgaa");
 					agregarArchivoEnTAAP(motivoDevolucion->cadena); //Le pasamos el nombre del archivo
+					pcb = pcb_ejecutando();
+					log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+					log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 					pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena); //Le pasamos el nombre del archivo
 					//Como se va a blocked no se reenvia
 					se_reenvia_el_contexto = false;
@@ -76,19 +79,16 @@ void hilo_general()
 				}
 				else
 				{
-					log_debug(logger, "el archivo no existe en tgaa");
+					t_pcb *pcb = pcb_ejecutando();
+					log_debug(logger, "PID: <%d> - Abrir Archivo: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
 					enviar_fopen_a_fs(motivoDevolucion->cadena);
-					log_debug(logger, "mensaje enviado a fs, esperando respuesta...");
 					sem_wait(&FS_Continue);
-					log_debug(logger, "recibi la respuesta de fs, continuando...");
 					se_reenvia_el_contexto = true;
 					devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
-					log_debug(logger, "se devolvio el ce a cpu");
 				}
 				break;
 
 			case F_CLOSE:
-				log_debug(logger, "entre a f_close");
 				quitarArchivoEnTAAP(pcb_ejecutando(), motivoDevolucion->cadena);
 				if(hayProcesosEsperandoAl(motivoDevolucion->cadena))
 				{
@@ -96,22 +96,21 @@ void hilo_general()
 				}else{
 					quitarArchivoEnTGAA(motivoDevolucion->cadena);
 				}
-				//t_pcb* pcb = pcb_ejecutando();
-				//log_debug(logger, "archivos en taap de la pcb: %d", list_size(pcb->taap));
+				pcb = pcb_ejecutando();
+				log_debug(logger, "PID: <%d> - Cerrar Archivo: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 				break;
 
 			case F_SEEK:
-				log_debug(logger, "entre a f_seek");
 				actualizar_posicicon_puntero(motivoDevolucion->cadena, motivoDevolucion->cant_int);
+				pcb = pcb_ejecutando();
+				log_debug(logger, "PID: <%d> - Actualizar puntero Archivo: <%s> - Puntero <%d>", pcb->contexto->pid, motivoDevolucion->cadena, motivoDevolucion->cant_int);
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 				break;
 
 			case F_READ:
-				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				log_debug(logger, "entre a f_read");
 				pthread_mutex_lock(&mx_instruccion_en_fs);
 				instruccion_en_fs++;
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
@@ -122,6 +121,15 @@ void hilo_general()
 				//Me muevo la cantidad de bytes que se leen
 				actualizar_posicicon_puntero_sumar(motivoDevolucion->cadena, motivoDevolucion->cant_intB);
 
+				pcb = pcb_ejecutando();
+				log_debug(logger, "PID: <%d> - Leer Archivo: <%s> - Puntero <%d> - Dirección Memoria <%d> - Tamaño <%d>",
+				pcb->contexto->pid,
+				motivoDevolucion->cadena, 
+				devolver_puntero_archivo(motivoDevolucion->cadena),
+				motivoDevolucion->cant_int,
+				motivoDevolucion->cant_intB);
+				log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está leyendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
@@ -143,7 +151,16 @@ void hilo_general()
 				
 				//Me muevo la cantidad de bytes que se escriben
 				actualizar_posicicon_puntero_sumar(motivoDevolucion->cadena, motivoDevolucion->cant_intB);
-
+				
+				pcb = pcb_ejecutando();
+				log_debug(logger, "PID: <%d> - Escribir Archivo: <%s> - Puntero <%d> - Dirección Memoria <%d> - Tamaño <%d>",
+				pcb->contexto->pid,
+				motivoDevolucion->cadena, 
+				devolver_puntero_archivo(motivoDevolucion->cadena),
+				motivoDevolucion->cant_int,
+				motivoDevolucion->cant_intB);
+				log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
@@ -154,14 +171,16 @@ void hilo_general()
 
 			case F_TRUNCATE:
 				//Disminuyo el semáforo para que se prohiba compactar mientras se ejecuta esta instruccion
-				log_debug(logger, "entre a f_truncate");
 				pthread_mutex_lock(&mx_instruccion_en_fs);
 				instruccion_en_fs++;
 				pthread_mutex_unlock(&mx_instruccion_en_fs);
 				
 				enviar_ftruncate_a_fs(motivoDevolucion);
-				log_debug(logger, "ftruncate enviado a fs, bloqueando proceso");
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
+				pcb = pcb_ejecutando();
+				log_debug(logger, "PID: <%d> - Archivo: <%s> - Tamaño: <%d>", pcb->contexto->pid, motivoDevolucion->cadena, motivoDevolucion->cant_int);
+				log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
 				se_reenvia_el_contexto = false;
@@ -197,6 +216,9 @@ void hilo_general()
 				// Si el recurso existe pero no hay instancias disponibles en este momento, se envia a la lista de bloqueo
 				else if (recursos_disponibles(motivoDevolucion->cadena) <= 0)
 				{
+					pcb = pcb_ejecutando();
+					log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+					log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 					// Le pasamos la pcb y el nombre del recurso para que lo bloquee
 					pasar_a_blocked_de_recurso(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 					//No se reenvia porque se fue a blocked
@@ -268,10 +290,10 @@ void hilo_general()
 
 			case YIELD:
 				//Sacamos a la PCB de ejecutando
-				t_pcb* pcb_a_ready = pcb_ejecutando_remove();
-				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <READY>", pcb_a_ready->contexto->pid);
+				pcb = pcb_ejecutando_remove();
+				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <READY>", pcb->contexto->pid);
 				//La mandamos a ready
-				pasar_a_ready(pcb_a_ready);
+				pasar_a_ready(pcb);
 				//No se reenvia el contexto porque se fue a ready
 				se_reenvia_el_contexto = false;
 				//Liberamos la CPU
@@ -632,7 +654,6 @@ void enviar_fopen_a_fs(char *nombreArchivo){
     buffer_pack(buffer_fopen, nombreArchivo, longitudCadena);
 
 	stream_send_buffer(conexion_con_fs, (uint8_t) FS_INSTRUCCION, buffer_fopen);
-	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fopen->size);
 
 	buffer_destroy(buffer_fopen);
 }
