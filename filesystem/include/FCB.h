@@ -6,9 +6,9 @@
     int crear_carpeta_de_FCBs();
     t_config* crear_FCB(char* archivo);
     
-    t_FCB_config* leerConfiguracion_FCB(t_config* config_FCB);
-    t_FCB_config* levantar_FCB(t_config* t_config_FCB);
+    t_FCB_config* levantar_FCB(t_config* config_FCB);
     void actualizar_FCB(t_lista_FCB_config* FCB);
+    void free_FCB(t_lista_FCB_config* FCB);
 
     t_config* buscar_FCB(char* archivo);
 

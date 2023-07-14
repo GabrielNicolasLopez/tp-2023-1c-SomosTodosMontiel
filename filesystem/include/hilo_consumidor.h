@@ -8,6 +8,8 @@
     void pedido_escritura_mem(uint32_t cantBytes, char* cadena_bytes, uint32_t dir_fisica);
     void pedido_lectura_mem(uint32_t cantBytes, uint32_t dir_fisica);
     char* recibir_cadena_bytes_mem(uint32_t* cantBytes);
+
+    void free_p_instruccion(t_instruccion_FS* p_instruccion);
  
 
 #endif

@@ -44,6 +44,7 @@ t_config* crear_FCB(char* archivo)
 
     // Genero las keys del FCB
     t_config* config_FCB  = config_create(pathname);
+    free(pathname);
     config_set_value(config_FCB, "NOMBRE_ARCHIVO", archivo);
     config_set_value(config_FCB, "TAMANIO_ARCHIVO", "0");
     config_set_value(config_FCB, "PUNTERO_DIRECTO", "-1");
@@ -61,10 +62,12 @@ t_config* buscar_FCB(char* archivo)
 	string_append(&pathname, "/");
     string_append(&pathname, archivo);
 
-    return config_create(pathname);
+    t_config* config = config_create(pathname);
+    free(pathname);
+    return config;
 }
 
-t_FCB_config* leerConfiguracion_FCB(t_config* config_FCB)
+t_FCB_config* levantar_FCB(t_config* config_FCB)
 {
     t_FCB_config* configuracion = malloc(sizeof(t_FCB_config));
 
@@ -76,27 +79,26 @@ t_FCB_config* leerConfiguracion_FCB(t_config* config_FCB)
 	return configuracion;
 }
 
-t_FCB_config* levantar_FCB(t_config* config)
-{
-    //log_debug(logger, "Levantando FCB"); 
-    
-    t_FCB_config* config_FCB;
-
-    config_FCB = leerConfiguracion_FCB(config);
-
-    return config_FCB;
-}
-
 void actualizar_FCB(t_lista_FCB_config* FCB)
 {
-    //log_debug(logger, "Actualizando FCB");
+    log_debug(logger, "Actualizando FCB");
 
     config_save(FCB->config);
     char* config_path = string_duplicate(FCB->config->path);
-
-    config_destroy(FCB->config);
+    
+    free_FCB(FCB);
+    
     FCB->config = config_create(config_path);
+    free(config_path);
     FCB->FCB_config = levantar_FCB(FCB->config);
+    FCB->nombre_archivo = FCB->FCB_config->NOMBRE_ARCHIVO;
+}
+
+void free_FCB(t_lista_FCB_config* FCB)
+{
+    log_debug(logger, "FCB: nombre: %s ", FCB->FCB_config->NOMBRE_ARCHIVO);
+    config_destroy(FCB->config);
+    free(FCB->FCB_config);
 }
 
 t_lista_FCB_config* FCB_list_get(char* archivo)

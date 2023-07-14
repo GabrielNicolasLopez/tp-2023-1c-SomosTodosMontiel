@@ -172,7 +172,7 @@ void buddySystem(){
 
     for (int i = 0; i < list_size(listaHuecos); i++)
     {
-        if (i == list_size(listaHuecos)){
+        if (i == list_size(listaHuecos) - 1){
             break;
         }
         huecoA = list_get(listaHuecos,i);

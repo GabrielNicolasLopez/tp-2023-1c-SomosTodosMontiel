@@ -245,12 +245,16 @@ int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
     // CANTIDAD DE BLOQUES NUEVOS A OCUPAR
     uint32_t bloques_nuevos_a_ocupar = bloques_totales_a_ocupar - bloques_ya_ocupados;
     
-    config_set_value(FCB->config, "TAMANIO_ARCHIVO", string_itoa(tam_nuevo_arch));
+    char* s_tam_nuevo_arch = string_itoa(tam_nuevo_arch);
+    config_set_value(FCB->config, "TAMANIO_ARCHIVO", s_tam_nuevo_arch);
+    free(s_tam_nuevo_arch);
     
     // Casos dondo no hay asignado un puntero directo
     if (tam_ant_arch == 0 && bloques_nuevos_a_ocupar >= 1) {
         // Asigno puntero directo
-        config_set_value(FCB->config, "PUNTERO_DIRECTO", string_itoa(get_free_block()));
+        char* bloque_libre = string_itoa(get_free_block());
+        config_set_value(FCB->config, "PUNTERO_DIRECTO", bloque_libre);
+        free(bloque_libre);
         bloques_nuevos_a_ocupar--;
     } 
     if (bloques_totales_a_ocupar > 1) {
@@ -258,7 +262,9 @@ int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
         if (tam_ant_arch <= tam_bloque) {
             uint32_t bloque_punteros = get_free_block();
             // Asigno puntero indirecto
-            config_set_value(FCB->config, "PUNTERO_INDIRECTO", string_itoa(bloque_punteros));
+            char* pis = string_itoa(bloque_punteros);
+            config_set_value(FCB->config, "PUNTERO_INDIRECTO", pis);
+            free(pis);
             actualizar_FCB(FCB);
         }
 
@@ -322,7 +328,9 @@ int liberar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
     // CANTIDAD DE BLOQUES NUEVOS A OCUPAR
     uint32_t bloques_a_liberar = bloques_ocupados_ant - bloques_ocupados_nuevo;
 
-    config_set_value(FCB->config, "TAMANIO_ARCHIVO", string_itoa(tam_nuevo_arch));
+    char* s_tam_nuevo_arch = string_itoa(tam_nuevo_arch);
+    config_set_value(FCB->config, "TAMANIO_ARCHIVO", s_tam_nuevo_arch);
+    free(s_tam_nuevo_arch);
     actualizar_FCB(FCB);
 
     if (bloques_ocupados_nuevo == 0) {

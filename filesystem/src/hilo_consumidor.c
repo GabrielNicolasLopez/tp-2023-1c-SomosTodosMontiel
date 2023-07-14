@@ -2,23 +2,16 @@
 
 void crear_hilo_consumidor()
 {
-    t_instruccion_FS* p_instruccion;
     while(1){
-        
+        t_instruccion_FS* p_instruccion;
         sem_wait(&cant_inst);
         pthread_mutex_lock(&mutex_lista);
         p_instruccion = (t_instruccion_FS*) list_remove(lista_inst, 0);
         pthread_mutex_unlock(&mutex_lista);
 
-
-        // switch para procesar instruccion y para devolver paquete a kernel:
-        // header: operacion
-        // buffer: long_archivo y cadena_archivo
-
         int tipo_inst = p_instruccion->tipo;
-
         log_debug(logger, "Hilo_consumidor: Instruccion recibida: %s", nombresInstrucciones[tipo_inst]);
-        
+
         // *** F_OPEN ***
         if (tipo_inst == F_OPEN) {
             if (existe_FCB(p_instruccion->cadena)) {
@@ -88,7 +81,14 @@ void crear_hilo_consumidor()
             
             if (cant_bytes == 0) {
                 log_debug(logger, "Hilo_consumidor (F_READ): La lectura es de 0 BYTES. Archivo %s", p_instruccion->cadena);
+                log_info(logger, "Leer Archivo: <%s> - Puntero: <%u> - Memoria: <%u> - Tamaño: <%u>",
+                    p_instruccion->cadena, 
+                    puntero_archivo,
+                    dir_fisica,
+                    cant_bytes
+                );
                 respuesta_a_kernel(FS_OK, p_instruccion);
+                //free_p_instruccion(p_instruccion);
                 continue;
             }
             
@@ -133,6 +133,7 @@ void crear_hilo_consumidor()
             if (cant_bytes == 0) {
                 log_debug(logger, "Hilo_consumidor (F_WRITE): La escritura es de 0 BYTES. Archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OK, p_instruccion);
+                //free_p_instruccion(p_instruccion);
                 continue;
             }
 
@@ -184,6 +185,8 @@ void crear_hilo_consumidor()
             log_info(logger, "Hilo_consumidor: Finalizacion exitosa");
             break;
         }
+        
+        //free_p_instruccion(p_instruccion);
     }
 }
 
@@ -252,4 +255,10 @@ char* recibir_cadena_bytes_mem(uint32_t* cantBytes)
 
     buffer_destroy(buffer);
     return cadena_bytes;
+}
+
+void free_p_instruccion(t_instruccion_FS* p_instruccion)
+{
+    free(p_instruccion->cadena);
+    free(p_instruccion);
 }
