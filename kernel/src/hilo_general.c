@@ -188,7 +188,7 @@ void hilo_general()
 					// Le asignamos a la PCB ejecutando el recurso pedido
 					asignarRecurso(motivoDevolucion->cadena, pcb_ejecutando());
 					//log_info(logger, "PID %d robó un recurso: %s", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena);
-					log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
+					//log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
 					//Renviamos el contexto porque la solicitud fue exitosa
 					se_reenvia_el_contexto = true;
 					devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
@@ -220,7 +220,7 @@ void hilo_general()
 				}
 				// Si existe el recurso
 				devolverRecurso(motivoDevolucion->cadena, pcb_ejecutando());
-				log_debug(logger, "PID: <%d> - Signal: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
+				//log_debug(logger, "PID: <%d> - Signal: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
 				//liberar alguna pcb si necesitaba algun recurso que se devolvió
 				actualizar_procesos_bloqueados(motivoDevolucion->cadena);
 				//Reenviamos el contexto			

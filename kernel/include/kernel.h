@@ -205,6 +205,7 @@ void agregarArchivoEnTAAP(char* nombreArchivo);
 void agregarArchivoEnTGAA(char* nombreArchivo);
 void desbloqueo_del_primer_proceso_de_la_cola_del(char *nombre_archivo);
 
+void crear_tabla_de_recursos_proceso(t_pcb *pcb);
 
 
 void actualizar_lista_segmentos();

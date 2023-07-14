@@ -241,7 +241,7 @@ void crear_pcb(void *datos){
 	crear_tabla_de_archivos_proceso(pcb);
 
 	//Tabla de recursos asignado del proceso
-	//crear_tabla_de_recursos_proceso(pcb);
+	crear_tabla_de_recursos_proceso(pcb);
 
 	//Inicializo el semaforo de Tabla de recursos
 	pthread_mutex_init(&pcb->mutex_TablaDeRecursos, NULL);
@@ -291,7 +291,7 @@ void crear_tabla_de_archivos_proceso(t_pcb *pcb){
 }
 
 void crear_tabla_de_recursos_proceso(t_pcb *pcb){
-	pcb->contexto->tablaDeSegmentos = list_create();
+	pcb->tablaDeRecursos = list_create();
 }
 
 void agregar_segmento_0_a_pcb(t_pcb *pcb, t_segmento *segmento0){

@@ -32,13 +32,13 @@ void asignarRecurso(char *nombre_recurso, t_pcb* pcb)
 			pthread_mutex_lock(&recurso->mutex_lista_blocked);
 			recurso->instancias_recursos -= 1;
 			pthread_mutex_unlock(&recurso->mutex_lista_blocked);
-			//Agrego el nombre del recurso a la tabla de recursos del proceso
-			t_recurso *recursoProceso = recurso;
+			//Agrego el recurso a la tabla de recursos
 			pthread_mutex_lock(&pcb->mutex_TablaDeRecursos);
-			list_add(pcb->tablaDeRecursos, recursoProceso);
+			list_add(pcb->tablaDeRecursos, recurso);
 			pthread_mutex_unlock(&pcb->mutex_TablaDeRecursos);
 		}
 	}
+	log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", pcb->contexto->pid, nombre_recurso, recursos_disponibles(nombre_recurso));
 }
 
 void pasar_a_blocked_de_recurso(t_pcb *pcb_a_blocked, char *nombre_recurso)
@@ -60,12 +60,13 @@ void pasar_a_blocked_de_recurso(t_pcb *pcb_a_blocked, char *nombre_recurso)
 
 void devolverRecursosPCB(t_pcb* pcb)
 {
-	if(list_size(pcb->tablaDeRecursos)>0)
+	if(list_size(pcb->tablaDeRecursos) > 0)
 	{
-		for (int i = 0; i < list_size(pcb->tablaDeRecursos); i++)
-		{
-			t_recurso *recursoADevolver = list_get(pcb->tablaDeRecursos, i);
+		t_recurso *recursoADevolver = malloc(sizeof(t_recurso));
+		while(!list_is_empty(pcb->tablaDeRecursos)){
+			recursoADevolver = list_get(pcb->tablaDeRecursos, 0);
 			devolverRecurso(recursoADevolver->nombre, pcb);
+			log_error(logger, "recursos de pcb EN EXIT: %d", list_size(pcb->tablaDeRecursos));
 		}
 	}
 }
@@ -80,26 +81,16 @@ void devolverRecurso(char *nombre_recurso, t_pcb* pcb)
 	}
 
 	t_recurso *recurso = list_get(lista_de_recursos, posicion);
-	log_error(logger, "se devuelve una instancia del recurso <%s>", recurso->nombre);
+	//log_error(logger, "se devuelve una instancia del recurso <%s>", recurso->nombre);
 	pthread_mutex_lock(&recurso->mutex_lista_blocked);
 	recurso->instancias_recursos += 1;
 	pthread_mutex_unlock(&recurso->mutex_lista_blocked);
 
-	//Para evirtar que quite de la tabla varias entradas del mismo recurso
-	//Como se agrega un recurso a la vez, se quita uno a la vez
-	bool first = true;
-
-	for (int i = 0; i < list_size(pcb->tablaDeRecursos); i++)
-	{
-		t_recurso *recursoADevolver = list_get(pcb->tablaDeRecursos, i);
-		if (strcmp(recurso->nombre, recursoADevolver->nombre) == 0 && first)
-		{
-			pthread_mutex_lock(&pcb->mutex_TablaDeRecursos);
-			recursoADevolver = list_remove(pcb->tablaDeRecursos, i);
-			pthread_mutex_unlock(&pcb->mutex_TablaDeRecursos);
-			first = false;
-		}
-	}
+	log_error(logger, "recursos de pcb antes de eliminar: %d", list_size(pcb->tablaDeRecursos));
+	//Remuevo el recurso de la tabla de recursos 
+	list_remove_element(pcb->tablaDeRecursos, recurso);
+	log_error(logger, "recursos de pcb despues de eliminar: %d", list_size(pcb->tablaDeRecursos));
+	log_debug(logger, "PID: <%d> - Signal: <%s> - Instancias: <%d>", pcb->contexto->pid, nombre_recurso, recursos_disponibles(nombre_recurso));
 }
 
 void actualizar_procesos_bloqueados(char *nombre_recurso){
