@@ -915,7 +915,7 @@ void terminar_consola(t_Kernel_Consola razon)
 	
 	pasar_a_exit(pcb);
 
-//	devolverRecursosPCB(pcb);
+	devolverRecursosPCB(pcb);
 
 	stream_send_empty_buffer(pcb->contexto->socket, razon);
 
