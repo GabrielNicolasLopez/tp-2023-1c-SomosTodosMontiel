@@ -12,7 +12,14 @@ make all
 sudo make install
 cd $CWD
 echo -e "\n\nBuilding projects...\n\n"
-make -C ./proceso1
-make -C ./proceso2
-make -C ./proceso3
+make clean -C ./consola
+make clean -C ./cpu
+make clean -C ./kernel
+make clean -C ./memoria
+make clean -C ./filesystem
+make -C ./consola
+make -C ./cpu
+make -C ./kernel
+make -C ./memoria
+make -C ./filesystem
 echo -e "\n\nDeploy done!\n\n"
