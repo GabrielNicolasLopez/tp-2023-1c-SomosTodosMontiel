@@ -7,6 +7,7 @@ int conexion_con_FileSystem;
 int conexion_con_cpu;
 int conexion_con_memoria;
 
+char* CONFIG_PATH;
 char* IP_MEMORIA = "127.0.0.1";
 
 pthread_t hiloFilesystem, hiloKernel, hiloCPU;
@@ -31,6 +32,7 @@ int main(int argc, char** argv){
 
 	log_debug(logger, "INICIANDO MEMORIA...");
 
+	CONFIG_PATH = argv[1];
     //Creo el archivo config
 	configuracionMemoria = leerConfiguracion();
 	espacioUsuario = malloc(configuracionMemoria -> tam_memoria);

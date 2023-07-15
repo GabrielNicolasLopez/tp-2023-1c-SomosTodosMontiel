@@ -6,7 +6,6 @@
 #include "buffer.h"
 #include "stream.h"
 
-#define CONFIG_PATH "./cfg/memoria.cfg"
 //#define LOG_PATH "./cfg/memoria.log" LOG QUE PERSISTE EN EL REPO REMOTO
 #define LOG_PATH "./cfg/memoriaPrueba.log" //LOG QUE NO SE SUBE AL REPO REMOTO
 #define MODULE_NAME "Memoria"
@@ -15,6 +14,7 @@
 #define NUMBER_OF_ARGS_REQUIRED 2
 
 //Variables globales de memoria
+extern char* CONFIG_PATH;
 extern int conexion_con_kernel;
 extern int conexion_con_FileSystem;
 extern int conexion_con_cpu;
