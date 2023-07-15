@@ -3,5 +3,5 @@ FILE=consola
 PSEUDOCODIGO=BASE_1
 make ./bin/$FILE.out
 if test -f "./bin/$FILE.out"; then
-    valgrind --tool=memcheck --leak-check=yes --show-possibly-lost=no --show-reachable=no --num-callers=20 ./bin/$FILE.out ./cfg/$FILE.cfg ./cfg/$PSEUDOCODIGO
+    valgrind --tool=memcheck --leak-check=yes --show-possibly-lost=no --show-reachable=no --num-callers=20 ./bin/$FILE.out ./cfg/$FILE.cfg ./cfg/DEADLOCK_1
 fi

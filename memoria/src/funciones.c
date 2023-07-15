@@ -81,7 +81,7 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 	char *algoritmoConfig = configuracionMemoria->algoritmo_asignacion;
 	t_tipo_algoritmo algoritmoConfi;
 
-	if(!strcmp(algoritmoConfig, "FIRTS"))
+	if(!strcmp(algoritmoConfig, "FIRST"))
 		algoritmoConfi = FIRST;
 	else if(!strcmp(algoritmoConfig, "BEST"))
 		algoritmoConfi = BEST;
