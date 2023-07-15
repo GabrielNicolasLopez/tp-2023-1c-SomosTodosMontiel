@@ -9,10 +9,9 @@ void hilo_general()
 	conectarse_con_fs();
 
 	t_motivoDevolucion *motivoDevolucion = malloc(sizeof(t_motivoDevolucion));
-	t_contextoEjecucion *contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
-	motivoDevolucion->contextoEjecucion = contextoEjecucion;
+	motivoDevolucion->contextoEjecucion = malloc(sizeof(t_contextoEjecucion));
 
-	t_pcb* pcb;
+	t_pcb* pcb = malloc(sizeof(t_pcb));
 
 	while (1)
 	{
@@ -28,7 +27,7 @@ void hilo_general()
 			sem_wait(&pasar_pcb_a_CPU);
 
 			// Obtengo la pcb en ejecucion para crear el contexto de ejecucion
-			t_pcb *pcb = pcb_ejecutando();
+			pcb = pcb_ejecutando();
 
 			// Enviamos el contexto de ejecucion a cpu
 			//log_info(logger, "ce enviado a CPU. PID: %d", pcb->contexto->pid);
@@ -79,7 +78,7 @@ void hilo_general()
 				}
 				else
 				{
-					t_pcb *pcb = pcb_ejecutando();
+					pcb = pcb_ejecutando();
 					log_debug(logger, "PID: <%d> - Abrir Archivo: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
 					enviar_fopen_a_fs(motivoDevolucion->cadena);
 					sem_wait(&FS_Continue);
