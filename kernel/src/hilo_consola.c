@@ -1,7 +1,7 @@
 #include "kernel.h"
 
 void crear_hilo_consola(){
-	int server_fd = iniciar_servidor("127.0.0.1", configuracionKernel->PUERTO_ESCUCHA);
+	int server_fd = iniciar_servidor("0.0.0.0", configuracionKernel->PUERTO_ESCUCHA);
 	log_info(logger, "Kernel listo para recibir clientes consola");
 	uint8_t handshake;
 	while (1){

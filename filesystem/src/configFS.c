@@ -38,7 +38,7 @@ int crear_conexion_con_memoria()
 
 int crear_servidor_kernel()
 {
-    int server_fd_kernel = iniciar_servidor("127.0.0.1", configFS->PUERTO_ESCUCHA);
+    int server_fd_kernel = iniciar_servidor("0.0.0.0", configFS->PUERTO_ESCUCHA);
     if (server_fd_kernel == -1) {
         log_error(logger, "Error al intentar iniciar servidor");
         return -1;
