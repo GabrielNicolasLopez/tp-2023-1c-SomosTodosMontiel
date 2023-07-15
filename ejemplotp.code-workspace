@@ -17,9 +17,6 @@
 		},
 		{
 			"path": "memoria"
-		},
-		{
-			"path": "so-deploy"
 		}
 	],
 	"settings": {
