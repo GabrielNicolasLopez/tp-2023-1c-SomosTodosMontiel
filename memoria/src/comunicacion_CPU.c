@@ -6,7 +6,6 @@ void hilo_cpu(){
         log_info(logger, "Esperando mensaje de CPU...");
         uint8_t header = stream_recv_header(conexion_con_cpu);
         log_info(logger, "CPU envio un header: %d", header);
-        //sleep(1);
         if(header == MOV_IN)
         {
             uint32_t cantBytes;
@@ -15,7 +14,7 @@ void hilo_cpu(){
             char *dato;
             log_info(logger,"Solicitud de Lectura por parte de CPU");
             pedidoLectura_CPU(&cantBytes, &dir_fisica , &pid);
-            //sleep((configuracionMemoria->retardo_memoria/1000));
+            sleep((configuracionMemoria->retardo_memoria/1000));
             dato = malloc(cantBytes);
             leer_CPU(dato, dir_fisica, cantBytes, pid);
             enviarDato_CPU(cantBytes, dato);
@@ -33,7 +32,7 @@ void hilo_cpu(){
             log_debug(logger, "dir_fisica: %u", dir_fisica);
             log_debug(logger, "cadena: %.4s", cadena);
             log_debug(logger, "pid: %u", pid);
-            //sleep((configuracionMemoria->retardo_memoria/1000));
+            sleep((configuracionMemoria->retardo_memoria/1000));
             escribir_CPU(cadena, dir_fisica, cantBytes, pid);
             free(cadena);
             ok_CPU();
