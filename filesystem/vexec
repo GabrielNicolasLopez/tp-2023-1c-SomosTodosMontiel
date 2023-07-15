@@ -2,5 +2,5 @@
 FILE=filesystem
 make
 if test -f "./bin/$FILE.out"; then
-    valgrind --tool=memcheck --leak-check=yes --show-possibly-lost=no --show-reachable=no --num-callers=20 -s ./bin/$FILE.out ./cfg/base.cfg 
+    valgrind --tool=memcheck --leak-check=yes --show-possibly-lost=no --show-reachable=no --num-callers=20 -s ./bin/$FILE.out ./cfg/memoria.cfg 
 fi

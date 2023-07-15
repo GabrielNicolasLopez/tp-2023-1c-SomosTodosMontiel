@@ -51,11 +51,11 @@ typedef struct
 
 typedef enum
 {
-    INSTRUCCIONES,
     SUCCESS,
+    SEG_FAULTT,
     INVALID_RESOURCE,
     OUT_OF_MEMORY,
-    SEG_FAULTT
+    INSTRUCCIONES
 } t_Kernel_Consola;
 
 

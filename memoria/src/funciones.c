@@ -1,5 +1,5 @@
 #include <funciones.h>
-
+#include "algoritmos.h"
 
 //Creación de Segmento
 
@@ -134,7 +134,7 @@ void eliminarProceso(t_list* listaSegmentosBorrar){
 
     for (int i = 0; i <list_size(listaSegmentosBorrar); i++)
     {   
-        segmentoABorrar = list_remove(listaSegmentosBorrar, i);
+        segmentoABorrar = list_remove(listaSegmentosBorrar, 0);
         huecoCrear(segmentoABorrar, huecoNuevo);
         list_add(listaHuecos, huecoNuevo);
     }

@@ -40,8 +40,8 @@ int main(int argc, char** argv){
 	segmento_0 = malloc(sizeof(t_segmento));
 	hueco_0 = malloc(sizeof(t_hueco));
 
-	segmento_0 = segmentoCrear(-1,0,0,configuracionMemoria->tam_segmento_O);
-	log_info(logger,"Se creo el segmento 0 global Tam:%d ");
+	segmento_0 = segmentoCrear(20000,0,0,configuracionMemoria->tam_segmento_O);
+	log_info(logger,"Se creo el segmento 0 global Tam: %d",segmento_0->tamanio);
 	hueco_0->base = (segmento_0->base + segmento_0->tamanio);
 	hueco_0->tamanio = (configuracionMemoria->tam_memoria - segmento_0->tamanio);  
 	

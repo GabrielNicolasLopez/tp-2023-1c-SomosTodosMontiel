@@ -79,7 +79,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 				instruccion->cadena);
 
 			contexto_ejecucion -> program_counter++;
-			sleep((configuracion_cpu -> retardo_instruccion)/1000);
+			//sleep((configuracion_cpu -> retardo_instruccion)/1000);
 			switch(instruccion -> registro){
 				// registros de tamaño 4
 				case AX: memcpy(contexto_ejecucion -> registrosCPU -> registroC -> ax, instruccion -> cadena, 4);

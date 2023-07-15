@@ -1,5 +1,5 @@
 #include "comunicacion.h"
-
+#include "funciones.h"
 
 void hilo_kernel_m(){
     uint32_t pid_recibido;
@@ -77,7 +77,7 @@ void hilo_kernel_m(){
                 //devuelvo la base actualizada
                 mandarLaBase(segmentoACrear->base);
 
-                free(segmentoACrear);
+                //free(segmentoACrear);
 
                 break;
 
@@ -95,6 +95,7 @@ void hilo_kernel_m(){
                 t_hueco    *huecoNuevo         = malloc(sizeof(t_hueco));
                 
                 segmentoEncontrado = buscarSegmentoPorIdPID(*id, *pid);
+                log_debug(logger, "tam: %d, pid: %d, id: %d, base: %d", segmentoEncontrado->tamanio, segmentoEncontrado->pid, segmentoEncontrado->id_segmento, segmentoEncontrado->base);
                 huecoCrear(segmentoEncontrado, huecoNuevo);
 
                 list_add(listaHuecos,huecoNuevo);
@@ -115,17 +116,17 @@ void hilo_kernel_m(){
                 mandarListaProceso(listaMandar); 
                 
                 list_destroy(listaMandar);
-                free(segmentoEncontrado);
-                free(huecoNuevo);
-                free(id);
-                free(pid);
+                // free(segmentoEncontrado);
+                // free(huecoNuevo);
+                // free(id);
+                // free(pid);
                 break;
         
             case EMPEZA_A_COMPACTAR:
                 
                 log_info(logger, "Solicitud de compactacion");
                 compactar();
-                sleep((configuracionMemoria->retardo_compatacion/1000));
+                //sleep((configuracionMemoria->retardo_compatacion/1000));
                 log_info(logger,"Resultado Compactación: ");
                 for(int i=0; i < list_size(listaSegmentos); i++){
                     segmentoImprimir = list_get(listaSegmentos, i);

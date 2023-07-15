@@ -309,7 +309,7 @@ void hilo_general()
 
 			case SEG_FAULT:
 				se_reenvia_el_contexto = false;
-				razon = SEG_FAULT;
+				razon = SEG_FAULTT;
 				terminar_consola(razon);
 				sem_post(&CPUVacia);
 				break;
@@ -931,7 +931,7 @@ void devolver_ce_a_cpu(t_pcb *pcb, int conexion_con_cpu)
 
 void sleep_IO(t_datosIO *datosIO){
 	int tiempo = datosIO->motivo->cant_int;
-	sleep(tiempo);
+	//sleep(tiempo);
 	list_remove_element(LISTA_BLOCKED, datosIO->pcb);
 	log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", datosIO->pcb->contexto->pid);
 	pasar_a_ready(datosIO->pcb);
