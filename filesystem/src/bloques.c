@@ -29,7 +29,7 @@ void levantar_bloques()
 
 int escribir_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 {
-    //sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
+    sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
     
     if (offset > config_SupBloque->BLOCK_SIZE) {
         log_error(logger, "ESCRITURA DE BLOQUE: Offset en el bloque %u SOBREPASA EL TAMAÑO", bloque);
@@ -115,7 +115,7 @@ int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t
 
 int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
 {
-    //sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
+    sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
     
     if (offset + tamanio > config_SupBloque->BLOCK_SIZE) {
         log_error(logger, "LECTURA DE BLOQUE %u SOBREPASA EL TAMAÑO", bloque);
