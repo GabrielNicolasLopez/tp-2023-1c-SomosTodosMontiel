@@ -6,7 +6,7 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	uint8_t header = stream_recv_header(conexion_con_cpu);
 
 	if(header != CYM)
-		log_error(logger, "KERNEL RECIBIO UN HEADER DIFERENTE A CYM");
+		log_debug(logger, "KERNEL RECIBIO UN HEADER DIFERENTE A CYM");
 
 	t_buffer *cym_recibido = buffer_create();
 
@@ -24,29 +24,29 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 	motivoDevolucion->contextoEjecucion = contextoEjecucion;
 
 	stream_recv_buffer(conexion_con_cpu, cym_recibido);
-	log_error(logger, "Tamaño de cym recibido de cpu %d", cym_recibido->size);
+	log_debug(logger, "Tamaño de cym recibido de cpu %d", cym_recibido->size);
 
 	// Motivo = tipo de instruccion
 	buffer_unpack(cym_recibido, &motivoDevolucion->tipo, sizeof(t_tipoInstruccion));
-	// log_error(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
+	// log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
 
 	// Cantidad entero = numero entero
 	buffer_unpack(cym_recibido, &motivoDevolucion->cant_int, sizeof(uint32_t));
-	// log_error(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
+	// log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
 
 	// Cantidad entero = numero entero
 	buffer_unpack(cym_recibido, &motivoDevolucion->cant_intB, sizeof(uint32_t));
-	// log_error(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
+	// log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
 
 	// Longitud de la cadena
 	buffer_unpack(cym_recibido, &motivoDevolucion->longitud_cadena, sizeof(uint32_t));
 	// log_debug(logger, "long: %d", motivoDevolucion->longitud_cadena);
-	// log_error(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
+	// log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
 
 	// Cadena
 	motivoDevolucion->cadena = malloc(motivoDevolucion->longitud_cadena);
 	buffer_unpack(cym_recibido, motivoDevolucion->cadena, motivoDevolucion->longitud_cadena);
-	// log_error(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
+	// log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_recibido->size);
 
 	// Socket
 	buffer_unpack(cym_recibido, &contextoEjecucion->socket, sizeof(uint32_t));
@@ -95,7 +95,7 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
 		{
 			// Longitud cadena
 			buffer_unpack(cym_recibido, &instruccionRecibida->longitud_cadena, sizeof(uint32_t));
-			// log_error(logger, "long: %d", instruccionRecibida->longitud_cadena);
+			// log_debug(logger, "long: %d", instruccionRecibida->longitud_cadena);
 			instruccionRecibida->cadena = malloc(instruccionRecibida->longitud_cadena);
 			// Cadena
 			buffer_unpack(cym_recibido, instruccionRecibida->cadena, instruccionRecibida->longitud_cadena);

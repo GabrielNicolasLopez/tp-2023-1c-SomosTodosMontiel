@@ -5,7 +5,7 @@ int levantar_volumen()
     levantar_superbloque();
 
     if(!existe_archivo(configFS->PATH_BITMAP)) {
-        log_info(logger, "Bitmap inexistente, generando archivos...");
+        log_debug(logger, "Bitmap inexistente, generando archivos...");
         crear_bitmap();
         crear_archivo_de_bloques();
         if (crear_carpeta_de_FCBs() == -1) {
@@ -22,7 +22,7 @@ int levantar_volumen()
 
 void levantar_superbloque()
 {
-    log_info(logger, "Levantando ARCHIVO DE SUPERBLOQUE"); 
+    log_debug(logger, "Levantando ARCHIVO DE SUPERBLOQUE"); 
     t_config_SupBloque = config_create(configFS->PATH_SUPERBLOQUE);
     config_SupBloque = leerConfiguracion_superbloque();
 }

@@ -3,7 +3,7 @@
 void implementar_hrrn(){
 	t_pcb *pcb = algoritmo_hrrn(LISTA_READY); //Obtiene el elemento que corresponde
 	pasar_a_exec(pcb);
-	log_info(logger, "Cambio de Estado: PID %d - Estado Anterior: <READY> , Estado Actual: <EXEC>", pcb->contexto->pid);
+	log_debug(logger, "Cambio de Estado: PID %d - Estado Anterior: <READY> , Estado Actual: <EXEC>", pcb->contexto->pid);
 	sem_post(&pasar_pcb_a_CPU);
 }
 

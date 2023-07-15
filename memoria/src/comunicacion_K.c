@@ -5,9 +5,9 @@ void hilo_kernel_m(){
     uint32_t pid_recibido;
     while (1){
 
-        log_info(logger, "Estoy esperando mensaje de Kernel...");
+        log_debug(logger, "Estoy esperando mensaje de Kernel...");
         uint8_t header = stream_recv_header(conexion_con_kernel);
-        log_info(logger, "header recibido: %d", header);
+        log_debug(logger, "header recibido: %d", header);
 
         t_segmento* segmentoImprimir;
         switch (header){
@@ -37,7 +37,7 @@ void hilo_kernel_m(){
             log_debug(logger,"Segmentos del Proceso PID:%d a borrar:",pid_recibido);
             for(int i=0; i < list_size(listasABorrar); i++){
                     segmentoImprimir = list_get(listasABorrar, i);
-                    log_debug(logger,"Segmento: %d - Base: %d - Tamaño: %d", segmentoImprimir->id_segmento, segmentoImprimir->base, segmentoImprimir->tamanio);
+                    log_info(logger,"Segmento: %d - Base: %d - Tamaño: %d", segmentoImprimir->id_segmento, segmentoImprimir->base, segmentoImprimir->tamanio);
                 }
 
             //borro todos los segmentos con ese Pid y mando un PROCESO_BORRADO
@@ -72,7 +72,7 @@ void hilo_kernel_m(){
                 }
                 else{
                     segmentoACrear->base=espacioDisponible;
-                    log_error(logger,"No se puedo crear el segmento  %d ",segmentoACrear->base);
+                    log_debug(logger,"No se puedo crear el segmento  %d ",segmentoACrear->base);
                 }
                 //devuelvo la base actualizada
                 mandarLaBase(segmentoACrear->base);
@@ -104,7 +104,7 @@ void hilo_kernel_m(){
 
                 log_debug(logger, "Cantidad de segmentos antes de borrar: %d", list_size(listaSegmentos));
                 if(!list_remove_element(listaSegmentos,segmentoEncontrado)){
-                    log_error(logger, "No lo puede remover");
+                    log_debug(logger, "No lo puede remover");
                 } 
                 buddySystem();
                 
@@ -127,7 +127,7 @@ void hilo_kernel_m(){
                 log_info(logger, "Solicitud de compactacion");
                 compactar();
                 sleep((configuracionMemoria->retardo_compatacion/1000));
-                log_info(logger,"Resultado Compactación: ");
+                log_debug(logger,"Resultado Compactación: ");
                 for(int i=0; i < list_size(listaSegmentos); i++){
                     segmentoImprimir = list_get(listaSegmentos, i);
                     log_info(logger,"PID: %d - Segmento: %d - Base: %d - Tamaño: %d", segmentoImprimir->pid, segmentoImprimir->id_segmento, segmentoImprimir->base, segmentoImprimir->tamanio);
@@ -137,7 +137,7 @@ void hilo_kernel_m(){
                 break;
 
             default:
-                log_error(logger, "Instruccion no valida ERROR: %d", header);
+                log_debug(logger, "Instruccion no valida ERROR: %d", header);
                 break;
         }
         //free(header);
@@ -221,7 +221,7 @@ void mandarLaBase(uint32_t baseMandar){
 
 void mandarTam(){
     t_buffer* buffer = buffer_create();
-    //log_error(logger, "tam_segm0: %d", configuracionMemoria->tam_segmento_O);
+    //log_debug(logger, "tam_segm0: %d", configuracionMemoria->tam_segmento_O);
     buffer_pack(buffer, &(configuracionMemoria->tam_segmento_O), sizeof(uint32_t));
     stream_send_buffer(conexion_con_kernel, TAMANIO, buffer);
     buffer_destroy(buffer);

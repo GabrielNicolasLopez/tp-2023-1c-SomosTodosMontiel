@@ -25,7 +25,7 @@ void crear_hilo_consumidor()
                 
                 respuesta_a_kernel(FS_OPEN_OK, p_instruccion);
             } else {
-                log_info(logger, "F_OPEN: Archivo inexistente, %s", p_instruccion->cadena);
+                log_debug(logger, "F_OPEN: Archivo inexistente, %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_OPEN_NO_OK, p_instruccion);
                 free(p_instruccion->cadena);
             }
@@ -35,7 +35,6 @@ void crear_hilo_consumidor()
         // *** F_CREATE ***
         if (tipo_inst == F_CREATE) {
             log_info(logger, "Crear Archivo: <%s>", p_instruccion->cadena);
-            
             t_lista_FCB_config* FCB = malloc(sizeof(t_lista_FCB_config));
             char* archivo = strdup(p_instruccion->cadena);
             FCB->nombre_archivo = archivo;
@@ -72,7 +71,7 @@ void crear_hilo_consumidor()
         
         // *** F_READ ***
         if (tipo_inst == F_READ) {
-            log_info(logger, "ENTRE A F_READ");
+            log_debug(logger, "ENTRE A F_READ");
             t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
             
             uint32_t puntero_archivo = p_instruccion->paramIntA;
@@ -93,7 +92,7 @@ void crear_hilo_consumidor()
             }
             
             if (puntero_archivo + cant_bytes > FCB->FCB_config->TAMANIO_ARCHIVO) {
-                log_error(logger, "Hilo_consumidor (F_READ): La lectura supera el tamaño del archivo %s", p_instruccion->cadena);
+                log_debug(logger, "Hilo_consumidor (F_READ): La lectura supera el tamaño del archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 continue;
             }
@@ -110,7 +109,7 @@ void crear_hilo_consumidor()
             uint8_t header = stream_recv_header(socketMemoria);
             stream_recv_empty_buffer(socketMemoria);
             if (header != FS_M_WRITE_OK) {
-                log_error(logger, "Hilo_consumidor (F_READ): Respuesta de escritura en memoria erronea. Archivo %s", p_instruccion->cadena);
+                log_debug(logger, "Hilo_consumidor (F_READ): Respuesta de escritura en memoria erronea. Archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 continue;
             }
@@ -123,7 +122,7 @@ void crear_hilo_consumidor()
         
         // *** F_WRITE ***
         if (tipo_inst == F_WRITE) {
-            log_info(logger, "ENTRE A F_WRITE");
+            log_debug(logger, "ENTRE A F_WRITE");
             t_lista_FCB_config* FCB = FCB_list_get(p_instruccion->cadena);
 
             uint32_t puntero_archivo = p_instruccion->paramIntA;
@@ -138,7 +137,7 @@ void crear_hilo_consumidor()
             }
 
             if (puntero_archivo + cant_bytes > FCB->FCB_config->TAMANIO_ARCHIVO) {
-                log_error(logger, "Hilo_consumidor (F_WRITE): La escritura supera el tamaño del archivo %s", p_instruccion->cadena);
+                log_debug(logger, "Hilo_consumidor (F_WRITE): La escritura supera el tamaño del archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 continue;
             }
@@ -146,7 +145,7 @@ void crear_hilo_consumidor()
             pedido_lectura_mem(cant_bytes, dir_fisica, p_instruccion->pid);
             uint8_t header = stream_recv_header(socketMemoria);
             if (header != FS_M_READ_OK) {
-                log_error(logger, "Hilo_consumidor (F_READ): Respuesta de escritura en memoria erronea. Archivo %s", p_instruccion->cadena);
+                log_debug(logger, "Hilo_consumidor (F_READ): Respuesta de escritura en memoria erronea. Archivo %s", p_instruccion->cadena);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 continue;
             }
@@ -155,7 +154,7 @@ void crear_hilo_consumidor()
             char* cadena_bytes = recibir_cadena_bytes_mem(&cant_bytes_memoria);
             
             if (cant_bytes_memoria != cant_bytes) {
-                log_error(logger, "Hilo_consumidor (F_WRITE): Memoria pudo leer solo %u bytes", cant_bytes_memoria);
+                log_debug(logger, "Hilo_consumidor (F_WRITE): Memoria pudo leer solo %u bytes", cant_bytes_memoria);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 free(cadena_bytes);
                 continue;
@@ -169,7 +168,7 @@ void crear_hilo_consumidor()
             );
             int bloques_escritos = escribir_bloques(FCB, puntero_archivo, cant_bytes, cadena_bytes);
             if (bloques_escritos != cant_bytes) {
-                log_error(logger, "Hilo_consumidor (F_WRITE): Solo se pudieron escribir en los bloques %u bytes", cant_bytes);
+                log_debug(logger, "Hilo_consumidor (F_WRITE): Solo se pudieron escribir en los bloques %u bytes", cant_bytes);
                 respuesta_a_kernel(FS_ERROR, p_instruccion);
                 free(cadena_bytes);
                 continue;
@@ -182,7 +181,7 @@ void crear_hilo_consumidor()
         
         // *** EXIT ***
         if (tipo_inst == EXIT) {
-            log_info(logger, "Hilo_consumidor: Finalizacion exitosa");
+            log_debug(logger, "Hilo_consumidor: Finalizacion exitosa");
             break;
         }
         
@@ -201,7 +200,7 @@ void respuesta_a_kernel(int operacion, t_instruccion_FS* instruccion)
     buffer_pack(buffer, &instruccion->longitud_cadena, sizeof(instruccion->longitud_cadena));
 	// CADENA_ARCHIVO
     buffer_pack(buffer, instruccion->cadena, instruccion->longitud_cadena);
-    log_error(logger, "Tamaño de la instruccion enviada a MEMORIA %d", buffer->size);
+    log_debug(logger, "Tamaño de la instruccion enviada a MEMORIA %d", buffer->size);
     stream_send_buffer(socketKernel, header, buffer);
     buffer_destroy(buffer);
 }

@@ -38,7 +38,7 @@ void asignarRecurso(char *nombre_recurso, t_pcb* pcb)
 			pthread_mutex_unlock(&pcb->mutex_TablaDeRecursos);
 		}
 	}
-	log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", pcb->contexto->pid, nombre_recurso, recursos_disponibles(nombre_recurso));
+	log_info(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", pcb->contexto->pid, nombre_recurso, recursos_disponibles(nombre_recurso));
 }
 
 void pasar_a_blocked_de_recurso(t_pcb *pcb_a_blocked, char *nombre_recurso)
@@ -51,8 +51,8 @@ void pasar_a_blocked_de_recurso(t_pcb *pcb_a_blocked, char *nombre_recurso)
 	}
 
 	t_recurso *recurso = list_get(lista_de_recursos, posicion);
-	log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
-	log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombre_recurso);
+	log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
+	log_info(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombre_recurso);
 	pthread_mutex_lock(&recurso->mutex_lista_blocked);
 	list_add(recurso->lista_block, pcb_a_blocked);
 	pthread_mutex_unlock(&recurso->mutex_lista_blocked);
@@ -66,7 +66,7 @@ void devolverRecursosPCB(t_pcb* pcb)
 		while(!list_is_empty(pcb->tablaDeRecursos)){
 			recursoADevolver = list_get(pcb->tablaDeRecursos, 0);
 			devolverRecurso(recursoADevolver->nombre, pcb);
-			log_error(logger, "recursos de pcb EN EXIT: %d", list_size(pcb->tablaDeRecursos));
+			log_debug(logger, "recursos de pcb EN EXIT: %d", list_size(pcb->tablaDeRecursos));
 		}
 	}
 }
@@ -81,16 +81,16 @@ void devolverRecurso(char *nombre_recurso, t_pcb* pcb)
 	}
 
 	t_recurso *recurso = list_get(lista_de_recursos, posicion);
-	//log_error(logger, "se devuelve una instancia del recurso <%s>", recurso->nombre);
+	//log_debug(logger, "se devuelve una instancia del recurso <%s>", recurso->nombre);
 	pthread_mutex_lock(&recurso->mutex_lista_blocked);
 	recurso->instancias_recursos += 1;
 	pthread_mutex_unlock(&recurso->mutex_lista_blocked);
 
-	log_error(logger, "recursos de pcb antes de eliminar: %d", list_size(pcb->tablaDeRecursos));
+	log_debug(logger, "recursos de pcb antes de eliminar: %d", list_size(pcb->tablaDeRecursos));
 	//Remuevo el recurso de la tabla de recursos 
 	list_remove_element(pcb->tablaDeRecursos, recurso);
-	log_error(logger, "recursos de pcb despues de eliminar: %d", list_size(pcb->tablaDeRecursos));
-	log_debug(logger, "PID: <%d> - Signal: <%s> - Instancias: <%d>", pcb->contexto->pid, nombre_recurso, recursos_disponibles(nombre_recurso));
+	log_debug(logger, "recursos de pcb despues de eliminar: %d", list_size(pcb->tablaDeRecursos));
+	log_info(logger, "PID: <%d> - Signal: <%s> - Instancias: <%d>", pcb->contexto->pid, nombre_recurso, recursos_disponibles(nombre_recurso));
 }
 
 void actualizar_procesos_bloqueados(char *nombre_recurso){
@@ -111,7 +111,7 @@ void actualizar_procesos_bloqueados(char *nombre_recurso){
 		//Asignamos el recurso
 		asignarRecurso(nombre_recurso, pcb_blocked_a_ready);
 		//Y lo mandamos a la cola de ready
-		log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_blocked_a_ready->contexto->pid);
+		log_info(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_blocked_a_ready->contexto->pid);
 		pasar_a_ready(pcb_blocked_a_ready);
 	}
 }

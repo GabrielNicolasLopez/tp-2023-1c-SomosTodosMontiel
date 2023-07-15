@@ -6,7 +6,7 @@
 
 context (BLOQUES) {
     // LOGGER
-    logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_DEBUG);
+    logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_INFO);
     if (logger == NULL) {
         fprintf(stderr, "Error al abrir el logger, abortando...");
         exit(EXIT_FAILURE);

@@ -16,7 +16,7 @@ void agregar_pcb_a_ready(){
 	t_pcb* pcb = list_remove(LISTA_NEW, 0); //Elimino la pcb de la lista
 	pthread_mutex_unlock(&listaNew); 
 
-	log_debug(logger, "PID: <%d> - Estado Anterior: <NEW> - Estado Actual: <READY>", pcb->contexto->pid);
+	log_info(logger, "PID: <%d> - Estado Anterior: <NEW> - Estado Actual: <READY>", pcb->contexto->pid);
 	pasar_a_ready(pcb);
 }
 
@@ -31,17 +31,17 @@ void planiCortoPlazo(){
 		algoritmo = obtenerAlgoritmo();
 		switch (algoritmo){
 			case FIFO:
-				log_info(logger, "Implementando algoritmo FIFO");
+				log_debug(logger, "Implementando algoritmo FIFO");
 				implementar_fifo();
 				break;
 				
 			case HRRN:
-				log_info(logger, "Implementando algoritmo HRRN");
+				log_debug(logger, "Implementando algoritmo HRRN");
 				implementar_hrrn();
 				break;
 
 			default:
-				log_error(logger, "ERROR AL ELEGIR EL ALGORITMO EN EL PLANIFICADOR DE CORTO PLAZO");
+				log_debug(logger, "ERROR AL ELEGIR EL ALGORITMO EN EL PLANIFICADOR DE CORTO PLAZO");
 				break;
 		}
 	}
@@ -56,6 +56,6 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 	else if(!strcmp(algoritmoConfig, "HRRN"))
 		algoritmo = HRRN;
 	else
-		log_error(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
+		log_debug(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
 	return algoritmo;
 }

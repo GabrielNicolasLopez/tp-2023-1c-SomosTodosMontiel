@@ -4,7 +4,7 @@ void pasar_a_new(t_pcb *pcb){
 	pthread_mutex_lock(&listaNew);
 	list_add(LISTA_NEW, pcb);
 	pthread_mutex_unlock(&listaNew);
-	log_debug(logger, "Se crea el proceso <%d> en NEW", pcb->contexto->pid);
+	log_info(logger, "Se crea el proceso <%d> en NEW", pcb->contexto->pid);
 	
 }
 
@@ -15,10 +15,10 @@ void pasar_a_ready(t_pcb *pcb){
     clock_gettime(CLOCK_REALTIME, &start);
 	pcb->llegadaReady = start;
 	pthread_mutex_unlock(&listaReady);
-	log_debug(logger, "Cola Ready <%s>: ", configuracionKernel->ALGORITMO_PLANIFICACION);
+	log_info(logger, "Cola Ready <%s>: ", configuracionKernel->ALGORITMO_PLANIFICACION);
 	for(int i=0; i<list_size(LISTA_READY); i++){
 		t_pcb* pcb = list_get(LISTA_READY, i);
-		log_debug(logger, "%d", pcb->contexto->pid);
+		log_info(logger, "%d", pcb->contexto->pid);
 	}
 	sem_post(&cantPCBReady);
 }

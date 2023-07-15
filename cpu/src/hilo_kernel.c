@@ -13,12 +13,16 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		.cant_int = 0,
 		.cant_intB = 0,
 	};
+
+	uint32_t num_segmento;
+	uint32_t desplazamiento_segmento;
+
 	switch(instruccion -> tipo){
 		// 3 PARAMETROS
 		case F_READ:	// F_READ (Nombre Archivo, Dirección Lógica, Cantidad de Bytes):
 						// Esta instrucción solicita al Kernel que se lea del archivo indicado, la cantidad de bytes pasada
 						// por parámetro y se escriba en la dirección física de Memoria la información leída.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %u", 
+			log_info(logger, "PID: %u - Ejecutando: %s - %s - %u - %u", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena,
@@ -30,7 +34,10 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
 			strcpy(&motivo.cadena, instruccion->cadena);
 			motivo.cant_int = usarMMU(contexto_ejecucion, instruccion->paramIntA, instruccion->paramIntB);
+			num_segmento = floor(instruccion->paramIntA / configuracion_cpu -> tam_max_segmento);
+			desplazamiento_segmento = instruccion->paramIntA % (configuracion_cpu -> tam_max_segmento);
 			if (motivo.cant_int == -1) {
+				log_info(logger, "PID: <%d> - Error SEG_FAULT- Segmento: <%d> - Offset: <%d> - Tamaño: <%d>", contexto_ejecucion->pid, num_segmento, desplazamiento_segmento, tamanio_reg(instruccion->registro));
 				motivo.tipo = SEG_FAULT;
 				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 				*enviamos_CE_al_kernel = true;
@@ -45,7 +52,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 						// Esta instrucción solicita al
 						// Kernel que se escriba en el archivo indicado, la cantidad de bytes pasada por parámetro cuya
 						// información es obtenida a partir de la dirección física de Memoria.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u - %u", 
+			log_info(logger, "PID: %u - Ejecutando: %s - %s - %u - %u", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena,
@@ -57,7 +64,10 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			motivo.longitud_cadena = string_length(instruccion->cadena)+1;
 			strcpy(&motivo.cadena, instruccion->cadena);
 			motivo.cant_int = usarMMU(contexto_ejecucion, instruccion->paramIntA, instruccion->paramIntB);
+			num_segmento = floor(instruccion->paramIntA / configuracion_cpu -> tam_max_segmento);
+			desplazamiento_segmento = instruccion->paramIntA % (configuracion_cpu -> tam_max_segmento);
 			if (motivo.cant_int == -1) {
+				log_info(logger, "PID: <%d> - Error SEG_FAULT- Segmento: <%d> - Offset: <%d> - Tamaño: <%d>", contexto_ejecucion->pid, num_segmento, desplazamiento_segmento, tamanio_reg(instruccion->registro));
 				motivo.tipo = SEG_FAULT;
 				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 				*enviamos_CE_al_kernel = true;
@@ -72,7 +82,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		// 2 PARAMETROS
 		case SET: 	// SET (Registro, Valor): 
 					// Asigna al registro el valor pasado como parámetro
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %s",
+			log_info(logger, "PID: %u - Ejecutando: %s - %s - %s",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				nombresRegistros[instruccion->registro],
@@ -125,23 +135,28 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case MOV_IN: 	// MOV_IN (Registro, Dirección Lógica): 
 						// Lee el valor de memoria correspondiente a la Dirección Lógica y lo almacena en el Registro.
 			
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %d", 
+			log_info(logger, "PID: %u - Ejecutando: %s - %s - %d", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				nombresRegistros[instruccion->registro],
 				instruccion->paramIntA);
 			
 			motivo.cant_int = usarMMU(contexto_ejecucion, instruccion->paramIntA, tamanio_reg(instruccion->registro));
+			desplazamiento_segmento = instruccion->paramIntA % (configuracion_cpu -> tam_max_segmento);
+			num_segmento = floor(instruccion->paramIntA / configuracion_cpu -> tam_max_segmento);
 			if (motivo.cant_int == -1) {
+				log_info(logger, "PID: <%d> - Error SEG_FAULT- Segmento: <%d> - Offset: <%d> - Tamaño: <%d>", contexto_ejecucion->pid, num_segmento, desplazamiento_segmento, tamanio_reg(instruccion->registro));
 				motivo.tipo = SEG_FAULT;
 				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 				*enviamos_CE_al_kernel = true;
 				break;
 			}
-
+			
 			enviar_mov_in_a_memoria(motivo.cant_int, tamanio_reg(instruccion->registro), contexto_ejecucion->pid);
 
 			char* cadena = esperar_respuesta_mov_in();
+
+			log_info(logger, "PID: <%d> - Acción: <LEER> - Segmento: <%d> - Dirección Física: <%d> - Valor: <%s>", contexto_ejecucion->pid, num_segmento, motivo.cant_int, cadena);
 
 			switch(instruccion -> registro){
 				// registros de tamaño 4
@@ -191,15 +206,17 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case MOV_OUT: 	// MOV_OUT (Dirección Lógica, Registro): 
 						// Lee el valor del Registro y lo escribe en la dirección física de memoria obtenida a partir de la Dirección Lógica.
 				//MOV_OUT 120 AX
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %d - %s", 
+			log_info(logger, "PID: %u - Ejecutando: %s - %d - %s", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->paramIntA,
 				nombresRegistros[instruccion->registro]);
 
 			motivo.cant_int = usarMMU(contexto_ejecucion, instruccion->paramIntA, tamanio_reg(instruccion->registro));
+			desplazamiento_segmento = instruccion->paramIntA % (configuracion_cpu -> tam_max_segmento);
+			num_segmento = floor(instruccion->paramIntA / configuracion_cpu -> tam_max_segmento);
 			if (motivo.cant_int == -1) {
-				log_error(logger, "segfault");
+				log_info(logger, "PID: <%d> - Error SEG_FAULT- Segmento: <%d> - Offset: <%d> - Tamaño: <%d>", contexto_ejecucion->pid, num_segmento, desplazamiento_segmento, tamanio_reg(instruccion->registro));
 				motivo.tipo = SEG_FAULT;
 				enviar_cym_a_kernel(motivo, contexto_ejecucion, cliente_fd_kernel);
 				*enviamos_CE_al_kernel = true;
@@ -210,13 +227,15 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 
 			esperar_respuesta_mov_out();
 
+			log_info(logger, "PID: <%d> - Acción: <ESCRIBIR> - Segmento: <%d> - Dirección Física: <%d> - Valor: <%s>", contexto_ejecucion->pid, num_segmento, motivo.cant_int, valor_registro(contexto_ejecucion, instruccion -> registro));
+
 			contexto_ejecucion -> program_counter++;
 
 			break;
 		case F_TRUNCATE: // F_TRUNCATE (Nombre Archivo, Tamaño): 
 						 // Esta instrucción solicita al Kernel que se modifique el tamaño del archivo al indicado por parámetro.
 			
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u", 
+			log_info(logger, "PID: %u - Ejecutando: %s - %s - %u", 
 				contexto_ejecucion->pid, 
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena,
@@ -234,7 +253,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case F_SEEK:	// F_SEEK (Nombre Archivo, Posición): 
 						// Esta instrucción solicita al kernel actualizar el puntero del archivo a la posición pasada por parámetro.
 			
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s - %u",
+			log_info(logger, "PID: %u - Ejecutando: %s - %s - %u",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena,
@@ -251,7 +270,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case CREATE_SEGMENT: // CREATE_SEGMENT (Id del Segmento, Tamaño): 
 							 // Esta instrucción solicita al kernel la creación del segmento con el Id y tamaño indicado por parámetro.
 
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %u - %u",
+			log_info(logger, "PID: %u - Ejecutando: %s - %u - %u",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->paramIntA,
@@ -269,7 +288,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 		case IO:	// I/O (Tiempo): Esta instrucción representa una syscall de I/O bloqueante. Se deberá devolver
 					// el Contexto de Ejecución actualizado al Kernel junto a la cantidad de unidades de tiempo
 					// que va a bloquearse el proceso.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %u",
+			log_info(logger, "PID: %u - Ejecutando: %s - %u",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->paramIntA);
@@ -282,7 +301,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			break;
 		case WAIT:		// WAIT (recurso): Esta instrucción solicita al Kernel que se asigne una instancia del recurso
 						// indicado por parámetro.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s",
+			log_info(logger, "PID: %u - Ejecutando: %s - %s",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena);
@@ -296,7 +315,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			break;
 		case SIGNAL:	// SIGNAL (cadena): Esta instrucción solicita al Kernel que se libere una instancia del cadena
 						// indicado por parámetro.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s",
+			log_info(logger, "PID: %u - Ejecutando: %s - %s",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena);
@@ -310,7 +329,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
             break;
 		case F_OPEN: 	// F_OPEN (Nombre Archivo): Esta instrucción solicita al kernel que abra o cree el archivo
 					 	// pasado por parámetro.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s",
+			log_info(logger, "PID: %u - Ejecutando: %s - %s",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena);
@@ -324,7 +343,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
             break;
 		case F_CLOSE:	// F_CLOSE (Nombre Archivo): Esta instrucción solicita al kernel que cierre el archivo pasado
 						// por parámetro.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %s",
+			log_info(logger, "PID: %u - Ejecutando: %s - %s",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->cadena);
@@ -338,7 +357,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
             break;
 		case DELETE_SEGMENT:	// DELETE_SEGMENT (Id del Segmento): Esta instrucción solicita al kernel que se elimine el
 								// segmento cuyo Id se pasa por parámetro.
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s - %u",
+			log_info(logger, "PID: %u - Ejecutando: %s - %u",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo],
 				instruccion->paramIntA);
@@ -352,7 +371,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 
 		// 0 PARAMETROS
 		case YIELD:
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s",
+			log_info(logger, "PID: %u - Ejecutando: %s",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo]);
 
@@ -362,7 +381,7 @@ t_contextoEjecucion* ciclo_instruccion(t_contextoEjecucion* contexto_ejecucion, 
 			*enviamos_CE_al_kernel = true;
 			break;
 		case EXIT:
-			log_info(logger, "Instruccion Ejecutada: PID: %u - Ejecutando: %s",
+			log_info(logger, "PID: %u - Ejecutando: %s",
 				contexto_ejecucion->pid,
 				nombresInstrucciones[instruccion->tipo]);
 				
@@ -417,11 +436,11 @@ void enviar_mov_out_a_memoria(uint32_t cantBytes, char* valor_registro, uint32_t
 	buffer_pack(buffer_MOV_OUT, &direccion_fisica, sizeof(uint32_t));
 	buffer_pack(buffer_MOV_OUT, &PID, sizeof(uint32_t));
 
-	log_info(logger, "cantBytes: %d", cantBytes);
-	log_info(logger, "valor_registro: %.4s", valor_registro);
-	log_info(logger, "direccion_fisica: %d", direccion_fisica);
-	log_info(logger, "PID: %d", PID);
-	log_info(logger, "conexion_con_memoria: %d", conexion_con_memoria);
+	log_debug(logger, "cantBytes: %d", cantBytes);
+	log_debug(logger, "valor_registro: %.4s", valor_registro);
+	log_debug(logger, "direccion_fisica: %d", direccion_fisica);
+	log_debug(logger, "PID: %d", PID);
+	log_debug(logger, "conexion_con_memoria: %d", conexion_con_memoria);
 
 	stream_send_buffer(conexion_con_memoria, MOV_OUT, buffer_MOV_OUT);
 
@@ -433,9 +452,9 @@ void esperar_respuesta_mov_out(){
 	stream_recv_empty_buffer(conexion_con_memoria);
 
 	if(respuesta == OK)
-		log_info(logger, "MOV_OUT ejecutado correctamente.");
+		log_debug(logger, "MOV_OUT ejecutado correctamente.");
 	else
-		log_error(logger, "No se ejecuto MOV_OUT correctamente.");
+		log_debug(logger, "No se ejecuto MOV_OUT correctamente.");
 }
 
 char* valor_registro(t_contextoEjecucion* contexto_ejecucion, t_registro registro)

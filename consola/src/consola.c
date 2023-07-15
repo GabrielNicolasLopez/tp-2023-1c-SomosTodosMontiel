@@ -4,7 +4,7 @@ int main(int argc, char** argv){
 	int conexionKernel;
 	
 	//Creo logger
-	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_DEBUG);
+	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_INFO);
 
 	log_info(logger, "INICIANDO CONSOLA...");
 
@@ -21,11 +21,11 @@ int main(int argc, char** argv){
 	conexionKernel = crear_conexion(consola_config.ip, consola_config.puerto);
 
 	if(conexionKernel == -1){
-		log_error(logger, "CONSOLA NO SE CONECTÓ A KERNEL. FINALIZANDO CONSOLA...");
+		log_info(logger, "CONSOLA NO SE CONECTÓ A KERNEL. FINALIZANDO CONSOLA...");
 		exit(1);
 	}
 
-	log_debug(logger, "CONSOLA SE CONECTÓ A KERNEL.");
+	log_info(logger, "CONSOLA SE CONECTÓ A KERNEL.");
 
     stream_send_empty_buffer(conexionKernel, HANDSHAKE_consola);
 	log_debug(logger, "CONSOLA ENVIO HANDSHAKE A KERNEL.");
@@ -33,7 +33,7 @@ int main(int argc, char** argv){
 	stream_recv_empty_buffer(conexionKernel);
 
     if (kernelResponse != HANDSHAKE_ok_continue) {
-        log_error(logger, "Error al intentar establecer Handshake inicial con módulo Kernel");
+        log_debug(logger, "Error al intentar establecer Handshake inicial con módulo Kernel");
         //consola_destroy(consola_config, logger);
         exit(1);
     }
@@ -64,22 +64,22 @@ int main(int argc, char** argv){
 	
 	t_Kernel_Consola razon = recibir_fin_desde_kernel(conexionKernel);
 
-	log_error(logger, "razon: %d", razon);
+	log_debug(logger, "razon: %d", razon);
 	switch(razon){
 		case SUCCESS:
-			log_error(logger,"Finalizando consola: EXIT");
+			log_info(logger,"Finalizando consola: EXIT");
 		break;
 		case OUT_OF_MEMORY:
-			log_error(logger,"Finalizando consola: OUT_OF_MEMORY");
+			log_info(logger,"Finalizando consola: OUT_OF_MEMORY");
 		break;
 		case INVALID_RESOURCE:
-			log_error(logger,"Finalizando consola: INVALID_RESOURCE");
+			log_info(logger,"Finalizando consola: INVALID_RESOURCE");
 		break;
 		case SEG_FAULTT:
-			log_error(logger,"Finalizando consola: Segfault");
+			log_info(logger,"Finalizando consola: Segfault");
 		break;
 		default:
-			log_error(logger,"Finalizando consola: RAZON INVALIDA");
+			log_info(logger,"Finalizando consola: RAZON INVALIDA");
 		break;
 	}
 	
@@ -99,16 +99,16 @@ t_Kernel_Consola recibir_fin_desde_kernel(int conexionKernel){
 void enviar_instrucciones_a_kernel(t_buffer *instructionsBuffer, t_instrucciones* instrucciones, int conexionKernel){
 
     stream_send_buffer(conexionKernel, INSTRUCCIONES, instructionsBuffer);
-	log_error(logger, "Tamaño de las instrucciones enviadas a kernel %d", instructionsBuffer->size);
+	log_debug(logger, "Tamaño de las instrucciones enviadas a kernel %d", instructionsBuffer->size);
     //buffer_destroy(instructionsBuffer);
 }	
 
 void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instrucciones, FILE* archivoInstrucciones){
 	if (archivoInstrucciones == NULL){
-		log_error(logger, "NO SE PUEDE ABRIR EL ARCHIVO DE INSTRUCCIONES, ABORTANDO CONSOLA...");
+		log_info(logger, "NO SE PUEDE ABRIR EL ARCHIVO DE INSTRUCCIONES, ABORTANDO CONSOLA...");
 		exit(1);
 	}
-	log_info(logger, "ARCHIVO DE INSTRUCCIONES ABIERTO, LEYENDO INSTRUCCIONES...");
+	log_debug(logger, "ARCHIVO DE INSTRUCCIONES ABIERTO, LEYENDO INSTRUCCIONES...");
 	const unsigned MAX_LENGTH = 256;
 	char buffer_renglon[MAX_LENGTH];
 
@@ -138,7 +138,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "MOV_IN") == 0){
@@ -148,7 +148,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			buffer_pack(buffer, &registro, sizeof(registro));
 			buffer_pack(buffer, &paramIntA, sizeof(paramIntA));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "MOV_OUT") == 0){
@@ -158,7 +158,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			buffer_pack(buffer, &paramIntA, sizeof(paramIntA));
 			buffer_pack(buffer, &registro, sizeof(registro));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "I/O") == 0){
@@ -166,7 +166,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			uint32_t paramIntA = atoi(palabras[1]); //Tiempo
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			buffer_pack(buffer, &paramIntA, sizeof(paramIntA));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_OPEN") == 0){
@@ -176,7 +176,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_CLOSE") == 0){
@@ -186,7 +186,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_SEEK") == 0){
@@ -198,7 +198,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_READ") == 0){
@@ -212,7 +212,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);	
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
 			buffer_pack(buffer, &paramIntB, sizeof(uint32_t));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_WRITE") == 0){
@@ -226,7 +226,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);	
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
 			buffer_pack(buffer, &paramIntB, sizeof(uint32_t));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "F_TRUNCATE") == 0){
@@ -238,7 +238,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);	
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "WAIT") == 0){
@@ -246,10 +246,10 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			strcpy(cadena_pack, palabras[1]);
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
-			//log_error(logger, "long: %d", longitud_cadena_pack);
+			//log_debug(logger, "long: %d", longitud_cadena_pack);
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);	
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "SIGNAL") == 0){
@@ -259,7 +259,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			uint32_t longitud_cadena_pack = string_length(cadena_pack)+1;
 			buffer_pack(buffer, &longitud_cadena_pack, sizeof(uint32_t));
 			buffer_pack(buffer, cadena_pack, longitud_cadena_pack);		
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 				
 		}
 		else if (strcmp(palabras[0], "CREATE_SEGMENT") == 0){
@@ -269,7 +269,7 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			buffer_pack(buffer, &paramIntA, sizeof(uint32_t));
 			buffer_pack(buffer, &paramIntB, sizeof(uint32_t));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "DELETE_SEGMENT") == 0){
@@ -277,19 +277,19 @@ void agregarInstruccionesDesdeArchivo(t_buffer *buffer, t_instrucciones *instruc
 			uint32_t paramIntA = atoi(palabras[1]); //ID segmento
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
 			buffer_pack(buffer, &paramIntA, sizeof(paramIntA));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "YIELD") == 0){
 			t_tipoInstruccion instruccion = YIELD;
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 		else if (strcmp(palabras[0], "EXIT") == 0){
 			t_tipoInstruccion instruccion = EXIT;
 			buffer_pack(buffer, &instruccion, sizeof(instruccion));
-			//log_error(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
+			//log_debug(logger, "TAMAÑO DEL BUFFER %d", buffer->size);
 
 		}
 	}
@@ -334,16 +334,16 @@ t_registro devolverRegistro(char *registro){
 
 FILE *abrirArchivo(char *nombreArchivo){
 	if (!nombreArchivo){ //Probar
-		log_error(logger, "NOMBRE DE ARCHIVO ERRONEO");
+		log_debug(logger, "NOMBRE DE ARCHIVO ERRONEO");
 		exit(1);
 	}
 	return fopen(nombreArchivo, "r");
 }
 
 void verificacionDeConfiguracion(int argc){
-	log_info(logger, "Cantidad de parametros: %d", argc);
+	log_debug(logger, "Cantidad de parametros: %d", argc);
 	if (argc != 3){ //.c, config, pseudocodigo
-		log_error(logger, "CANTIDAD DE PARAMETROS INCORRECTA");
+		log_info(logger, "CANTIDAD DE PARAMETROS INCORRECTA");
 		exit(1);
 	}
 	else

@@ -17,7 +17,7 @@ void crear_archivo_de_bloques()
 
 void levantar_bloques()
 {
-    log_info(logger, "Levantando BLOQUES");
+    log_debug(logger, "Levantando BLOQUES");
     int fd_bloques = open(configFS->PATH_BLOQUES, O_RDWR);
     
     // Guardo los atributos de ese archivo en stats_fd_bloques
@@ -32,7 +32,7 @@ int escribir_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
     sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
     
     if (offset > config_SupBloque->BLOCK_SIZE) {
-        log_error(logger, "ESCRITURA DE BLOQUE: Offset en el bloque %u SOBREPASA EL TAMAÑO", bloque);
+        log_debug(logger, "ESCRITURA DE BLOQUE: Offset en el bloque %u SOBREPASA EL TAMAÑO", bloque);
         return -1;
     }
     
@@ -121,7 +121,7 @@ int leer_bloque(uint32_t bloque, off_t offset, void* reg, size_t tamanio)
     sleep(configFS->RETARDO_ACCESO_BLOQUE / 1000);
     
     if (offset + tamanio > config_SupBloque->BLOCK_SIZE) {
-        log_error(logger, "LECTURA DE BLOQUE %u SOBREPASA EL TAMAÑO", bloque);
+        log_debug(logger, "LECTURA DE BLOQUE %u SOBREPASA EL TAMAÑO", bloque);
         return -1;
     }
 
@@ -248,7 +248,7 @@ int asignar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
         uint32_t tam_max_arch = minimum(tam_bloque * (1 + 1 * cant_punt_x_bloque), tam_bloque * config_SupBloque->BLOCK_COUNT);
 
     if (tam_nuevo_arch > tam_max_arch) {
-        log_error(logger, "TRUNCAR: Tamaño de asignacion invalido, archivo: %s", FCB->nombre_archivo); 
+        log_debug(logger, "TRUNCAR: Tamaño de asignacion invalido, archivo: %s", FCB->nombre_archivo); 
         return -1;
     }
 
@@ -331,7 +331,7 @@ int liberar_bloques(t_lista_FCB_config* FCB, uint32_t bytes)
         uint32_t tam_min_arch = 0;
 
     if (tam_nuevo_arch < tam_min_arch) {
-        log_error(logger, "TRUNCAR: Tamaño de liberacion invalido, archivo: %s", FCB->nombre_archivo);
+        log_debug(logger, "TRUNCAR: Tamaño de liberacion invalido, archivo: %s", FCB->nombre_archivo);
         return -1;
     }
 

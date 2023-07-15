@@ -21,7 +21,7 @@ int crear_conexion_con_memoria()
 {
     socketMemoria = crear_conexion(configFS->IP_MEMORIA, configFS->PUERTO_MEMORIA);
     if (socketMemoria == -1) {
-        log_error(logger, "Error al intentar conectar con módulo Memoria. Finalizando FS...");
+        log_debug(logger, "Error al intentar conectar con módulo Memoria. Finalizando FS...");
         return -1;
     }
     // Handshake
@@ -29,10 +29,10 @@ int crear_conexion_con_memoria()
     uint8_t memoriaResponse = stream_recv_header(socketMemoria);
     stream_recv_empty_buffer(socketMemoria);
     if (memoriaResponse != HANDSHAKE_ok_continue) {
-        log_error(logger, "Error al hacer handshake con módulo Memoria");
+        log_debug(logger, "Error al hacer handshake con módulo Memoria");
         return -1;
     }
-    log_info(logger, "FS se conectó con Memoria");
+    log_debug(logger, "FS se conectó con Memoria");
     return 0;
 }
 
@@ -40,23 +40,23 @@ int crear_servidor_kernel()
 {
     int server_fd_kernel = iniciar_servidor("0.0.0.0", configFS->PUERTO_ESCUCHA);
     if (server_fd_kernel == -1) {
-        log_error(logger, "Error al intentar iniciar servidor");
+        log_debug(logger, "Error al intentar iniciar servidor");
         return -1;
     }
-    log_info(logger, "Filesystem listo para recibir el socketKernel");
+    log_debug(logger, "Filesystem listo para recibir el socketKernel");
 
 	socketKernel = esperar_cliente(server_fd_kernel);
     uint8_t handshake = stream_recv_header(socketKernel);
     stream_recv_empty_buffer(socketKernel);
     if (handshake != HANDSHAKE_kernel) {
-        log_error(logger, "Error al recibir handshake");
+        log_debug(logger, "Error al recibir handshake");
         return -1;
 	}
 
-    log_info(logger, "Se envia handshake ok continue a kernel");
+    log_debug(logger, "Se envia handshake ok continue a kernel");
     stream_send_empty_buffer(socketKernel, HANDSHAKE_ok_continue);
 
-    log_info(logger, "FS se conectó con kernel");
+    log_debug(logger, "FS se conectó con kernel");
 
     return 0;
 }

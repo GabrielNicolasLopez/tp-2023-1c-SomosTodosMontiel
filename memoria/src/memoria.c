@@ -22,10 +22,10 @@ t_hueco* hueco_0;
 int main(int argc, char** argv){
 
     //Creo logger para info
-	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_DEBUG);
+	logger = log_create(LOG_PATH, MODULE_NAME, true, LOG_LEVEL_INFO);
 
     if (argc != NUMBER_OF_ARGS_REQUIRED) {
-        log_error(logger, "Cantidad de argumentos inválida.\nArgumentos: <configPath>");
+        log_debug(logger, "Cantidad de argumentos inválida.\nArgumentos: <configPath>");
         log_destroy(logger);
         return -1;
     }
@@ -41,7 +41,7 @@ int main(int argc, char** argv){
 	hueco_0 = malloc(sizeof(t_hueco));
 
 	segmento_0 = segmentoCrear(20000,0,0,configuracionMemoria->tam_segmento_O);
-	log_info(logger,"Se creo el segmento 0 global Tam: %d",segmento_0->tamanio);
+	log_debug(logger,"Se creo el segmento 0 global Tam: %d",segmento_0->tamanio);
 	hueco_0->base = (segmento_0->base + segmento_0->tamanio);
 	hueco_0->tamanio = (configuracionMemoria->tam_memoria - segmento_0->tamanio);  
 	
@@ -69,24 +69,24 @@ void recibir_conexion(int socketEscucha) {
 	switch(handshake){
 		case HANDSHAKE_cpu:
 			conexion_con_cpu = socketCliente;
-			log_info(logger, "Se acepta conexión de CPU en socket %d", conexion_con_cpu);
+			log_debug(logger, "Se acepta conexión de CPU en socket %d", conexion_con_cpu);
 			stream_send_empty_buffer(conexion_con_cpu, HANDSHAKE_ok_continue);
 			pthread_create(&hiloCPU, NULL, (void *)hilo_cpu, NULL);
 			break;
 		case HANDSHAKE_kernel:
 			conexion_con_kernel = socketCliente;
-			log_info(logger, "Se acepta conexión de Kernel en socket %d", conexion_con_kernel);
+			log_debug(logger, "Se acepta conexión de Kernel en socket %d", conexion_con_kernel);
 			stream_send_empty_buffer(conexion_con_kernel, HANDSHAKE_ok_continue);
 			pthread_create(&hiloKernel, NULL, (void *)hilo_kernel_m, NULL);
 			break;
 		case HANDSHAKE_filesystem:
 			conexion_con_FileSystem = socketCliente;
-			log_info(logger, "Se acepta conexión de Filesystem en socket %d", conexion_con_FileSystem);
+			log_debug(logger, "Se acepta conexión de Filesystem en socket %d", conexion_con_FileSystem);
 			stream_send_empty_buffer(conexion_con_FileSystem, HANDSHAKE_ok_continue);
 			pthread_create(&hiloFilesystem, NULL, (void *)hilo_filesystem, NULL);
 			break;
 		default:
-			log_error(logger, "Error al recibir handshake de cliente: %s", strerror(errno));
+			log_debug(logger, "Error al recibir handshake de cliente: %s", strerror(errno));
 			exit(-1);
 			break;
 	}
@@ -119,7 +119,7 @@ t_memoria_config* leerConfiguracion(){
 	configuracionMemoria -> algoritmo_asignacion = config_get_string_value(configuracion, "ALGORITMO_ASIGNACION");
 	configuracionMemoria -> tam_segmento_O       = config_get_int_value(configuracion, "TAM_SEGMENTO_0");
 
-	/* log_error(logger, "tam_segm0: %d", configuracionMemoria->tam_segmento_O); */
+	/* log_debug(logger, "tam_segm0: %d", configuracionMemoria->tam_segmento_O); */
 
 	return configuracionMemoria;
 }

@@ -3,10 +3,10 @@
 int main(int argc, char** argv){
 
 	// Creo el logger
-	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_DEBUG);
+	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_INFO);
 
 	if (argc != NUMBER_OF_ARGS_REQUIRED) {
-        log_error(logger, "Cantidad de argumentos inválida.\nArgumentos: <configPath>");
+        log_debug(logger, "Cantidad de argumentos inválida.\nArgumentos: <configPath>");
         log_destroy(logger);
         return -1;
     }
@@ -31,7 +31,7 @@ int main(int argc, char** argv){
 	liberar_listas_y_semaforos();
 
 	//Aviso de finalizacion de kernel
-	log_error(logger, "KERNEL TERMINO DE EJECUTAR...");
+	log_debug(logger, "KERNEL TERMINO DE EJECUTAR...");
 }
 
 t_kernel_config *leerConfiguracion(char* path){
@@ -125,6 +125,6 @@ void cargarRecursos(){
 		//Agrego el recurso a la lista
 		list_add(lista_de_recursos, recurso);
 
-		log_info(logger, "Se cargo: %10s\t x%d", recurso->nombre, recurso->instancias_recursos);
+		log_debug(logger, "Se cargo: %10s\t x%d", recurso->nombre, recurso->instancias_recursos);
 	}
 }

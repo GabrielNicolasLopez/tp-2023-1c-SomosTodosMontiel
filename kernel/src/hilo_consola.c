@@ -2,7 +2,7 @@
 
 void crear_hilo_consola(){
 	int server_fd = iniciar_servidor("0.0.0.0", configuracionKernel->PUERTO_ESCUCHA);
-	log_info(logger, "Kernel listo para recibir clientes consola");
+	log_debug(logger, "Kernel listo para recibir clientes consola");
 	uint8_t handshake;
 	while (1){
 		pthread_t hilo_atender_consola;
@@ -10,7 +10,7 @@ void crear_hilo_consola(){
 		handshake = stream_recv_header(socketCliente);
 		stream_recv_empty_buffer(socketCliente);
 		if (handshake == HANDSHAKE_consola){
-			log_info(logger, "Se envia handshake ok continue a consola");
+			log_debug(logger, "Se envia handshake ok continue a consola");
 			stream_send_empty_buffer(socketCliente, HANDSHAKE_ok_continue);
 
 			log_debug(logger, "KERNEL SE CONECTO CON UNA CONSOLA");			
@@ -30,7 +30,7 @@ void crear_hilo_consola(){
 
 t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 
-	log_info(logger, "Recibiendo instrucciones desde consola...");
+	log_debug(logger, "Recibiendo instrucciones desde consola...");
 	
 	int cantidad_de_instrucciones = 0;
 	t_tipoInstruccion instruccion;
@@ -41,12 +41,12 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 	t_Kernel_Consola header = stream_recv_header(cliente_fd);
 
 	if(header != INSTRUCCIONES)
-		log_error(logger, "El header que mando consola a kernel no es INSTRUCCIONES");	
+		log_debug(logger, "El header que mando consola a kernel no es INSTRUCCIONES");	
 	
     t_buffer* bufferInstrucciones = buffer_create();
 
     stream_recv_buffer(cliente_fd, bufferInstrucciones);
-	log_error(logger, "Tamaño de las instrucciones recibidas %d", bufferInstrucciones->size);
+	log_debug(logger, "Tamaño de las instrucciones recibidas %d", bufferInstrucciones->size);
 
 	//Empiezo a desempaquetar
 	buffer_unpack(bufferInstrucciones, &instruccion, sizeof(t_tipoInstruccion));
@@ -76,11 +76,11 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 		if(instruccion == WAIT){
 			//Longitud cadena
 			buffer_unpack(bufferInstrucciones, &instruccionRecibida->longitud_cadena, sizeof(uint32_t));
-			//log_error(logger, "long wait: %d", instruccionRecibida->longitud_cadena);
+			//log_debug(logger, "long wait: %d", instruccionRecibida->longitud_cadena);
 			instruccionRecibida->cadena = malloc(instruccionRecibida->longitud_cadena);
 			//Cadena
 			buffer_unpack(bufferInstrucciones, instruccionRecibida->cadena, instruccionRecibida->longitud_cadena);
-			//log_error(logger, "cadena wait: %s", instruccionRecibida->cadena);
+			//log_debug(logger, "cadena wait: %s", instruccionRecibida->cadena);
 		}
 		if(instruccion == F_TRUNCATE){
 			//Longitud cadena
@@ -149,7 +149,7 @@ t_instrucciones *recibir_instruciones_desde_consola(int cliente_fd){
 			instruccionRecibida->cadena = malloc(instruccionRecibida->longitud_cadena);
 			//Cadena
 			buffer_unpack(bufferInstrucciones, instruccionRecibida->cadena, instruccionRecibida->longitud_cadena);
-			//log_error(logger, "cadena set: %s", instruccionRecibida->cadena);
+			//log_debug(logger, "cadena set: %s", instruccionRecibida->cadena);
 		}
 		if(instruccion == MOV_IN){
 			//Registro
@@ -272,7 +272,7 @@ uint32_t recibir_el_segmento0_de_memoria(){
 	t_Kernel_Memoria header = stream_recv_header(conexion_con_memoria);
 
 	if(header != TAMANIO)
-		log_error(logger, "no se recibió el header correcto al recibir el segmento_0: %d (=7)", header);
+		log_debug(logger, "no se recibió el header correcto al recibir el segmento_0: %d (=7)", header);
 
 	stream_recv_buffer(conexion_con_memoria, recibir_segmento0);
 
@@ -281,7 +281,7 @@ uint32_t recibir_el_segmento0_de_memoria(){
 
 	buffer_destroy(recibir_segmento0);
 
-	log_error(logger, "tamaño segmento0: %d", tamanio);
+	log_debug(logger, "tamaño segmento0: %d", tamanio);
 
 	return tamanio;
 }

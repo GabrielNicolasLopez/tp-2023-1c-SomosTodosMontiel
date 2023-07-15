@@ -30,11 +30,11 @@ void hilo_general()
 			pcb = pcb_ejecutando();
 
 			// Enviamos el contexto de ejecucion a cpu
-			//log_info(logger, "ce enviado a CPU. PID: %d", pcb->contexto->pid);
+			//log_debug(logger, "ce enviado a CPU. PID: %d", pcb->contexto->pid);
 			enviar_ce_a_cpu(pcb, conexion_con_cpu);
 		}
 
-		log_info(logger, "Esperando cym desde CPU...");
+		log_debug(logger, "Esperando cym desde CPU...");
 		recibir_cym_desde_cpu(motivoDevolucion, conexion_con_cpu);
 		//Al llegar, tenemos que actualizar la PCB con la información que modificó CPU
 		actualizar_pcb(motivoDevolucion->contextoEjecucion);
@@ -43,11 +43,11 @@ void hilo_general()
 			case IO:
 				//Creo el hilo para enviar a la PCB a esperar
 				pthread_t hilo_sleep;
-				log_debug(logger, "PID: <%d> - Ejecuta IO: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
+				log_info(logger, "PID: <%d> - Ejecuta IO: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 				//Envio la PCB a la lista de bloqueados
 				pcb = pcb_ejecutando_remove();
-				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
-				log_debug(logger, "PID: <%d> - Bloqueado por: <IO>", pcb->contexto->pid);
+				log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
+				log_info(logger, "PID: <%d> - Bloqueado por: <IO>", pcb->contexto->pid);
 				pasar_a_blocked(pcb);
 				
 				//Preparo los datos para enviar la PCB al hilo de sleep
@@ -68,8 +68,8 @@ void hilo_general()
 				{
 					agregarArchivoEnTAAP(motivoDevolucion->cadena); //Le pasamos el nombre del archivo
 					pcb = pcb_ejecutando();
-					log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
-					log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
+					log_info(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+					log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 					pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena); //Le pasamos el nombre del archivo
 					//Como se va a blocked no se reenvia
 					se_reenvia_el_contexto = false;
@@ -79,7 +79,7 @@ void hilo_general()
 				else
 				{
 					pcb = pcb_ejecutando();
-					log_debug(logger, "PID: <%d> - Abrir Archivo: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+					log_info(logger, "PID: <%d> - Abrir Archivo: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
 					enviar_fopen_a_fs(motivoDevolucion->cadena);
 					sem_wait(&FS_Continue);
 					se_reenvia_el_contexto = true;
@@ -96,7 +96,7 @@ void hilo_general()
 					quitarArchivoEnTGAA(motivoDevolucion->cadena);
 				}
 				pcb = pcb_ejecutando();
-				log_debug(logger, "PID: <%d> - Cerrar Archivo: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+				log_info(logger, "PID: <%d> - Cerrar Archivo: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 				break;
@@ -104,7 +104,7 @@ void hilo_general()
 			case F_SEEK:
 				actualizar_posicicon_puntero(motivoDevolucion->cadena, motivoDevolucion->cant_int);
 				pcb = pcb_ejecutando();
-				log_debug(logger, "PID: <%d> - Actualizar puntero Archivo: <%s> - Puntero <%d>", pcb->contexto->pid, motivoDevolucion->cadena, motivoDevolucion->cant_int);
+				log_info(logger, "PID: <%d> - Actualizar puntero Archivo: <%s> - Puntero <%d>", pcb->contexto->pid, motivoDevolucion->cadena, motivoDevolucion->cant_int);
 				se_reenvia_el_contexto = true;
 				devolver_ce_a_cpu(pcb_ejecutando(), conexion_con_cpu);
 				break;
@@ -121,14 +121,14 @@ void hilo_general()
 				actualizar_posicicon_puntero_sumar(motivoDevolucion->cadena, motivoDevolucion->cant_intB);
 
 				pcb = pcb_ejecutando();
-				log_debug(logger, "PID: <%d> - Leer Archivo: <%s> - Puntero <%d> - Dirección Memoria <%d> - Tamaño <%d>",
+				log_info(logger, "PID: <%d> - Leer Archivo: <%s> - Puntero <%d> - Dirección Memoria <%d> - Tamaño <%d>",
 				pcb->contexto->pid,
 				motivoDevolucion->cadena, 
 				devolver_puntero_archivo(motivoDevolucion->cadena),
 				motivoDevolucion->cant_int,
 				motivoDevolucion->cant_intB);
-				log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
-				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
+				log_info(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+				log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está leyendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
@@ -152,14 +152,14 @@ void hilo_general()
 				actualizar_posicicon_puntero_sumar(motivoDevolucion->cadena, motivoDevolucion->cant_intB);
 				
 				pcb = pcb_ejecutando();
-				log_debug(logger, "PID: <%d> - Escribir Archivo: <%s> - Puntero <%d> - Dirección Memoria <%d> - Tamaño <%d>",
+				log_info(logger, "PID: <%d> - Escribir Archivo: <%s> - Puntero <%d> - Dirección Memoria <%d> - Tamaño <%d>",
 				pcb->contexto->pid,
 				motivoDevolucion->cadena, 
 				devolver_puntero_archivo(motivoDevolucion->cadena),
 				motivoDevolucion->cant_int,
 				motivoDevolucion->cant_intB);
-				log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
-				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
+				log_info(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+				log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
@@ -177,9 +177,9 @@ void hilo_general()
 				enviar_ftruncate_a_fs(motivoDevolucion);
 				//Como la instruccion es bloqueante, bloqueo al proceso en la lista de bloqueados del archivo que está escribiendo
 				pcb = pcb_ejecutando();
-				log_debug(logger, "PID: <%d> - Archivo: <%s> - Tamaño: <%d>", pcb->contexto->pid, motivoDevolucion->cadena, motivoDevolucion->cant_int);
-				log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
-				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
+				log_info(logger, "PID: <%d> - Archivo: <%s> - Tamaño: <%d>", pcb->contexto->pid, motivoDevolucion->cadena, motivoDevolucion->cant_int);
+				log_info(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+				log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 				pasar_a_blocked_de_archivo_de_TGAA(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 				//No se reenvia porque se fue a blocked
 				se_reenvia_el_contexto = false;
@@ -205,7 +205,7 @@ void hilo_general()
 				{
 					// Le asignamos a la PCB ejecutando el recurso pedido
 					asignarRecurso(motivoDevolucion->cadena, pcb_ejecutando());
-					//log_info(logger, "PID %d robó un recurso: %s", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena);
+					//log_debug(logger, "PID %d robó un recurso: %s", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena);
 					//log_debug(logger, "PID: <%d> - Wait: <%s> - Instancias: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cadena, recursos_disponibles(motivoDevolucion->cadena));
 					//Renviamos el contexto porque la solicitud fue exitosa
 					se_reenvia_el_contexto = true;
@@ -216,8 +216,8 @@ void hilo_general()
 				else if (recursos_disponibles(motivoDevolucion->cadena) <= 0)
 				{
 					pcb = pcb_ejecutando();
-					log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
-					log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
+					log_info(logger, "PID: <%d> - Bloqueado por: <%s>", pcb->contexto->pid, motivoDevolucion->cadena);
+					log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb->contexto->pid);
 					// Le pasamos la pcb y el nombre del recurso para que lo bloquee
 					pasar_a_blocked_de_recurso(pcb_ejecutando_remove(), motivoDevolucion->cadena);
 					//No se reenvia porque se fue a blocked
@@ -251,7 +251,7 @@ void hilo_general()
 
 			case CREATE_SEGMENT:
 				
-				log_debug(logger, "PID: <%d> - Crear Segmento - Id: <%d> - Tamaño: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
+				log_info(logger, "PID: <%d> - Crear Segmento - Id: <%d> - Tamaño: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int, motivoDevolucion->cant_intB);
 				//Enviar a MEMORIA la instruccion de crear segmento y el tamaño
 				//Creo un t_segment y asigno id y tamaño
 				t_segmento *nuevo_segmento = malloc(sizeof(t_segmento));
@@ -275,7 +275,7 @@ void hilo_general()
 				break;
 
 			case DELETE_SEGMENT:
-				log_debug(logger, "PID: <%d> - Eliminar Segmento - Id Segmento: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
+				log_info(logger, "PID: <%d> - Eliminar Segmento - Id Segmento: <%d>", motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int);
 
 				eliminar_segmento(motivoDevolucion->contextoEjecucion->pid, motivoDevolucion->cant_int); //pid, id
 				log_debug(logger, "se envio a memoria el pid e id para eliminar el segmento");
@@ -290,7 +290,7 @@ void hilo_general()
 			case YIELD:
 				//Sacamos a la PCB de ejecutando
 				pcb = pcb_ejecutando_remove();
-				log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <READY>", pcb->contexto->pid);
+				log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <READY>", pcb->contexto->pid);
 				//La mandamos a ready
 				pasar_a_ready(pcb);
 				//No se reenvia el contexto porque se fue a ready
@@ -314,7 +314,7 @@ void hilo_general()
 				break;
 
 			default:
-				log_error(logger, "No se reconoce la instruccion recibida de CPU...");
+				log_debug(logger, "No se reconoce la instruccion recibida de CPU...");
 				break;
 			}
 	}
@@ -338,7 +338,7 @@ uint32_t devolver_puntero_archivo(char *nombreArchivo){
 	t_entradaTAAP *entradaTAAP;
 	t_pcb *pcb = pcb_ejecutando();
 
-	//log_error(logger, "cantidad de archivos en TAAP: %d", list_size(pcb->taap));
+	//log_debug(logger, "cantidad de archivos en TAAP: %d", list_size(pcb->taap));
 	for (int i = 0; i < list_size(pcb->taap); i++)
 	{
 		entradaTAAP = list_get(pcb->taap, i);
@@ -355,7 +355,7 @@ void conectarse_con_cpu(){
 	conexion_con_cpu = crear_conexion(configuracionKernel->IP_CPU, configuracionKernel->PUERTO_CPU);
 	if (conexion_con_cpu == -1) //Si no se puede conectar
 	{
-		log_error(logger, "KERNEL NO SE CONECTÓ CON CPU. FINALIZANDO KERNEL...");
+		log_debug(logger, "KERNEL NO SE CONECTÓ CON CPU. FINALIZANDO KERNEL...");
 		//kernel_destroy(configuracionKernel, logger);
 		exit(-1);
 	}
@@ -363,11 +363,11 @@ void conectarse_con_cpu(){
 	stream_send_empty_buffer(conexion_con_cpu, (uint8_t) HANDSHAKE_kernel);
     uint8_t respuesta_cpu = stream_recv_header(conexion_con_cpu);
 	stream_recv_empty_buffer(conexion_con_cpu);
-	log_info(logger, "handshake HANDSHAKE_ok_continue = 4: %d", respuesta_cpu);
+	log_debug(logger, "handshake HANDSHAKE_ok_continue = 4: %d", respuesta_cpu);
 
     if (respuesta_cpu != HANDSHAKE_ok_continue)
 	{
-        log_error(logger, "Error al hacer handshake con módulo Cpu");
+        log_debug(logger, "Error al hacer handshake con módulo Cpu");
         //kernel_destroy(configuracionKernel, logger);
         exit(-1);
     }
@@ -378,7 +378,7 @@ void conectarse_con_memoria(){
 	// Conexión con Memoria
     conexion_con_memoria = crear_conexion(configuracionKernel->IP_MEMORIA, configuracionKernel->PUERTO_MEMORIA);
     if (conexion_con_memoria == -1) {
-        log_error(logger, "Error al intentar conectar con módulo Memoria. Finalizando KERNEL...");
+        log_debug(logger, "Error al intentar conectar con módulo Memoria. Finalizando KERNEL...");
         //kernel_destroy(configuracionKernel);
         exit(-1);
     }
@@ -387,14 +387,14 @@ void conectarse_con_memoria(){
     uint8_t memoriaResponse = stream_recv_header(conexion_con_memoria);
     stream_recv_empty_buffer(conexion_con_memoria);
     if (memoriaResponse != HANDSHAKE_ok_continue) {
-        log_error(logger, "Error al hacer handshake con módulo Memoria");
+        log_debug(logger, "Error al hacer handshake con módulo Memoria");
         //kernel_destroy(configuracionKernel);
         exit(-1);
     }
-    log_info(logger, "KERNEL SE CONECTO CON MEMORIA.");
+    log_debug(logger, "KERNEL SE CONECTO CON MEMORIA.");
 
 	// while(1){
-	// 	log_error(logger, "hola");
+	// 	log_debug(logger, "hola");
 	// }
 }
 
@@ -403,7 +403,7 @@ void conectarse_con_fs(){
 	conexion_con_fs = crear_conexion(configuracionKernel->IP_FILESYSTEM, configuracionKernel->PUERTO_FILESYSTEM);
 	if (conexion_con_fs == -1) //Si no se puede conectar
 	{
-		log_error(logger, "KERNEL NO SE CONECTÓ CON FS. FINALIZANDO KERNEL...");
+		log_debug(logger, "KERNEL NO SE CONECTÓ CON FS. FINALIZANDO KERNEL...");
 		//kernel_destroy(configuracionKernel, logger);
 		exit(-1);
 	}
@@ -415,7 +415,7 @@ void conectarse_con_fs(){
 
     if (fsResponse != HANDSHAKE_ok_continue)
 	{
-        log_error(logger, "Error al hacer handshake con módulo FS");
+        log_debug(logger, "Error al hacer handshake con módulo FS");
         //kernel_destroy(configuracionKernel, logger);
         exit(-1);
     }
@@ -438,14 +438,14 @@ void esperar_respuestas(){
 		t_FS_header header = stream_recv_header(conexion_con_fs);
 
 		char* nombreArchivo = recibir_nombre_de_archivo_de_fs();
-		log_error(logger, "nombre del archivo recibido: %s", nombreArchivo);
+		log_debug(logger, "nombre del archivo recibido: %s", nombreArchivo);
 
 		switch (header)
 		{
 		//INSTRUCCIONES BLOQUEANTES FREAD, FWRITE, FTRUNCATE SE MANEJAN CON FS_OK + NOMBRE ARCHIVO
 		//CUANDO LLEGA EL FS_OK + ARCHIVO, SACAMOS AL PROCESO DE LA LISTA DE BLOCKED
 		case FS_OK:
-			log_info(logger, "entro a desbloquear una pcb");
+			log_debug(logger, "entro a desbloquear una pcb");
 			//Recibimos el nombre del archivo y sacamos al proceso de la lista de blocked
 			t_pcb* pcb_a_ready = sacar_de_blocked_de_archivo_de_TGAA(nombreArchivo);
 			pthread_mutex_lock(&mx_instruccion_en_fs);
@@ -457,7 +457,7 @@ void esperar_respuestas(){
 			if(compacto){
 				sem_post(&espera_instrucciones);
 			}
-			log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_a_ready->contexto->pid);
+			log_info(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_a_ready->contexto->pid);
 			//Lo pasamos a ready
 			pasar_a_ready(pcb_a_ready);
 			break;
@@ -473,12 +473,12 @@ void esperar_respuestas(){
 
 		case FS_OPEN_NO_OK:
 			//Si no está abierto lo tenemos que crear
-			log_error(logger, "reenvio el nombre del archivo como fcreate a fs: %s", nombreArchivo);
+			log_debug(logger, "reenvio el nombre del archivo como fcreate a fs: %s", nombreArchivo);
 			enviar_fcreate_a_fs(nombreArchivo);
 			break;
 
 		default:
-			log_error(logger, "FS ENVIO UN HEADER CUALQUIERAAAA");
+			log_debug(logger, "FS ENVIO UN HEADER CUALQUIERAAAA");
 			break;
 		}
 
@@ -500,7 +500,7 @@ t_pcb* sacar_de_blocked_de_archivo_de_TGAA(char* nombre_archivo)
 	//Obtengo la entrada
 	//entradaTGAA = list_get(LISTA_TGAA, posicion);	
 	//Saco la pcb de blocked
-	log_error(logger, "a punto de sacar pcb de blocked: %d", list_size(entradaTGAA->lista_block_archivo)),
+	log_debug(logger, "a punto de sacar pcb de blocked: %d", list_size(entradaTGAA->lista_block_archivo)),
 	sem_wait(&archivo_PCB_bloqueada);
 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
 	pcb_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0); //Saco la pcb que estaba bloqueada
@@ -515,7 +515,7 @@ char* recibir_nombre_de_archivo_de_fs()
 	int longitud_nombreArchivo;
 
 	stream_recv_buffer(conexion_con_fs, buffer_respuesta);
-	log_error(logger, "Tamaño de la instruccion recibida de FS %d", buffer_respuesta->size);
+	log_debug(logger, "Tamaño de la instruccion recibida de FS %d", buffer_respuesta->size);
 
 	//Longitud cadena
 	buffer_unpack(buffer_respuesta, &longitud_nombreArchivo, sizeof(uint32_t));
@@ -543,7 +543,7 @@ void enviar_ftruncate_a_fs(t_motivoDevolucion *motivoDevolucion){
 	buffer_pack(buffer_ftruncate, &motivoDevolucion->cant_int, sizeof(uint32_t));
 	
 	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_ftruncate);
-	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_ftruncate->size);
+	log_debug(logger, "Tamaño de la instruccion enviada a FS %d", buffer_ftruncate->size);
 
 	buffer_destroy(buffer_ftruncate);
 }
@@ -564,7 +564,7 @@ void enviar_fcreate_a_fs(char *nombreArchivo)
     buffer_pack(buffer_fcreate, nombreArchivo, longitudCadena);
 	
 	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fcreate);
-	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fcreate->size);
+	log_debug(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fcreate->size);
 
 	buffer_destroy(buffer_fcreate);
 }
@@ -589,7 +589,7 @@ void enviar_fwrite_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_a
     buffer_pack(buffer_fwrite, &pid, sizeof(uint32_t));
 	
 	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fwrite);
-	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fwrite->size);
+	log_debug(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fwrite->size);
 
 	buffer_destroy(buffer_fwrite);
 }
@@ -613,7 +613,7 @@ void enviar_fread_a_fs(t_motivoDevolucion *motivoDevolucion, uint32_t puntero_ar
     buffer_pack(buffer_fread, &pid, sizeof(uint32_t));
 	
 	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fread);
-	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fread->size);
+	log_debug(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fread->size);
 
 	buffer_destroy(buffer_fread);
 }
@@ -633,7 +633,7 @@ void enviar_fseek_a_fs(t_motivoDevolucion *motivoDevolucion){ 			//	F_SEEK (Nomb
 
 	stream_send_buffer(conexion_con_fs, FS_INSTRUCCION, buffer_fseek);
 	
-	log_error(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fseek->size);
+	log_debug(logger, "Tamaño de la instruccion enviada a FS %d", buffer_fseek->size);
 
 	buffer_destroy(buffer_fseek);
 }
@@ -668,7 +668,7 @@ void recibir_respuesta_create_segment(t_segmento *nuevo_segmento, uint32_t id, u
 	switch (respuesta_memoria){
 		case BASE: //Si puede crear el segmento, tengo que recibir la base del segmento asignado
 			buffer_unpack(respuesta_crear_segmento, &(nuevo_segmento->base), sizeof(uint32_t));
-			log_error(logger, "base recibida: %d", nuevo_segmento->base);
+			log_debug(logger, "base recibida: %d", nuevo_segmento->base);
 			agregar_segmento(pcb_ejecutando(), nuevo_segmento);
 			//Reenviamos el contexto			
 			se_reenvia_el_contexto = true;
@@ -694,7 +694,7 @@ void recibir_respuesta_create_segment(t_segmento *nuevo_segmento, uint32_t id, u
 			recibir_respuesta_create_segment(nuevo_segmento, -1, -1, motivoDevolucion);
 			break;
 		default:
-			log_error(logger, "Mensaje de memoria no valido en la creacion de un segmento");
+			log_debug(logger, "Mensaje de memoria no valido en la creacion de un segmento");
 			break;
 	}
 
@@ -722,7 +722,7 @@ void esperandoParaCompactar(){
 // 	t_buffer * buffer_respuesta_compactacion = buffer_create();
 // 	t_Kernel_Memoria header_respuesta_compactacion = stream_recv_header(conexion_con_memoria);
 // 	if(header_respuesta_compactacion != LISTA)
-// 		log_error(logger, "Memoria no envio correctamente el header para compactacion: %d (=6)", header_respuesta_compactacion);
+// 		log_debug(logger, "Memoria no envio correctamente el header para compactacion: %d (=6)", header_respuesta_compactacion);
 
 // 	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_compactacion);
 // 	uint32_t cantidad_de_segmentos;
@@ -745,7 +745,7 @@ void esperar_respuesta_compactacion(){
 	t_buffer *buffer_respuesta_compactacion = buffer_create();
 	t_Kernel_Memoria header_compactacion = stream_recv_header(conexion_con_memoria);
 	if(header_compactacion != LISTA)
-		log_error(logger, "Memoria no envio correctamente el header para compactacion: %d (=6)", header_compactacion);
+		log_debug(logger, "Memoria no envio correctamente el header para compactacion: %d (=6)", header_compactacion);
 
 	stream_recv_buffer(conexion_con_memoria, buffer_respuesta_compactacion);
 	uint32_t cantidad_de_segmentos;
@@ -774,11 +774,11 @@ void recibir_tabla_de_segmentos(){
 	t_buffer *buffer_tabla_segmentos = buffer_create();
 	t_Kernel_Memoria header_respuesta_tabla_segmentos = stream_recv_header(conexion_con_memoria);
 	if(header_respuesta_tabla_segmentos != LISTA)
-		log_error(logger, "Memoria no envio correctamente el header para borrar segmento: %d (=6)", header_respuesta_tabla_segmentos);
+		log_debug(logger, "Memoria no envio correctamente el header para borrar segmento: %d (=6)", header_respuesta_tabla_segmentos);
 
 	t_pcb *pcb = pcb_ejecutando();
 	stream_recv_buffer(conexion_con_memoria, buffer_tabla_segmentos);
-	log_error(logger, "recibi la lista de memoria: %d", buffer_tabla_segmentos->size);
+	log_debug(logger, "recibi la lista de memoria: %d", buffer_tabla_segmentos->size);
 	uint32_t tamanio_tabla;
 	buffer_unpack(buffer_tabla_segmentos, &tamanio_tabla, sizeof(uint32_t));
 	pcb->contexto->tamanio_tabla = tamanio_tabla;
@@ -884,7 +884,7 @@ void crear_segmento(uint32_t pid, uint32_t id, uint32_t tamanio){
 	buffer_pack(crear_segmento, &tamanio, sizeof(uint32_t));
 
 	stream_send_buffer(conexion_con_memoria, CREATE_SEGMENT, crear_segmento);
-	log_error(logger, "se envio a memoria crear segmento");
+	log_debug(logger, "se envio a memoria crear segmento");
 
 	buffer_destroy(crear_segmento);
 }
@@ -924,7 +924,7 @@ void actualizar_pcb(t_contextoEjecucion *contextoEjecucion)
 
 void devolver_ce_a_cpu(t_pcb *pcb, int conexion_con_cpu)
 {
-	log_info(logger, "ce enviado a CPU. PID: %d", pcb->contexto->pid);
+	log_debug(logger, "ce enviado a CPU. PID: %d", pcb->contexto->pid);
 	enviar_ce_a_cpu(pcb, conexion_con_cpu);
 }
 
@@ -932,7 +932,7 @@ void sleep_IO(t_datosIO *datosIO){
 	int tiempo = datosIO->motivo->cant_int;
 	sleep(tiempo);
 	list_remove_element(LISTA_BLOCKED, datosIO->pcb);
-	log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", datosIO->pcb->contexto->pid);
+	log_info(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", datosIO->pcb->contexto->pid);
 	pasar_a_ready(datosIO->pcb);
 }
 
@@ -950,7 +950,7 @@ void terminar_consola(t_Kernel_Consola razon)
 
 	recibir_respuesta_finalizar_proceso();
 
-	log_error(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->contexto->pid, razonFinConsola[razon]);
+	log_info(logger, "Finaliza el proceso <%d> - Motivo: <%s>", pcb->contexto->pid, razonFinConsola[razon]);
 	
 	sem_post(&multiprogramacion);
 }
@@ -959,7 +959,7 @@ void recibir_respuesta_finalizar_proceso(){
 
 	uint8_t header = stream_recv_header(conexion_con_memoria);
 	//if(header == PROCESO_BORRADO)
-		log_info(logger, "memoria me aviso que se borró el proceso: %d (=10)", header);
+		log_debug(logger, "memoria me aviso que se borró el proceso: %d (=10)", header);
 
 	stream_recv_empty_buffer(conexion_con_memoria);
 }
@@ -1022,7 +1022,7 @@ void agregarEnTGAA(t_entradaTGAA *entradaTGAA)
 	pthread_mutex_lock(&listaTGAA);
 	list_add(LISTA_TGAA, entradaTGAA);
 	pthread_mutex_unlock(&listaTGAA);
-	log_error(logger, "cantidad de archivos en TGAA: %d", list_size(LISTA_TGAA));
+	log_debug(logger, "cantidad de archivos en TGAA: %d", list_size(LISTA_TGAA));
 }
 
 void recibir_respuesta_fopen_desde_fs(t_FS_header* respuesta_fs)
@@ -1041,7 +1041,7 @@ void recibir_respuesta_fopen_desde_fs(t_FS_header* respuesta_fs)
 // 	pthread_mutex_lock(&pcb->mutex_TAAP);
 // 	list_add(pcb->taap, entradaTGAA);
 // 	pthread_mutex_unlock(&pcb->mutex_TAAP);
-// 	log_error(logger, "cantidad de archivos en TGAA: %d", list_size(LISTA_TGAA));
+// 	log_debug(logger, "cantidad de archivos en TGAA: %d", list_size(LISTA_TGAA));
 // }
 
 void agregarArchivoEnTAAP(char *nombreArchivo){
@@ -1052,7 +1052,7 @@ void agregarArchivoEnTAAP(char *nombreArchivo){
 	pthread_mutex_lock(&pcb->mutex_TAAP);
 	list_add(pcb->taap, entradaTAAP);
 	pthread_mutex_unlock(&pcb->mutex_TAAP);
-	log_error(logger, "PID: %d. cantidad de archivos en pcb->taap: %d", pcb->contexto->pid, list_size(pcb->taap));
+	log_debug(logger, "PID: %d. cantidad de archivos en pcb->taap: %d", pcb->contexto->pid, list_size(pcb->taap));
 }
 
 void agregarArchivoEnTGAA(char* nombreArchivo)
@@ -1078,13 +1078,13 @@ void pasar_a_blocked_de_archivo_de_TGAA(t_pcb *pcb_a_blocked, char* nombre_archi
 			break;
 	}
 
-	log_error(logger, "apunto de agregar una pcb a blocked archivo");
-	log_debug(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
-	log_debug(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombre_archivo);
+	log_debug(logger, "apunto de agregar una pcb a blocked archivo");
+	log_info(logger, "PID: <%d> - Estado Anterior: <EXEC> - Estado Actual: <BLOCKED>", pcb_a_blocked->contexto->pid);
+	log_info(logger, "PID: <%d> - Bloqueado por: <%s>", pcb_a_blocked->contexto->pid, nombre_archivo);
 	pthread_mutex_lock(&entradaTGAA->mutex_lista_block_archivo);
 	list_add(entradaTGAA->lista_block_archivo, pcb_a_blocked);
 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
-	log_error(logger, "agrego pcb a blocked: %d", list_size(entradaTGAA->lista_block_archivo));
+	log_debug(logger, "agrego pcb a blocked: %d", list_size(entradaTGAA->lista_block_archivo));
 	sem_post(&archivo_PCB_bloqueada);
 }
 
@@ -1095,7 +1095,7 @@ void quitarArchivoEnTAAP(t_pcb *pcb, char *nombre_archivo)
 	entradaTAAP->entradaTGAA = malloc(sizeof(t_entradaTGAA));
 	//t_entradaTAAP *entradaTAAP;
 
-	log_error(logger, "cantidad de archivos en TAAP: %d", list_size(pcb->taap));
+	log_debug(logger, "cantidad de archivos en TAAP: %d", list_size(pcb->taap));
 	for (int i = 0; i < list_size(pcb->taap); i++)
 	{
 		entradaTAAP = list_get(pcb->taap, i);
@@ -1128,7 +1128,7 @@ void desbloqueo_al_primer_proceso_de_la_cola_del(char *nombre_archivo)
 	t_pcb *pcb_blocked_a_ready = list_remove(entradaTGAA->lista_block_archivo, 0);
 	pthread_mutex_unlock(&entradaTGAA->mutex_lista_block_archivo);
 	//Y lo mandamos a la cola de ready
-	log_debug(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_blocked_a_ready->contexto->pid);
+	log_info(logger, "PID: <%d> - Estado Anterior: <BLOCKED> - Estado Actual: <READY>", pcb_blocked_a_ready->contexto->pid);
 	pasar_a_ready(pcb_blocked_a_ready);
 }
 

@@ -3,16 +3,16 @@
 void hilo_cpu(){
     
     while(1){
-        log_info(logger, "Esperando mensaje de CPU...");
+        log_debug(logger, "Esperando mensaje de CPU...");
         uint8_t header = stream_recv_header(conexion_con_cpu);
-        log_info(logger, "CPU envio un header: %d", header);
+        log_debug(logger, "CPU envio un header: %d", header);
         if(header == MOV_IN)
         {
             uint32_t cantBytes;
             uint32_t dir_fisica;
             uint32_t pid;
             char *dato;
-            log_info(logger,"Solicitud de Lectura por parte de CPU");
+            log_debug(logger,"Solicitud de Lectura por parte de CPU");
             pedidoLectura_CPU(&cantBytes, &dir_fisica , &pid);
             sleep((configuracionMemoria->retardo_memoria/1000));
             dato = malloc(cantBytes);
@@ -26,7 +26,7 @@ void hilo_cpu(){
             uint32_t cantBytes;
             uint32_t dir_fisica;
             uint32_t pid;
-            log_info(logger,"Solicitud de Escritura por parte de CPU");
+            log_debug(logger,"Solicitud de Escritura por parte de CPU");
             char *cadena = pedidoEscritura_CPU(&cantBytes, &dir_fisica, &pid);
             log_debug(logger, "cantBytes: %u", cantBytes);
             log_debug(logger, "dir_fisica: %u", dir_fisica);
@@ -39,14 +39,14 @@ void hilo_cpu(){
         }
         
         else
-            log_error(logger, "CPU envio un header incorrecto: %d", header);
+            log_debug(logger, "CPU envio un header incorrecto: %d", header);
     }	
 }
 
 
 void leer_CPU(char *dato, uint32_t dirF,uint32_t cantBytes, uint32_t pid){
     memcpy(dato, espacioUsuario+dirF, cantBytes);
-    log_debug(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %u - Origen: CPU",pid,dirF,cantBytes);
+    log_info(logger, "PID:%d - Acción: LEER - Dirección física: %d - Tamaño: %u - Origen: CPU",pid,dirF,cantBytes);
 }
 
 void escribir_CPU(char* dato, uint32_t dirF,uint32_t cantBytes,uint32_t pid ){
@@ -54,7 +54,7 @@ void escribir_CPU(char* dato, uint32_t dirF,uint32_t cantBytes,uint32_t pid ){
     log_debug(logger, "cadena: %.4s", dato);
     memcpy(espacioUsuario+dirF,dato,cantBytes);
 
-    log_debug(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: CPU",pid,dirF,cantBytes);
+    log_info(logger, "PID:%d - Acción: ESCRITURA - Dirección física: %d - Tamaño: %d - Origen: CPU",pid,dirF,cantBytes);
 }
 
 void pedidoLectura_CPU(uint32_t *cantBytes, uint32_t *dir_fisica ,uint32_t *pid)

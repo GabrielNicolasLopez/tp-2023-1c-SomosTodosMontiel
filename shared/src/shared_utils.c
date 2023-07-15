@@ -49,7 +49,7 @@ int crear_conexion(char *ip, char *puerto)
 	// Ahora que tenemos el socket, vamos a conectarlo
 	// connect():
 	if (connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1){
-		//log_error(logger, "Error al conectarse!");
+		//log_debug(logger, "Error al conectarse!");
 		return socket_cliente = -1;
 	}
 
@@ -127,7 +127,7 @@ int esperar_cliente(int socket_servidor)
 	// Una vez que el cliente aceptado, accept retorna un nuevo socket(file descriptor) que representa la conexion BIDIRECCIONAL entre el servidor y el cliente
 	// La comunicacion entre el cliente y el servidor se hace entre el socket que realizo connect(lado del cliente) hacia el servidor, y el socket que fue devuelto por el accept
 
-	log_info(logger, "Se conecto un cliente! socket: %d", socket_cliente);
+	log_debug(logger, "Se conecto un cliente! socket: %d", socket_cliente);
 
 	return socket_cliente;
 }

@@ -24,7 +24,7 @@ int calcularSizeListaInstrucciones(t_instrucciones *instrucciones){
 		total += sizeof(t_registro) * 2;
 		total += sizeof(uint32_t) * 2;
 		total += sizeof(instruccion->cadena);
-		//log_info(logger, "total: %d", sizeof(total));
+		//log_debug(logger, "total: %d", sizeof(total));
 	}
 	return total;
 }

@@ -14,9 +14,9 @@ int main(int argc, char **argv){
     }
 	char *CONFIG_PATH = argv[1];
 
-	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_DEBUG); if (!logger) return EXIT_FAILURE;
+	logger = log_create(LOG_PATH, MODULE_NAME, 1, LOG_LEVEL_INFO); if (!logger) return EXIT_FAILURE;
 
-	log_info(logger, "INICIANDO CPU...");
+	log_debug(logger, "INICIANDO CPU...");
 	
 	t_config* config = config_create(CONFIG_PATH);
 	configuracion_cpu = leer_configuracion(config);
@@ -59,15 +59,15 @@ void crear_hilos_cpu()
 // *** HILO KERNEL ***
 void hilo_kernel(){
 	int server_fd_kernel = iniciar_servidor("0.0.0.0", configuracion_cpu -> puerto_escucha);
-	log_error(logger, "CPU listo para recibir clientes del Kernel");
+	log_debug(logger, "CPU listo para recibir clientes del Kernel");
     int cliente_fd_kernel = esperar_cliente(server_fd_kernel); // esperamos un proceso para ejecutar
 
 	uint8_t handshake = stream_recv_header(cliente_fd_kernel);
 	stream_recv_empty_buffer(cliente_fd_kernel);
-	log_info(logger, "handshake(3): %d", handshake);
+	log_debug(logger, "handshake(3): %d", handshake);
 	
 	if (handshake == HANDSHAKE_kernel) {
-		log_info(logger, "Se envia handshake ok continue a kernel");
+		log_debug(logger, "Se envia handshake ok continue a kernel");
 		stream_send_empty_buffer(cliente_fd_kernel, HANDSHAKE_ok_continue);
 
 		log_debug(logger, "CPU SE CONECTO CON KERNEL");
@@ -99,7 +99,7 @@ void hilo_memoria(){
 
 	if (conexion_con_memoria == -1) //Si no se puede conectar
 	{
-		log_error(logger, "KERNEL NO SE CONECTÓ CON FS. FINALIZANDO CPU...");
+		log_debug(logger, "KERNEL NO SE CONECTÓ CON FS. FINALIZANDO CPU...");
 		//kernel_destroy(configuracionKernel, logger);
 		exit(-1);
 	}
@@ -110,7 +110,7 @@ void hilo_memoria(){
 
     if (memoriaResponse != HANDSHAKE_ok_continue)
 	{
-        log_error(logger, "Error al hacer handshake con módulo Memoria");
+        log_debug(logger, "Error al hacer handshake con módulo Memoria");
         //kernel_destroy(configuracionKernel, logger);
         exit(-1);
     }
@@ -128,35 +128,35 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 
 	//Motivo = tipo de instruccion
     buffer_pack(cym_a_enviar, &motivo.tipo, sizeof(t_tipoInstruccion));
-	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	
 	//Cantidad entero = numero entero
 	buffer_pack(cym_a_enviar, &motivo.cant_int, sizeof(uint32_t));
-	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 	//Cantidad entero = numero entero
 	buffer_pack(cym_a_enviar, &motivo.cant_intB, sizeof(uint32_t));
-	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	
 	//Longitud de la cadena
 	buffer_pack(cym_a_enviar, &motivo.longitud_cadena, sizeof(uint32_t));
-	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	
 	//Cadena
 	buffer_pack(cym_a_enviar, &motivo.cadena, motivo.longitud_cadena);
-	//log_error(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "md TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 	// ----------- DATOS DE CONTEXTO DE EJECUCIÓN -----------
 
 	//Socket
 	buffer_pack(cym_a_enviar, &contextoEjecucion->socket, sizeof(uint32_t));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	//PID
 	buffer_pack(cym_a_enviar, &contextoEjecucion->pid, sizeof(uint32_t));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	//PC
 	buffer_pack(cym_a_enviar, &contextoEjecucion->program_counter, sizeof(uint32_t));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 	//Instrucciones
 	t_instruccion *instruccion = malloc(sizeof(t_instruccion));
@@ -164,51 +164,51 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 		instruccion = list_get(contextoEjecucion->instrucciones->listaInstrucciones, i);
 		//log_debug(logger, "obtuve la instruccion: %d", i+1);
 		buffer_pack(cym_a_enviar, &instruccion->tipo, sizeof(t_tipoInstruccion));
-		//log_error(logger, "TAMAÑO DEL BUFFER I%d", cym_a_enviar->size);
+		//log_debug(logger, "TAMAÑO DEL BUFFER I%d", cym_a_enviar->size);
 
 		if (instruccion->tipo == SET){
 			buffer_pack(cym_a_enviar, &instruccion->registro, sizeof(t_registro));
 			buffer_pack(cym_a_enviar, &instruccion->longitud_cadena, sizeof(uint32_t));
-			//log_error(logger, "longitud cadena: %d", instruccion->longitud_cadena);
-			//log_error(logger, "cadena: %.4s", instruccion->cadena);
+			//log_debug(logger, "longitud cadena: %d", instruccion->longitud_cadena);
+			//log_debug(logger, "cadena: %.4s", instruccion->cadena);
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == MOV_IN){
 			buffer_pack(cym_a_enviar, &instruccion->registro, sizeof(t_registro));
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == MOV_OUT){
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, &instruccion->registro, sizeof(t_registro));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == IO){
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == F_OPEN){
 			buffer_pack(cym_a_enviar, &instruccion->longitud_cadena, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == F_CLOSE){
 			buffer_pack(cym_a_enviar, &instruccion->longitud_cadena, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == F_SEEK){
 			buffer_pack(cym_a_enviar, &instruccion->longitud_cadena, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == F_READ){
@@ -216,7 +216,7 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);	
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, &instruccion->paramIntB, sizeof(uint32_t));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == F_WRITE){
@@ -224,56 +224,56 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);	
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, &instruccion->paramIntB, sizeof(uint32_t));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == F_TRUNCATE){
 			buffer_pack(cym_a_enviar, &instruccion->longitud_cadena, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);	
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == WAIT){
 			buffer_pack(cym_a_enviar, &instruccion->longitud_cadena, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);	
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == SIGNAL){
 			buffer_pack(cym_a_enviar, &instruccion->longitud_cadena, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, instruccion->cadena, instruccion->longitud_cadena);		
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 				
 		}
 		else if (instruccion->tipo == CREATE_SEGMENT){
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
 			buffer_pack(cym_a_enviar, &instruccion->paramIntB, sizeof(uint32_t));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == DELETE_SEGMENT){
 			buffer_pack(cym_a_enviar, &instruccion->paramIntA, sizeof(uint32_t));
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == YIELD){
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 		else if (instruccion->tipo == EXIT){
-			//log_error(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+			//log_debug(logger, "ins TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 		}
 	}
 
 	//Registros C, E y R
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 	buffer_pack(cym_a_enviar, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", cym_a_enviar->size);
 
 	//Cantidad de segmentos
 	buffer_pack(cym_a_enviar, &(contextoEjecucion->tamanio_tabla), sizeof(uint32_t));
@@ -285,11 +285,11 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
         buffer_pack(cym_a_enviar, &(segmento->id_segmento), sizeof(uint32_t));
         buffer_pack(cym_a_enviar, &(segmento->base),        sizeof(uint32_t));
         buffer_pack(cym_a_enviar, &(segmento->tamanio),     sizeof(uint32_t));
-        //log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
+        //log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
     }
 
 	stream_send_buffer(cliente_fd_kernel, CYM, cym_a_enviar);
-	log_error(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
+	log_debug(logger, "Tamaño del cym enviado a kernel %d", cym_a_enviar->size);
 
     buffer_destroy(cym_a_enviar);
 }
@@ -321,7 +321,7 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 	contextoEjecucion->registrosCPU->registroR = registroR;
 
     stream_recv_buffer(cliente_fd_kernel, ce_recibido);
-	log_error(logger, "Tamaño del CE recibido de kernel %d", ce_recibido->size);
+	log_debug(logger, "Tamaño del CE recibido de kernel %d", ce_recibido->size);
 
 	//Socket
 	buffer_unpack(ce_recibido, &contextoEjecucion->socket, sizeof(uint32_t));
@@ -472,14 +472,14 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
 
 	//Registros C, E y R	
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroC, sizeof(t_registroC));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroE, sizeof(t_registroE));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 	buffer_unpack(ce_recibido, contextoEjecucion->registrosCPU->registroR, sizeof(t_registroR));
-	//log_error(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
+	//log_debug(logger, "TAMAÑO DEL BUFFER %d", ce_recibido->size);
 
 	buffer_unpack(ce_recibido, &contextoEjecucion->tamanio_tabla, sizeof(uint32_t));
-	log_error(logger, "tamanio_tabla: %d", contextoEjecucion->tamanio_tabla);
+	log_debug(logger, "tamanio_tabla: %d", contextoEjecucion->tamanio_tabla);
 
 	t_segmento *segmento;
     for (int i = 0; i < contextoEjecucion->tamanio_tabla; i++)
@@ -490,7 +490,7 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
         buffer_unpack(ce_recibido, &(segmento->base),        sizeof(uint32_t));
         buffer_unpack(ce_recibido, &(segmento->tamanio),     sizeof(uint32_t));
         list_add(contextoEjecucion->tablaDeSegmentos, segmento);
-		/*log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		/*log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
 		segmento->pid,
 		segmento->id_segmento,
 		segmento->base,
@@ -512,7 +512,7 @@ uint32_t usarMMU(t_contextoEjecucion *contextoEjecucion, uint32_t dir_logica, ui
 	log_debug(logger, "direccionFisica: %u", direccionFisica);
 	uint32_t tamanio_segmento = tamanioSegmento(contextoEjecucion, num_segmento);
 
-	log_error(logger, "tam: %d, desp: :%d, bytes: %d", tamanio_segmento, desplazamiento_segmento, tamLeer_Esc);
+	log_debug(logger, "tam: %d, desp: :%d, bytes: %d", tamanio_segmento, desplazamiento_segmento, tamLeer_Esc);
 
 	//Revisamos si no estamos accediendo a una direccion mayor a la posible
 	if(tamanio_segmento < desplazamiento_segmento + tamLeer_Esc)
@@ -529,6 +529,6 @@ uint32_t tamanioSegmento(t_contextoEjecucion *contextoEjecucion, uint32_t id){
         if (segmento->id_segmento == id)
             tamanioSegmento = segmento->tamanio;
     }
-	log_error(logger, "tamaño segmento0: %d", tamanioSegmento);
+	log_debug(logger, "tamaño segmento0: %d", tamanioSegmento);
     return tamanioSegmento;
 }

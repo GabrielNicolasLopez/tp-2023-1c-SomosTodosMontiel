@@ -17,7 +17,7 @@ void crear_bitmap()
 
 void levantar_bitmap()
 {
-    log_info(logger, "Levantando BITMAP");
+    log_debug(logger, "Levantando BITMAP");
     int fd_bitmap = open(configFS->PATH_BITMAP, O_RDWR);
     
     // Guardo los atributos de ese archivo en stats_fd_bitmap
@@ -33,12 +33,12 @@ uint32_t get_free_block()
     uint32_t block = 0;
     uint32_t MAX = bitarray_get_max_bit(bitA_bitmap);
     while (block <= MAX && bitarray_test_bit(bitA_bitmap, block)) {
-        //log_info(logger, "Acceso a Bitmap - Bloque: <%u> - Estado: <%d>", block, 1);
+        //log_debug(logger, "Acceso a Bitmap - Bloque: <%u> - Estado: <%d>", block, 1);
         block++;
     }
 
     if (block > MAX) {
-        log_error(logger, "No hay bloques libres!!!"); 
+        log_debug(logger, "No hay bloques libres!!!"); 
         return -1;
     }
 

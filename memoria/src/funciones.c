@@ -26,7 +26,7 @@ uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
     for (int i = 0; i < list_size(listaHuecos); i++) {
         hueco = list_get(listaHuecos,i);
         if (hueco->tamanio>=tamanio) {
-            log_info(logger,"Hay espacio suficiente para crear el segmento");
+            log_debug(logger,"Hay espacio suficiente para crear el segmento");
             return 1;
         }
     }
@@ -37,12 +37,12 @@ uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
         espacioLibre += hueco->tamanio;
         if (espacioLibre>=tamanio) //Necesito compactar
         {
-            log_info(logger,"Se Necesita compactar");
+            log_debug(logger,"Se Necesita compactar");
             return -1;
         }    
     }
     //Informar falta de espacio libre al Kernel
-    log_error(logger,"No hay espacio suficiente para crear el Segmento Out of Memory.");
+    log_debug(logger,"No hay espacio suficiente para crear el Segmento Out of Memory.");
     return 0;
 }
 
@@ -70,7 +70,7 @@ uint32_t aplicarAlgoritmo(uint32_t tamSegmento){
         break;
     
     default:
-        log_error(logger, "No se eligio correctamente el algoritmo de memoria...");
+        log_debug(logger, "No se eligio correctamente el algoritmo de memoria...");
         break;
     }
     return direccionBase;
@@ -88,7 +88,7 @@ t_tipo_algoritmo obtenerAlgoritmo(){
 	else if(!strcmp(algoritmoConfig, "WORST"))
 		algoritmoConfi = WORST;
         else
-		log_error(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
+		log_debug(logger, "ALGORITMO ESCRITO INCORRECTAMENTE");
 	return algoritmoConfi;
 }
 
@@ -147,7 +147,7 @@ void compactar(){
     list_sort(listaSegmentos, compararPorBase);
     list_sort(listaHuecos, compararPorBase);
     uint32_t desplazamiento = 0;
-    log_info(logger,"Se empezo a Compactar");
+    log_debug(logger,"Se empezo a Compactar");
     for(int i=0;i<list_size(listaSegmentos);i++){
         t_segmento* segmento=list_get(listaSegmentos,i);
         segmento->base = desplazamiento;
@@ -161,7 +161,7 @@ void compactar(){
     hueco_Nuevo->base    = desplazamiento; 
     hueco_Nuevo->tamanio = configuracionMemoria->tam_memoria - desplazamiento;
     list_add(listaHuecos, hueco_Nuevo);
-    log_info(logger,"Se termino de Compactar");
+    log_debug(logger,"Se termino de Compactar");
 }
 
 void buddySystem(){

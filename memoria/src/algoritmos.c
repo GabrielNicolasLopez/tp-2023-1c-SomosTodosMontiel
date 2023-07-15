@@ -31,7 +31,7 @@ uint32_t algoritmoFirstFit(uint32_t tamSegmento){
 uint32_t algoritmoBestFit(uint32_t tamSegmento) {
     // Ordenar los huecos por tamaño de forma ascendente
 
-   /*  log_error(logger, "cantidad de segmentos en algoritmo bestfit: %d", list_size(listaHuecos)); */
+   /*  log_debug(logger, "cantidad de segmentos en algoritmo bestfit: %d", list_size(listaHuecos)); */
     log_debug(logger,"Aplicando Algoritmo BestFit");
     list_sort(listaHuecos, compararHuecosPorTamanioAscendente);
 

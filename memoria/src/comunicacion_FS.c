@@ -4,16 +4,16 @@
 
 void hilo_filesystem(){
     while(1){
-        log_info(logger, "Estoy esperando mensaje de FS...");
+        log_debug(logger, "Estoy esperando mensaje de FS...");
         uint8_t header = stream_recv_header(conexion_con_FileSystem);
-        log_info(logger, "Mi cod de op es: %d", header);
+        log_debug(logger, "Mi cod de op es: %d", header);
             if(header==FS_M_READ)
             {
                 uint32_t cantBytes;
                 uint32_t dir_fisica;
                 uint32_t pid;
                 char *dato;
-                log_info(logger,"Solicitud de Lectura por parte de FS");
+                log_debug(logger,"Solicitud de Lectura por parte de FS");
                 pedidoLectura_FS(&cantBytes, &dir_fisica, &pid);
                 sleep((configuracionMemoria->retardo_memoria/1000));
                 dato = malloc(cantBytes);
@@ -27,7 +27,7 @@ void hilo_filesystem(){
                 uint32_t cantBytes;
                 uint32_t dir_fisica;
                 uint32_t pid;
-                log_info(logger,"Solicitud de Escritura por parte de FS");
+                log_debug(logger,"Solicitud de Escritura por parte de FS");
                 char *dato = pedidoEscritura_FS(&cantBytes,&dir_fisica,&pid);
                 sleep((configuracionMemoria->retardo_memoria/1000));
                 escribir_FS(dato,dir_fisica,cantBytes,pid);
@@ -36,7 +36,7 @@ void hilo_filesystem(){
             }
 
             else
-                log_error(logger, "FS no envio el header correcto: %d", header);
+                log_debug(logger, "FS no envio el header correcto: %d", header);
     }	
 }
 

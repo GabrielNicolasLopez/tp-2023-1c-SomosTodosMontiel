@@ -9,7 +9,7 @@ void crear_hilo_productor()
         uint8_t header = stream_recv_header(socketKernel);
         
         if ( header == (uint8_t) FS_FINALIZAR) {
-            log_info(logger, "Hilo_productor: FS debe finalizar");
+            log_debug(logger, "Hilo_productor: FS debe finalizar");
             // LE AVISO A HILO_CONSUMIDOR
             p_instruccion = malloc(sizeof(t_instruccion_FS));
             p_instruccion->tipo = EXIT;
@@ -20,7 +20,7 @@ void crear_hilo_productor()
         }
         
         if ( header != (uint8_t) FS_INSTRUCCION) {
-            log_info(logger, "Hilo_productor: FS debe finalizar");
+            log_debug(logger, "Hilo_productor: FS debe finalizar");
             // LE AVISO A HILO_CONSUMIDOR
             p_instruccion = malloc(sizeof(t_instruccion_FS));
             p_instruccion->tipo = EXIT;

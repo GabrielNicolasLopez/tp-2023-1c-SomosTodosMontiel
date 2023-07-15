@@ -12,7 +12,7 @@ int main(int argc, char ** argv){
         fprintf(stderr, "Error al abrir el logger, abortando...");
         exit(EXIT_FAILURE);
     }
-    log_info(logger, "INICIANDO FILESYSTEM...");
+    log_debug(logger, "INICIANDO FILESYSTEM...");
 
     // CONFIG
     config = config_create(CONFIG_PATH);
@@ -35,7 +35,7 @@ int main(int argc, char ** argv){
 
     // CREO SERVER PARA CONEXION COMO SERVIDOR CON KERNEL
     if (crear_servidor_kernel() == -1) {
-        log_error(logger, "Error al crear servidor con kernel");
+        log_debug(logger, "Error al crear servidor con kernel");
         config_destroy(config);
 	    free(configFS);
         exit(-1);
