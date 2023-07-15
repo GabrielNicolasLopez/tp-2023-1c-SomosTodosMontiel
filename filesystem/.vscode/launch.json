@@ -12,7 +12,7 @@
       "args": [
         // TODO: Agregar los argumentos que se necesiten
         // CONFIG:
-        "./cfg/filesystem.cfg"
+        "./cfg/fs.cfg"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

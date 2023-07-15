@@ -70,7 +70,10 @@ int escribir_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t
     uint32_t bytes_escritos = 0;
     uint32_t bloque_a_escribir;
     
-    uint32_t* PIS = leer_PIS(FCB);
+    uint32_t* PIS = NULL;
+    if (FCB->FCB_config->PUNTERO_INDIRECTO != -1) {
+        PIS = leer_PIS(FCB);
+    }
 
     // ESCRIBO RESTANTE
     bloque_a_escribir = buscar_bloque(bloque_contiene_p_archivo, FCB, PIS);
@@ -154,7 +157,10 @@ char* leer_bloques(t_lista_FCB_config* FCB, uint32_t puntero_archivo, uint32_t c
     uint32_t bytes_leidos = 0;
     uint32_t bloque_a_leer;
 
-    uint32_t* PIS = leer_PIS(FCB);
+    uint32_t* PIS = NULL;
+    if (FCB->FCB_config->PUNTERO_INDIRECTO != -1) {
+        PIS = leer_PIS(FCB);
+    }
 
     // LEO RESTANTE
     bloque_a_leer = buscar_bloque(bloque_contiene_p_archivo, FCB, PIS);
