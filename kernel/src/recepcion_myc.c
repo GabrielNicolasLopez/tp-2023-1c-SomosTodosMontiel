@@ -222,11 +222,11 @@ void recibir_cym_desde_cpu(t_motivoDevolucion *motivoDevolucion, int conexion_co
         buffer_unpack(cym_recibido, &(segmento->base),        sizeof(uint32_t));
         buffer_unpack(cym_recibido, &(segmento->tamanio),     sizeof(uint32_t));
         list_add(contextoEjecucion->tablaDeSegmentos, segmento);
-		log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		/*log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",
 		segmento->pid,
 		segmento->id_segmento,
 		segmento->base,
-		segmento->tamanio);
+		segmento->tamanio);*/
     }
 
 	buffer_destroy(cym_recibido);

@@ -253,7 +253,7 @@ void mandarListaProceso(t_list *lista){
         buffer_pack(buffer, &(segmento->id_segmento), sizeof(uint32_t));
         buffer_pack(buffer, &(segmento->base),        sizeof(uint32_t));
         buffer_pack(buffer, &(segmento->tamanio),     sizeof(uint32_t));
-        /* log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio); */
+        log_debug(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
     }
 
     stream_send_buffer(conexion_con_kernel, LISTA, buffer);

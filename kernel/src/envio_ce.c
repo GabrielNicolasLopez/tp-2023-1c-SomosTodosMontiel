@@ -135,7 +135,7 @@ void enviar_ce_a_cpu(t_pcb *pcb, int conexion_con_cpu)
         buffer_pack(ce_a_enviar, &(segmento->id_segmento), sizeof(uint32_t));
         buffer_pack(ce_a_enviar, &(segmento->base),        sizeof(uint32_t));
         buffer_pack(ce_a_enviar, &(segmento->tamanio),     sizeof(uint32_t));
-        log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
+        //log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
     }
 
 	stream_send_buffer(conexion_con_cpu, CE, ce_a_enviar);

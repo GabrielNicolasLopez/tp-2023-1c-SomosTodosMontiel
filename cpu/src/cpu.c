@@ -285,7 +285,7 @@ void enviar_cym_a_kernel(t_motivoDevolucion motivo, t_contextoEjecucion *context
         buffer_pack(cym_a_enviar, &(segmento->id_segmento), sizeof(uint32_t));
         buffer_pack(cym_a_enviar, &(segmento->base),        sizeof(uint32_t));
         buffer_pack(cym_a_enviar, &(segmento->tamanio),     sizeof(uint32_t));
-        log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
+        //log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",	segmento->pid, segmento->id_segmento, segmento->base, segmento->tamanio);
     }
 
 	stream_send_buffer(cliente_fd_kernel, CYM, cym_a_enviar);
@@ -490,11 +490,11 @@ t_contextoEjecucion* recibir_ce_de_kernel(int cliente_fd_kernel){
         buffer_unpack(ce_recibido, &(segmento->base),        sizeof(uint32_t));
         buffer_unpack(ce_recibido, &(segmento->tamanio),     sizeof(uint32_t));
         list_add(contextoEjecucion->tablaDeSegmentos, segmento);
-		log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",
+		/*log_error(logger, "pid: %d, id: %d, base: %d, tam: %d",
 		segmento->pid,
 		segmento->id_segmento,
 		segmento->base,
-		segmento->tamanio);
+		segmento->tamanio);*/
     }
 
     buffer_destroy(ce_recibido);
