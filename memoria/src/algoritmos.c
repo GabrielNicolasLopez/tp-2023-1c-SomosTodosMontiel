@@ -1,10 +1,13 @@
 #include <algoritmos.h>
+#include <funciones.h>
 
 
 //FirstFit
 uint32_t algoritmoFirstFit(uint32_t tamSegmento){
     log_debug(logger,"Aplicando Algoritmo FirstFit");
+    list_sort(listaHuecos, compararPorBaseHueco);
     // Buscar el primer hueco que pueda contener el segmento
+
     for (int i = 0; i < list_size(listaHuecos); i++) {
         t_hueco* hueco = list_get(listaHuecos, i);
         uint32_t baseEncontrada;

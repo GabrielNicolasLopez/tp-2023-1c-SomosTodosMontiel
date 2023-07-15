@@ -12,7 +12,7 @@
       "args": [
         // TODO: Agregar los argumentos que se necesiten
         // CONFIG:
-        "./cfg/best.cfg"
+        "./cfg/first.cfg"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

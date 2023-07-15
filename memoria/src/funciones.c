@@ -24,6 +24,7 @@ uint32_t comprobar_Creacion_de_Seg(uint32_t tamanio){
     uint32_t espacioLibre = 0;
     //Verificar disponibilidad de espacio contiguo
     for (int i = 0; i < list_size(listaHuecos); i++) {
+
         hueco = list_get(listaHuecos,i);
         if (hueco->tamanio>=tamanio) {
             log_debug(logger,"Hay espacio suficiente para crear el segmento");
@@ -105,15 +106,23 @@ t_segmento* buscarSegmentoPorIdPID(uint32_t id, uint32_t pid) {
     return NULL;  // Si no se encuentra el segmento, se devuelve NULL
 }
 
-uint32_t compararPorBase(const void* a, const void* b) {
+
+bool compararPorBase(const void* a, const void* b) {
     const t_segmento* segA = (const t_segmento*)a;
     const t_segmento* segB = (const t_segmento*)b;
     
     if (segA->base < segB->base)
-        return -1;
-    if (segA->base > segB->base)
-        return 1;
-    return 0;
+        return true;
+    return false;
+}
+
+bool compararPorBaseHueco(const void* a, const void* b) {
+    const t_hueco* huecoA = (const t_hueco*)a;
+    const t_hueco* huecoB = (const t_hueco*)b;
+    
+    if (huecoA->base < huecoB->base)
+        return true;
+    return false;
 }
 
 void buscarSegmentoPorPID(t_list* listaABorrar, uint32_t pid){
@@ -145,7 +154,7 @@ void eliminarProceso(t_list* listaSegmentosBorrar){
 void compactar(){
 
     list_sort(listaSegmentos, compararPorBase);
-    list_sort(listaHuecos, compararPorBase);
+    list_sort(listaHuecos, compararPorBaseHueco);
     uint32_t desplazamiento = 0;
     log_debug(logger,"Se empezo a Compactar");
     for(int i=0;i<list_size(listaSegmentos);i++){
@@ -166,7 +175,7 @@ void compactar(){
 
 void buddySystem(){
     
-    list_sort(listaHuecos, compararPorBase);
+    list_sort(listaHuecos, compararPorBaseHueco);
      
     t_hueco* huecoA = malloc(sizeof(t_hueco));
     t_hueco* huecoB = malloc(sizeof(t_hueco));
